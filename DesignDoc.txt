@@ -1,0 +1,134 @@
+Resourceful Rails
+
+Basic Game Flow
+
+Objective of the Game: to build railroad track connecting 6 of the 7 major cities and have $250 in cash.
+
+Setup
+- 2-6 players
+- choose map
+- each player chooses color
+- determine turn order
+  - random
+  - custom
+- each player starts with 
+  - $50
+  - 3 order cards
+
+Build turns
+- start with player 1
+- can only build
+- move to next player
+- when at end of turn of last player
+  - reverse turn order
+  - last player goes again
+- when at end of turn of first player
+  - reverse turn order
+  - first player goes again
+
+First Normal turn (for each player)
+- player places train on any city
+- city must have track from that player connected
+- then play continues as a normal turns
+
+Normal turns
+Phase 1
+- move train
+- pickup good
+- drop off good
+
+Phase 2
+- build track
+- upgrade train
+- $20 limit
+
+Optional
+- discard hand and draw 3 new cards
+- this option replaces any other action
+
+
+
+Order Cards
+- each player must have 3 at all times
+- 3 orders per card
+- order consists of 3 elements
+  - city to deliver to
+  - good to deliver
+  - money recieved on delivery
+- when a good is delivered
+  - discard that card (only one good may be delivered per card)
+  - draw a new card
+  - recieve payment immediately
+
+
+Building track
+- track built between adjacent nodes
+- nodes are in hexagonal grid formation
+- thus each node has only 6 possible nodes to build to
+- node can one of several types
+  - clear         $1
+  - mountain      $2
+  - small city    $3
+  - medium city   $3
+  - major city    $5
+  - water         N/A
+- water nodes cannot be built on at all
+- price is determined by node being built to, not from
+
+River
+- building over a river incurs an extra cost on top of the normal build cost
+- +$2
+
+Cities
+- each city has between 0-3 goods that trains may pick up
+- small city
+  - only 2 players may build into
+  - 1 node
+- medium city
+  - only 3 players may build into
+  - 1 node
+- major city
+  - any number of players may build into
+  - 7 nodes total (hexagon)
+  - no player may build between major city nodes
+  - major city nodes are considered track that all players may use freely
+
+- courtesy rule
+  - players cannot build such that they block other players to prevent the maximum number of connections
+  - ie, there must be enough inlets for 2 players to build into a small city
+  - they may block more convenient access however
+
+Goods
+- 30 types in total
+- each takes up one good slot on train
+
+Trains
+- 4 types of train
+  - modest train
+    - 9 movement
+    - 2 goods
+  - fast train
+    - 12 movement
+    - 2 goods
+  - heavy train
+    - 9 movement
+    - 3 goods
+  - advanced train
+    - 12 movement
+    - 3 goods
+- all players start with modest train
+- modest train can upgrade to fast or heavy train
+- fast or heavy trains can upgrade to advanced train
+
+
+Optional Rules
+- fast trains
+  -  9 -> 12
+  - 12 -> 16
+  - great for more players
+- extra build turn
+  - start with $60
+  - 3 build turns instead of 2
+- extra starting cards
+  - start with 5 cards instead of 3
+  - when first normal turn starts, discard 2 cards
