@@ -36,15 +36,16 @@ Phase 1
 - move train
 - pickup good
 - drop off good
+- discard hand and draw 3 new cards
+  - this option replaces any other action
+  - instantly ends the turn
 
 Phase 2
 - build track
+  - $20 limit
 - upgrade train
-- $20 limit
-
-Optional
-- discard hand and draw 3 new cards
-- this option replaces any other action
+  - may choose to upgrade instead of building
+  - costs $20
 
 
 
@@ -59,6 +60,8 @@ Order Cards
   - discard that card (only one good may be delivered per card)
   - draw a new card
   - recieve payment immediately
+- card has varied payouts
+- payment based on distance and difficulty getting good
 
 
 Building track
