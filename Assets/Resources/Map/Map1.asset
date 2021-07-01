@@ -12,3 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4e2726362ba7e646bf504d2c89b6f17, type: 3}
   m_Name: Map1
   m_EditorClassIdentifier: 
+  Nodes: []
+  Segments: []

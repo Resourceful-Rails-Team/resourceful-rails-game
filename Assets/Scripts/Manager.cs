@@ -63,15 +63,15 @@ namespace Rails
 
         private void OnDrawGizmos()
         {
-            if (Map == null || Map.Nodes == null)
+            if (Map == null || Map.Nodes == null || Map.Nodes.Length == 0)
                 return;
 
             Gizmos.color = Color.black;
-            for (int x = 0; x < Map.Nodes.GetLength(0); x++)
+            for (int x = 0; x < Size; x++)
             {
-                for (int y = 0; y < Map.Nodes.GetLength(1); y++)
+                for (int y = 0; y < Size; y++)
                 {
-                    Gizmos.DrawSphere(GetPosition(Map.Nodes[x, y].Id), WSSize * 0.1f);
+                    Gizmos.DrawSphere(GetPosition(Map.Nodes[(y * Size) + x].Id), WSSize * 0.1f);
                 }
             }
         }

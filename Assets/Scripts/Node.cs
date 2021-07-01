@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Rails
 {
+	[Serializable]
 	public enum NodeType
     {
 		Clear,
@@ -14,14 +16,15 @@ namespace Rails
 		Water
     }
 
+	[Serializable]
 	public class Node
 	{
 		[SerializeField]
-		public NodeType Type { get; set; }
+		public NodeType Type;
 		[SerializeField]
-		public NodeId Id { get; set; }
+		public NodeId Id;
 		[SerializeField]
-		private bool[] Rivers { get; set; } = new bool[(int)Cardinal.MAX_CARDINAL];
+		private bool[] Rivers = new bool[(int)Cardinal.MAX_CARDINAL];
 		
 		public Node(NodeId id)
 		{

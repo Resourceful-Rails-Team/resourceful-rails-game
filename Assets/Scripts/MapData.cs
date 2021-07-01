@@ -8,9 +8,14 @@ namespace Rails
     public class MapData : ScriptableObject
     {
         [SerializeField]
-        public Node[,] Nodes;
+        public Node[] Nodes;
         [SerializeField]
         public NodeSegment[] Segments;
+
+        public MapData()
+        {
+
+        }
 
         public NodeSegment[] GetNodeSegments(NodeId id)
         {

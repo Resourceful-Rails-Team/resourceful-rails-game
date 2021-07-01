@@ -24,8 +24,8 @@ namespace Rails.Editor
 
             if (GUILayout.Button("Regenerate Grid"))
             {
+                Undo.RecordObject(manager.Map, "Generate map");
                 Generate(manager.Map);
-                EditorUtility.SetDirty(manager.Map);
             }
 
             GUILayout.EndVertical();
@@ -34,7 +34,7 @@ namespace Rails.Editor
         private void Generate(MapData mapData)
         {
             var size = Manager.Size;
-            mapData.Nodes = new Node[size, size];
+            mapData.Nodes = new Node[size * size];
             mapData.Segments = new NodeSegment[size * size * 6];
             Node node;
 
@@ -44,7 +44,7 @@ namespace Rails.Editor
                 {
                     // build node
                     node = new Node(new NodeId(x, y));
-                    mapData.Nodes[x, y] = node;
+                    mapData.Nodes[node.Id.GetSingleId()] = node;
 
                     // build 6 segments per node
                     var segIndex = node.Id.GetSingleId() * 6;
@@ -54,6 +54,14 @@ namespace Rails.Editor
                     }
                 }
             }
+        }
+
+        private void Save(MapData mapData)
+        {
+            //AssetDatabase.CreateAsset(mapData, "Assets/Resources/Map/Map1_.asset");
+            EditorUtility.SetDirty(mapData as ScriptableObject);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
     }
 }
