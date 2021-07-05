@@ -113,7 +113,10 @@ namespace Rails.MapEditor
                 || e.type == EventType.MouseDown
                 || e.type == EventType.MouseUp
                 || e.type == EventType.MouseDrag)
-                && e.button == 0)
+                && e.button == 0
+                && !e.control
+                && !e.shift
+                && !e.alt)
             {
                 // move cursor
                 UpdateCursor(sceneView, e);
