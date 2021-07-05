@@ -1,7 +1,7 @@
 # Resourceful Rails
 
 ### Thomas Abel, Daniel Gerendasy, and Christian Schmid
-<br>
+</br>
 
 ## Description
 
@@ -22,6 +22,14 @@ There are two different turn types for each game that is played - **build turns*
 **Goal of the Game** - to connect railroad tracks to a specified amount of major cities, and to have a set amount of cash in hand. If a player meets both these goals, they win.
 
 
+## Inspiration
+
+Inspiration for Resourceful Rails comes from:
+
+- [Empire Builder Board Game](https://en.wikipedia.org/wiki/Empire_Builder_(board_game))
+- [18XX Board Game Format](https://en.wikipedia.org/wiki/18XX)
+- [18XX Online Games](https://18xx.games/)
+
 ## Technology
 
 Resourceful Rails is built using the Unity Engine, with the C# programming language. 
@@ -37,6 +45,7 @@ Resourceful Rails is built using the Unity Engine, with the C# programming langu
 
 4. Create art and assets, and an interface which binds the assets to the game state, for players to see. Art assets include trains, tracks, nodes, and a world map background. Art will be both 3D (for models and nodes) and 2D (for background).
 
+Refer to the [DESIGN](./DESIGN.md) and [CONTROLS](./CONTROLS.md) documents for more information about the game's rules, UI, controls, components, and objectives.
 
 ## Acknowledgements
 
@@ -54,7 +63,7 @@ Resourceful Rails is built using the Unity Engine, with the C# programming langu
 | **Proto** - Map Creation      | **Proto** - Basic 3D Assets    | **Proto** - Pathfinding     | Optional Rules     |
 | **Proto** - Map Serialization | **Proto** - Basic UI           | **Proto** - Level Setup     | Multi. Short Paths |
 | **MVP**   - Map Editing       | **MVP**   - Map Background     | **Proto** - Build Turns     | 2D Billboard Art   | 
-|                               | **MVP**   - Complete 3D Assets | **Proto** - Trains          |                    ||                               | **MVP**   - Complete UI        | **MVP**   - Order Cards     |                    |
+|                               | **MVP**   - Complete 3D Assets | **Proto** - Trains          | Controller Support ||                               | **MVP**   - Complete UI        | **MVP**   - Order Cards     |                    |
 |                               |                                | **MVP**   - Delivery Turns  |                    |
 |                               |                                | **MVP**   - Train Upgrades  |                    |
 |                               |                                | **MVP**   - Determining Win |                    |
@@ -62,5 +71,5 @@ Resourceful Rails is built using the Unity Engine, with the C# programming langu
 ## License
 
 This work is made available under the "MIT License". Please
-see the file `LICENSE` in this distribution for license
+see the [LICENSE](./LICENSE) in this distribution for license
 terms.
