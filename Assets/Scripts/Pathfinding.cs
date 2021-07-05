@@ -15,26 +15,26 @@ namespace Rails
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>    
-        public static List<Vector2Int> LeastCostTrack(
-            Dictionary<Vector2Int, int[]> tracks, 
-            int player, Vector2Int start, Vector2Int end
+        public static List<NodeId> LeastCostTrack(
+            Dictionary<NodeId, int[]> tracks, 
+            int player, NodeId start, NodeId end
         ) {
             if(start == end)
-                return new List<Vector2Int> { start };
+                return new List<NodeId> { start };
             if(!tracks.ContainsKey(start) || !tracks.ContainsKey(end))
                 return null;
 
             // The true distances from start to considered point
             // (without A* algorithm consideration)
-            var distMap = new Dictionary<Vector2Int, int>();
+            var distMap = new Dictionary<NodeId, int>();
             // The list of nodes to return from method
-            var list = new List<Vector2Int>(); 
+            var list = new List<NodeId>(); 
             // The list of all nodes visited, connected to their
             // shortest-path neighbors.
-            var previous = new Dictionary<Vector2Int, Vector2Int>();
+            var previous = new Dictionary<NodeId, NodeId>();
             // The next series of nodes to check
             var queue = new SortedSet<WeightedNode>();
-            var visitedNodes = new HashSet<Vector2Int>();
+            var visitedNodes = new HashSet<NodeId>();
             // The current considered node
             WeightedNode node;
 
@@ -90,17 +90,10 @@ namespace Rails
             else return null;
         }
 
-        public static List<Vector2Int> LeastWeightPath(
-            Dictionary<Vector2Int, int[]> tracks,
-            MapData mapData, Vector2Int start, Vector2Int end
+        public static List<NodeId> LeastWeightPath(
+            Dictionary<NodeId, int[]> tracks,
+            MapData mapData, NodeId start, NodeId end
         ) {
-            if(start == end) return new List<Vector2Int> { start };
-
-            // Return null if start or end is outside the map bounds
-            var bounds = new BoundsInt(0, 0, -10, Manager.Size, Manager.Size, 20);
-            if(!bounds.Contains((Vector3Int)start) || !bounds.Contains((Vector3Int)end))
-                return null;            
-
             return null;
         }
     }    
@@ -112,9 +105,9 @@ namespace Rails
     /// </summary>
     public class WeightedNode : IComparable<WeightedNode>
     {
-        public Vector2Int Position { get; set; }
+        public NodeId Position { get; set; }
         public int Weight { get; set; }
-        public WeightedNode(Vector2Int position, int weight)
+        public WeightedNode(NodeId position, int weight)
         {
             Position = position;
             Weight = weight;
