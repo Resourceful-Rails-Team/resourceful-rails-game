@@ -1,5 +1,8 @@
 # Resourceful Rails
 
+### Thomas Abel, Daniel Gerendasy, and Christian Schmid
+<br>
+
 ## Description
 
 Resourceful Rails is a 3D video game board game, where players pay for and build railroad tracks across the Pacific Northwest, delivering cargo to different cities by train, and making a profit from that cargo. Money is the name of the game - when a player earns a certain amount of dollars from their cargo, they win!
@@ -42,7 +45,19 @@ Resourceful Rails is built using the Unity Engine, with the C# programming langu
 
 ## Project roadmap
 
-[Click here](https://trello.com/b/gVsj6pIm) to see the project's roadmap. The roadmap includes color-coded tasks which will implement a three-week prototype (green-colored), and a six-week MVP (yellow-colored).
+[Click here](https://trello.com/b/gVsj6pIm), to see the project's roadmap. The roadmap includes color-coded tasks which will implement a three-week prototype (green-colored), and a six-week MVP (yellow-colored).
+
+<br>
+
+| World Creator / Editor        | Art / Assets                   | Game Logic                  | Stretch Goals      |
+| :---                          | :---                           | :---                        | :---               |
+| **Proto** - Map Creation      | **Proto** - Basic 3D Assets    | **Proto** - Pathfinding     | Optional Rules     |
+| **Proto** - Map Serialization | **Proto** - Basic UI           | **Proto** - Level Setup     | Multi. Short Paths |
+| **MVP**   - Map Editing       | **MVP**   - Map Background     | **Proto** - Build Turns     | 2D Billboard Art   | 
+|                               | **MVP**   - Complete 3D Assets | **Proto** - Trains          |                    ||                               | **MVP**   - Complete UI        | **MVP**   - Order Cards     |                    |
+|                               |                                | **MVP**   - Delivery Turns  |                    |
+|                               |                                | **MVP**   - Train Upgrades  |                    |
+|                               |                                | **MVP**   - Determining Win |                    |
 
 ## License
 
