@@ -1,14 +1,25 @@
 # Resourceful Rails
 
+### Thomas Abel, Daniel Gerendasy, and Christian Schmid
+<br>
+
 ## Description
 
 Resourceful Rails is a 3D video game board game, where players pay for and build railroad tracks across the Pacific Northwest, delivering cargo to different cities by train, and making a profit from that cargo. Money is the name of the game - when a player earns a certain amount of dollars from their cargo, they win!
 
-There are two different phases for each game that is played - the **build phase** and the **delivery phase**.
-- **Build Phase** - during this phase players take turns inserting railroad tracks on the map, travelling from city to city, attempting to maximize their tracks' delivery potentials. Each track costs money to build, and different track nodes entail different costs (for instance - a mountain node requires extra money to build a track on).
-- **Delivery Phase** - once the tracks are (for better or worse) complete, the players begin delivering cargo to different cities, using their own tracks, and borrowing the tracks of other players (for a cost). The players draw a pool of cards at random, each designating delivery plans from one city to another. Players then can choose one of these cards and attempt to deliver that particular load. If they do so they make money. 
+There are two different turn types for each game that is played - **build turns** and **delivery turns**.
 
-**Goal of the Game** - to make a certain maximum amount of money. Whichever player reaches the goal first wins.
+- **Build Turns** - Build turns take place for the first segment of the game. During these turns players insert railroad tracks on the map, travelling from city to city, attempting to maximize their tracks' delivery potentials. Each track costs money to build, and different track nodes entail different costs (for instance - a mountain node requires more money to build a track on than a flat node).
+
+- **Delivery Turns** - once the tracks have been built, the players begin delivering cargo to different cities, using their own tracks, and borrowing the tracks of other players (for a cost). To begin, players draw 3 order cards at random, each designating delivery plans from one city to another.
+
+    There are two phases during a delivery turn:
+
+    1. Players first direct their trains to pickup cargo at the cities specified by their order cards. Then they deliver that cargo to the target cities. If desired, players can also discard their whole hand and draw a new one, at the cost of their turn.
+
+    2. Players can spend money to add onto their current tracks, up to a certain maximum amount of money. Along with this, they can choose to upgrade their trains, for different benefits such as added speed and more space for orders.
+
+**Goal of the Game** - to connect railroad tracks to a specified amount of major cities, and to have a set amount of cash in hand. If a player meets both these goals, they win.
 
 
 ## Technology
@@ -34,7 +45,19 @@ Resourceful Rails is built using the Unity Engine, with the C# programming langu
 
 ## Project roadmap
 
-[Click here](https://trello.com/b/gVsj6pIm) to see the project's roadmap. The roadmap includes color-coded tasks which will implement a three-week prototype (green-colored), and a six-week MVP (yellow-colored).
+[Click here](https://trello.com/b/gVsj6pIm), to see the project's roadmap. The roadmap includes color-coded tasks which will implement a three-week prototype (green-colored), and a six-week MVP (yellow-colored).
+
+<br>
+
+| World Creator / Editor        | Art / Assets                   | Game Logic                  | Stretch Goals      |
+| :---                          | :---                           | :---                        | :---               |
+| **Proto** - Map Creation      | **Proto** - Basic 3D Assets    | **Proto** - Pathfinding     | Optional Rules     |
+| **Proto** - Map Serialization | **Proto** - Basic UI           | **Proto** - Level Setup     | Multi. Short Paths |
+| **MVP**   - Map Editing       | **MVP**   - Map Background     | **Proto** - Build Turns     | 2D Billboard Art   | 
+|                               | **MVP**   - Complete 3D Assets | **Proto** - Trains          |                    ||                               | **MVP**   - Complete UI        | **MVP**   - Order Cards     |                    |
+|                               |                                | **MVP**   - Delivery Turns  |                    |
+|                               |                                | **MVP**   - Train Upgrades  |                    |
+|                               |                                | **MVP**   - Determining Win |                    |
 
 ## License
 
