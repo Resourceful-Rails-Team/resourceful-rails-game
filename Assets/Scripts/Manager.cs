@@ -79,20 +79,25 @@ namespace Rails
                     var node = Map.Nodes[(y * Size) + x];
                     var pos = GetPosition(node.Id);
                     Gizmos.color = Utilities.GetNodeColor(node.Type);
-                    Gizmos.DrawSphere(pos, WSSize * 0.1f);
+                    Gizmos.DrawSphere(pos, WSSize * 0.3f);
 
                     // draw segments
+                    // we iterate only bottom-right half of segments to prevent drawing them twice
                     var segments = Map.GetNodeSegments(node.Id);
-                    for (Cardinal c = 0; c < Cardinal.MAX_CARDINAL; ++c)
+                    for (Cardinal c = Cardinal.NE; c <= Cardinal.S; ++c)
                     {
+                        // get segment
                         var segment = segments[(int)c];
-                        var nextNodeId = Utilities.PointTowards(node.Id, c);
-
-                        if (nextNodeId.InBounds)
+                        if (segment != null)
                         {
-                            var nextNode = Map.Nodes[nextNodeId.GetSingleId()];
-                            Gizmos.color = Utilities.GetSegmentColor(segment.Type);
-                            Gizmos.DrawLine(pos, GetPosition(nextNode.Id));
+                            // get neighboring nodeid
+                            var nextNodeId = Utilities.PointTowards(node.Id, c);
+                            if (nextNodeId.InBounds)
+                            {
+                                // draw line to
+                                Gizmos.color = Utilities.GetSegmentColor(segment.Type);
+                                Gizmos.DrawLine(pos, GetPosition(nextNodeId));
+                            }
                         }
                     }
                 }
@@ -114,6 +119,56 @@ namespace Rails
                 pos.z += h / 2;
 
             return pos;
+        }
+
+        /// <summary>
+        /// Returns a collection of NodeIds of nodes that lie within the given circle.
+        /// </summary>
+        /// <param name="position">Position of the circle</param>
+        /// <param name="radius">Radius of circle</param>
+        public List<NodeId> GetNodeIdsByPosition(Vector3 position, float radius)
+        {
+            List<NodeId> nodeIds = new List<NodeId>();
+            var w = 2 * WSSize;
+            var h = Mathf.Sqrt(3) * WSSize;
+            var wspace = 0.75f * w;
+
+            // Algorithm generates a bounding square
+            // It then iterates all nodes within that box
+            // Checking if the world space position of that node is within the circle
+
+            // get grid-space node position
+            Vector2 centerNodeId = new Vector2(position.x / wspace, position.z / h);
+            if ((int)centerNodeId.x % 2 == 1)
+                centerNodeId.y -= h / 2;
+
+            // determine grid-space size of radius
+            int extents = Mathf.CeilToInt(radius / wspace);
+
+            // generate bounds from center and radius
+            // clamp min to be no less than 0
+            // clamp max to be no more than Size-1
+            int minX = Mathf.Max(0, (int)centerNodeId.x - extents);
+            int maxX = Mathf.Min(Size-1, Mathf.CeilToInt(centerNodeId.x) + extents);
+            int minY = Mathf.Max(0, (int)centerNodeId.y - extents);
+            int maxY = Mathf.Min(Size-1, Mathf.CeilToInt(centerNodeId.y) + extents);
+
+            // iterate bounds
+            for (int x = minX; x <= maxX; ++x)
+            {
+                for (int y = minY; y <= maxY; ++y)
+                {
+                    // get position from NodeId
+                    var nodeId = new NodeId(x, y);
+                    var pos = GetPosition(nodeId);
+
+                    // check if position is within circle
+                    if (Vector3.Distance(pos, position) < radius)
+                        nodeIds.Add(nodeId);
+                }
+            }
+
+            return nodeIds;
         }
 
         #endregion 

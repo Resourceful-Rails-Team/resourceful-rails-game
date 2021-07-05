@@ -35,8 +35,14 @@ namespace Rails
         /// </summary>
         /// <param name="towards">The Cardinal being reflected</param>
         /// <returns>The opposite cardinal direction to towards</returns> 
-        public static Cardinal ReflectCardinal(Cardinal towards) =>
-            (Cardinal)Mathf.Repeat((int)Cardinal.SW, (int)towards - 3);
+        public static Cardinal ReflectCardinal(Cardinal towards)
+        {
+            towards -= 3;
+            if (towards < 0)
+                towards += (int)Cardinal.MAX_CARDINAL;
+
+            return towards;
+        }
 
         /// <summary>
         /// Returns the respective color associated with the given NodeType.
@@ -62,7 +68,7 @@ namespace Rails
         {
             switch (segmentType)
             {
-                case NodeSegmentType.None: return Color.white;
+                case NodeSegmentType.None: return Color.clear;
                 case NodeSegmentType.River: return Color.blue;
                 default: return Color.white;
             }

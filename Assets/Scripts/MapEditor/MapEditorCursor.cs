@@ -46,6 +46,8 @@ namespace Rails.MapEditor
         public bool HighlightSelectedNodes = true;
         public bool HighlightSelectedSegments = true;
 
+        public event EventHandler<Vector3> OnPaint;
+
         private bool _canSeeFloor = false;
 
 #if UNITY_EDITOR
@@ -103,15 +105,27 @@ namespace Rails.MapEditor
         {
             Event e = Event.current;
 
-            //Debug.Log($"{DateTime.Now.Ticks}: {e.type} {e.mousePosition}");
+            // 
+            if (!Visible)
+                return;
+
             if (   (e.type == EventType.MouseMove 
                 || e.type == EventType.MouseDown
                 || e.type == EventType.MouseUp
                 || e.type == EventType.MouseDrag)
                 && e.button == 0)
             {
+                // move cursor
                 UpdateCursor(sceneView, e);
+
+                // trigger paint event
+                if (e.type == EventType.MouseDown || e.type == EventType.MouseDrag)
+                    OnPaint?.Invoke(this, transform.position);
+
+                // prevent event from propagating
                 e.Use();
+
+                // force redraw (updates gizmos)
                 sceneView.Repaint();
             }
         }
@@ -138,24 +152,49 @@ namespace Rails.MapEditor
             Gizmos.DrawSphere(Vector3.zero, Radius);
             
             // draw cursor sphere frame
-            Gizmos.color = Color.white;
+            Gizmos.color = Color.white * 0.5f;
             Gizmos.DrawWireSphere(Vector3.zero, Radius);
 
             // return matrix back to original
             Gizmos.matrix = m;
 
-            // Draw grid
-            var manager = Manager.Singleton;
-            if (HighlightSelectedNodes && manager != null && manager.Map != null && manager.Map.Nodes != null && manager.Map.Nodes.Length > 0)
+            // Draw highlighted nodes/segments
+            if (HighlightSelectedNodes || HighlightSelectedSegments)
             {
                 Gizmos.color = Color.white;
-                for (int x = 0; x < Manager.Size; x++)
+                var manager = Manager.Singleton;
+                if (manager != null && manager.Map != null && manager.Map.Nodes != null && manager.Map.Nodes.Length > 0)
                 {
-                    for (int y = 0; y < Manager.Size; y++)
+                    var nodeIds = manager.GetNodeIdsByPosition(transform.position, Radius);
+                    foreach (var nodeId in nodeIds)
                     {
-                        var pos = manager.GetPosition(manager.Map.Nodes[(y * Manager.Size) + x].Id);
-                        if (Vector3.Distance(pos, transform.position) < Radius)
-                            Gizmos.DrawSphere(pos, manager.WSSize * 0.1f);
+                        var pos = manager.GetPosition(nodeId);
+                        if (HighlightSelectedNodes)
+                        {
+                            Gizmos.DrawSphere(pos, manager.WSSize * 0.2f);
+                        }
+
+                        if (HighlightSelectedSegments)
+                        {
+                            // iterate segments
+                            var segments = manager.Map.GetNodeSegments(nodeId);
+                            for (Cardinal c = 0; c < Cardinal.MAX_CARDINAL; ++c)
+                            {
+                                var segment = segments[(int)c];
+                                if (segment != null)
+                                {
+                                    var neighborId = Utilities.PointTowards(nodeId, c);
+                                    if (neighborId.InBounds)
+                                    {
+                                        var neighborPos = manager.GetPosition(neighborId);
+                                        if (Vector3.Distance(neighborPos, transform.position) < Radius)
+                                        {
+                                            Gizmos.DrawLine(pos, neighborPos);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
