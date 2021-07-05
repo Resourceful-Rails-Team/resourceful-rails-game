@@ -45,7 +45,7 @@ Resourceful Rails is built using the Unity Engine, with the C# programming langu
 
 4. Create art and assets, and an interface which binds the assets to the game state, for players to see. Art assets include trains, tracks, nodes, and a world map background. Art will be both 3D (for models and nodes) and 2D (for background).
 
-Refer to the [DESIGN](./DESIGN) and [CONTROLS](./CONTROLS) documents for more information about the game's rules, UI, controls, components, and objectives.
+Refer to the [DESIGN](./DESIGN.md) and [CONTROLS](./CONTROLS.md) documents for more information about the game's rules, UI, controls, components, and objectives.
 
 ## Acknowledgements
 
