@@ -54,7 +54,7 @@ namespace Rails
         ///
         /// </summary>
         [SerializeField]
-        private Dictionary<Vector2Int, int[]> Tracks = new Dictionary<Vector2Int, int[]>();
+        private Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
 
         #endregion
 
@@ -124,7 +124,7 @@ namespace Rails
         /// <param name="player">The player who owns the track</param>
         /// <param name="position">The position the track is placed</param>
         /// <param name="towards">The cardinal direction the track moves towards</param>
-        private void InsertTrack(int player, Vector2Int position, Cardinal towards)
+        private void InsertTrack(int player, NodeId position, Cardinal towards)
         {
             // If Cardinal data doesn't exist for the point yet,
             // insert and initialize the data
