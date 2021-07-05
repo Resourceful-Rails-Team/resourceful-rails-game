@@ -12,9 +12,9 @@ namespace Rails
         /// <param name="start">The start point</param>
         /// <param name="towards">The cardinal direction moving towards</param>
         /// <returns>The new point being moved towards.</returns>
-        public static Vector2Int PointTowards(Vector2Int start, Cardinal towards)
+        public static NodeId PointTowards(NodeId start, Cardinal towards)
         {
-            bool isOdd = start.x % 2 == 1;
+            bool isOdd = start.X % 2 == 1;
 
             var dir = towards switch
             {
@@ -26,7 +26,7 @@ namespace Rails
                 _ => isOdd ? Vector2Int.right : new Vector2Int(1, -1),
             };
 
-            return start + dir;
+            return new NodeId(start.X + dir.x, start.Y + dir.y);
         }
 
         /// <summary>
