@@ -11,6 +11,11 @@ namespace Rails
         public int X;
         public int Y;
 
+        /// <summary>
+        /// Whether or not the NodeId is within the bounds of the map
+        /// </summary>
+        public bool InBounds => X >= 0 && Y >= 0 && X < Manager.Size && Y < Manager.Size;
+
         public NodeId(int x, int y)
         {
             X = x;

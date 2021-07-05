@@ -43,6 +43,8 @@ namespace Rails.MapEditor
         public float Radius = 1f;
         public bool Visible = true;
         public Color Color = Color.red;
+        public bool HighlightSelectedNodes = true;
+        public bool HighlightSelectedSegments = true;
 
         private bool _canSeeFloor = false;
 
@@ -141,6 +143,22 @@ namespace Rails.MapEditor
 
             // return matrix back to original
             Gizmos.matrix = m;
+
+            // Draw grid
+            var manager = Manager.Singleton;
+            if (HighlightSelectedNodes && manager != null && manager.Map != null && manager.Map.Nodes != null && manager.Map.Nodes.Length > 0)
+            {
+                Gizmos.color = Color.white;
+                for (int x = 0; x < Manager.Size; x++)
+                {
+                    for (int y = 0; y < Manager.Size; y++)
+                    {
+                        var pos = manager.GetPosition(manager.Map.Nodes[(y * Manager.Size) + x].Id);
+                        if (Vector3.Distance(pos, transform.position) < Radius)
+                            Gizmos.DrawSphere(pos, manager.WSSize * 0.1f);
+                    }
+                }
+            }
         }
 #endif
     }

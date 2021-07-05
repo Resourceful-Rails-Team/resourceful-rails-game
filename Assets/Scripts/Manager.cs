@@ -25,6 +25,10 @@ namespace Rails
                 if (_singleton)
                     return _singleton;
 
+                _singleton = FindObjectOfType<Manager>();
+                if (_singleton)
+                    return _singleton;
+
                 GameObject go = new GameObject("Manager");
                 return go.AddComponent<Manager>();
             }
@@ -66,12 +70,39 @@ namespace Rails
             if (Map == null || Map.Nodes == null || Map.Nodes.Length == 0)
                 return;
 
-            Gizmos.color = Color.black;
             for (int x = 0; x < Size; x++)
             {
                 for (int y = 0; y < Size; y++)
                 {
-                    Gizmos.DrawSphere(GetPosition(Map.Nodes[(y * Size) + x].Id), WSSize * 0.1f);
+                    // draw node
+                    var node = Map.Nodes[(y * Size) + x];
+                    var pos = GetPosition(node.Id);
+                    Gizmos.color = MapEditorUtils.GetNodeColor(node.Type);
+                    Gizmos.DrawSphere(pos, WSSize * 0.1f);
+
+                    // draw segments
+                    var segments = Map.GetNodeSegments(node.Id);
+                    for (Cardinal c = 0; c < Cardinal.MAX_CARDINAL; ++c)
+                    {
+                        var segment = segments[(int)c];
+                        var nextNodeId = new NodeId(-1, -1);
+
+                        switch (c)
+                        {
+                            case Cardinal.S:
+                                {
+                                    nextNodeId = new NodeId(node.Id.X, node.Id.Y + 1);
+                                    break;
+                                }
+                        }
+
+                        if (nextNodeId.InBounds)
+                        {
+                            var nextNode = Map.Nodes[nextNodeId.GetSingleId()];
+                            Gizmos.color = MapEditorUtils.GetSegmentColor(segment.Type);
+                            Gizmos.DrawLine(pos, GetPosition(nextNode.Id));
+                        }
+                    }
                 }
             }
         }
