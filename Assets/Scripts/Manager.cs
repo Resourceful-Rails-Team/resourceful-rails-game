@@ -171,6 +171,7 @@ namespace Rails
             var previous = new Dictionary<Vector2Int, Vector2Int>();
             // The next series of nodes to check
             var queue = new SortedSet<WeightedNode>();
+            var visitedNodes = new HashSet<Vector2Int>();
             // The current considered node
             WeightedNode node;
 
@@ -191,21 +192,37 @@ namespace Rails
                     var newPoint = PointTowards(node.Position, c);
                     if(Tracks.ContainsKey(newPoint))
                     {
-                        if(distMap.ContainsKey(newPoint))
+                        // If a shorter path has already been found, continue
+                        if(distMap.ContainsKey(newPoint) && distMap[newPoint] <= node.Weight + 1)
+                            continue;
+
+                        distMap.Add(newPoint, node.Weight + 1);
+                        previous[newPoint] = node.Position;
+
+                        if(!visitedNodes.Contains(newPoint))
                         {
-                            
-                        }
-                        else
                             queue.Add(new WeightedNode(newPoint, node.Weight + 1));
+                            visitedNodes.Add(newPoint);
+                        }
                     }
                 } 
             }
 
             // If the node's position is the target, a path
-            // was successfully found
+            // was successfully found. Traverse the previous collection
+            // until start is reached, adding each node to list. Then
+            // reverse the list, and the shortest path is returned.
             if(node.Position == end)
             {
+                var pos = node.Position;
+                while(pos != start)
+                {
+                    list.Add(pos);
+                    pos = previous[pos];
+                }
 
+                list.Reverse();
+                return list;
             }
             else return null;
         }
