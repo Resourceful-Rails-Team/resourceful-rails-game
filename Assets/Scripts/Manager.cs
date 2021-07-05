@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -50,10 +51,10 @@ namespace Rails
         public MapData Map;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         [SerializeField]
-        private int[,] Tracks = new int[Size, Size];
+        private Dictionary<Vector2Int, int[]> Tracks = new Dictionary<Vector2Int, int[]>();
 
         #endregion
 
@@ -124,6 +125,30 @@ namespace Rails
             return pos;
         }
 
-        #endregion
+        #endregion 
+        
+        /// <summary>
+        /// Inserts a new track onto the Map, based on position and direction.
+        /// </summary>
+        /// <param name="player">The player who owns the track</param>
+        /// <param name="position">The position the track is placed</param>
+        /// <param name="towards">The cardinal direction the track moves towards</param>
+        private void InsertTrack(int player, Vector2Int position, Cardinal towards)
+        {
+            // If Cardinal data doesn't exist for the point yet,
+            // insert and initialize the data
+            if(!Tracks.ContainsKey(position))
+            {
+                Tracks[position] = new int[(int)Cardinal.MAX_CARDINAL];
+                for(int i = 0; i < (int)Cardinal.MAX_CARDINAL; ++i)
+                    Tracks[position][i] = -1;
+            }
+
+            Tracks[position][(int)towards] = player;
+
+            // As Tracks is undirected, insert a track moving the opposite way from the
+            // target node as well.
+            InsertTrack(player, Utilities.PointTowards(position, towards), Utilities.ReflectCardinal(towards));
+        }
     }
 }
