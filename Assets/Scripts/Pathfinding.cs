@@ -24,20 +24,25 @@ namespace Rails
             if(!tracks.ContainsKey(start) || !tracks.ContainsKey(end))
                 return null;
 
+            // The list of nodes to return from method
+            var list = new List<NodeId>(); 
+
             // The true distances from start to considered point
             // (without A* algorithm consideration)
             var distMap = new Dictionary<NodeId, int>();
-            // The list of nodes to return from method
-            var list = new List<NodeId>(); 
             // The list of all nodes visited, connected to their
             // shortest-path neighbors.
             var previous = new Dictionary<NodeId, NodeId>();
-            // The next series of nodes to check
+            // The next series of nodes to check, sorted by minimum weight
             var queue = new SortedSet<WeightedNode>();
+            // All nodes that have been visited - ensures no node
+            // is checked twice.
             var visitedNodes = new HashSet<NodeId>();
+
             // The current considered node
             WeightedNode node;
 
+            // To start things off, add the start node to the queue
             queue.Add(new WeightedNode (start, 0));
 
             // While there are still nodes to visit,
@@ -47,6 +52,7 @@ namespace Rails
             { 
                 queue.Remove(node); 
 
+                // If the end has been traversed to, break
                 if(node.Position == end)
                     break;    
 
@@ -62,6 +68,7 @@ namespace Rails
                         distMap.Add(newPoint, node.Weight + 1);
                         previous[newPoint] = node.Position;
 
+                        // If the node hasn't been visited yet, add it to the queue
                         if(!visitedNodes.Contains(newPoint))
                         {
                             queue.Add(new WeightedNode(newPoint, node.Weight + 1));
@@ -91,7 +98,7 @@ namespace Rails
         }
 
         public static List<NodeId> LeastWeightPath(
-            Dictionary<NodeId, int[]> tracks,
+            Dictionary<NodeId, int[]> tracks, int player,
             MapData mapData, NodeId start, NodeId end
         ) {
             return null;
@@ -103,7 +110,7 @@ namespace Rails
     /// and weight to reach a node given a known start
     /// position. Used in pathfinding
     /// </summary>
-    public class WeightedNode : IComparable<WeightedNode>
+    class WeightedNode : IComparable<WeightedNode>
     {
         public NodeId Position { get; set; }
         public int Weight { get; set; }

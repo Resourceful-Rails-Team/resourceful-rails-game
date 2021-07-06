@@ -29,9 +29,6 @@ namespace Rails
             return false;
         }
 
-        public static bool operator ==(NodeId n1, NodeId n2) => n1.Equals(n2);
-        public static bool operator !=(NodeId n1, NodeId n2) => !n1.Equals(n2);
-
         public override int GetHashCode()
         {
             unchecked {
@@ -41,5 +38,8 @@ namespace Rails
                 return hash;
             }
         }
+
+        public static bool operator ==(NodeId n1, NodeId n2) => n1.Equals(n2);
+        public static bool operator !=(NodeId n1, NodeId n2) => !n1.Equals(n2); 
     }
 }
