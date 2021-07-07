@@ -1,32 +1,37 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using Rails;
 using UnityEngine;
 
 namespace Rails
 {
     public static class Pathfinding
     {
+        private const int _maxPaths = 5;
+
         /// <summary>
-        /// Finds the Least Cost Track, based on given track nodes, start
-        /// and end position.
+        /// Finds the shortest, least-cost tracks available given a player.
         /// </summary>
-        /// <param name="player"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>    
-        public static List<NodeId> LeastCostTrack(
+        /// <param name="tracks">The tracks being traversed on</param>
+        /// <param name="player">The player enacting the traversal</param>
+        /// <param name="start">The start point of the traversal</param>
+        /// <param name="end">The target point of the traversal</param>
+        /// <returns></returns>
+        public static List<PathData> BestTracks(
             Dictionary<NodeId, int[]> tracks, 
             int player, NodeId start, NodeId end
         ) {
             if(start == end)
-                return new List<NodeId> { start };
+                return new List<PathData> { 
+                    new PathData (0, 0, new List<NodeId> { start } )
+                };
+
             if(!tracks.ContainsKey(start) || !tracks.ContainsKey(end))
                 return null;
 
             // The list of nodes to return from method
-            var list = new List<NodeId>(); 
-
+            List<PathData> paths = null;
             // The true distances from start to considered point
             // (without A* algorithm consideration)
             var distMap = new Dictionary<NodeId, int>();
@@ -52,20 +57,40 @@ namespace Rails
             { 
                 queue.Remove(node); 
 
-                // If the end has been traversed to, break
+                // If the node's position is the target, a path
+                // was successfully found. Traverse the previous collection
+                // until start is reached, adding each node to list. Then
+                // reverse the list, and the shortest path is returned.
                 if(node.Position == end)
-                    break;    
+                {
+                    var newPath = CreateTrackPath(tracks, previous, player, start, end);
+                    if(!paths.Any(p => p.Cost == newPath.Cost && p.Distance == newPath.Distance))
+                    {
+                        paths.Add(newPath);
+                        if(paths.Count == _maxPaths)
+                            break;
+                    }
+                }
 
                 for(Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                 {
                     var newPoint = Utilities.PointTowards(node.Position, c);
-                    if(tracks.ContainsKey(newPoint))
+                    if(tracks.ContainsKey(newPoint) && tracks[newPoint][(int)c] != -1)
                     {
+                        var newCost = node.Weight + 1;
+
+                        // If the current track is of a different 
+                        if(tracks[newPoint][(int)c] != player && 
+                            tracks[node.Position][(int)c] != tracks[previous[newPoint]][(int)Utilities.CardinalBetween(previous[newPoint], newPoint)]
+                        ) {
+                            newCost += Manager.AltTrackCost;
+                        }
+
                         // If a shorter path has already been found, continue
                         if(distMap.ContainsKey(newPoint) && distMap[newPoint] <= node.Weight + 1)
                             continue;
 
-                        distMap.Add(newPoint, node.Weight + 1);
+                        distMap[newPoint] = newCost;
                         previous[newPoint] = node.Position;
 
                         // If the node hasn't been visited yet, add it to the queue
@@ -76,34 +101,56 @@ namespace Rails
                         }
                     }
                 } 
-            }
+            } 
+            return paths;
+        }
 
-            // If the node's position is the target, a path
-            // was successfully found. Traverse the previous collection
-            // until start is reached, adding each node to list. Then
-            // reverse the list, and the shortest path is returned.
-            if(node.Position == end)
+        private static PathData CreateTrackPath (
+            Dictionary<NodeId, int[]> tracks,
+            Dictionary<NodeId, NodeId> previous,
+            int player, NodeId start, NodeId end
+         ) {
+            var cost = 0;
+            var distance = 0;
+
+            var nodes = new List<NodeId>();
+            var current = end;
+
+            while(current != start)
             {
-                var pos = node.Position;
-                while(pos != start)
-                {
-                    list.Add(pos);
-                    pos = previous[pos];
-                }
-
-                list.Reverse();
-                return list;
+                nodes.Add(current);
+                current = previous[current];
             }
-            else return null;
+
+            nodes.Reverse();
+            return new PathData(distance, cost, nodes);
         }
 
         public static List<NodeId> LeastWeightPath(
             Dictionary<NodeId, int[]> tracks, int player,
-            MapData mapData, NodeId start, NodeId end
+            NodeId start, NodeId end
         ) {
             return null;
         }
     }    
+
+    /// <summary>
+    /// Represents information related to a path found by the
+    /// Pathfinder class.
+    /// </summary>
+    public struct PathData
+    {
+        public int Distance { get; set; }
+        public int Cost { get; set; }
+        public List<NodeId> Nodes { get; set; }
+
+        public PathData(int distance, int cost, List<NodeId> nodes)
+        {
+            Distance = distance;
+            Cost = cost;
+            Nodes = nodes;
+        }
+    }
 
     /// <summary>
     /// A comparable object representing the position,

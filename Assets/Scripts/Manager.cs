@@ -12,6 +12,11 @@ namespace Rails
         /// </summary>
         public const int Size = 64;
 
+        /// <summary>
+        /// The Cost for a player to use another player's track
+        /// </summary>
+        public const int AltTrackCost = 10;
+
         #region Singleton
 
         private static Manager _singleton = null;
