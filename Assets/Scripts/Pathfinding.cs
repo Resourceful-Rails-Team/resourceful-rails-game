@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Rails;
-using UnityEngine;
 
 namespace Rails
 {
@@ -10,6 +8,17 @@ namespace Rails
     {
         private const int _maxPaths = 5;
 
+        #region Public Methods
+
+        /// <summary>
+        /// Calculates the best tracks available for the given
+        /// player who wishes to move from start to end.
+        /// </summary>
+        /// <param name="tracks">The tracks on the current map</param>
+        /// <param name="player">The player that wants to move</param>
+        /// <param name="start">The start point</param>
+        /// <param name="end">The target point</param>
+        /// <returns>The list of PathDatas representing the shortest tracks</returns>
         public static List<PathData> BestTracks(
             Dictionary<NodeId, int[]> tracks,
             int player, NodeId start, NodeId end
@@ -61,7 +70,7 @@ namespace Rails
                     // Calculate the shortest path from the spur node to the end node
                     var spurPath = DjikstraLeastCostTrack(spurTracks, player, spurNode, end);
                     // Combine the root path and spur path to create new path
-                    var totalPath = CreateTrackPath(tracks, rootPath, player, start, end);
+                    var totalPath = CreatePathData(tracks, rootPath, player);
                     totalPath.Combine(spurPath);
 
                     // If that path doesn't exist in pathSpurs, add it to the pathSpurs list
@@ -90,6 +99,40 @@ namespace Rails
                 paths.Insert(0, leastDistance);
 
             return paths;
+        }
+
+        public static List<NodeId> LeastWeightPath(
+            Dictionary<NodeId, int[]> tracks, 
+            MapData mapData, int player,
+            NodeId start, NodeId end
+        ) {
+            return null;
+        }
+
+        #endregion
+
+        #region Private Methods        
+
+        // Finds the lowest distance track available for the given player,
+        // from a start point to end point.
+        private static PathData LeastDistanceTrack(
+            Dictionary<NodeId, int[]> tracks, 
+            int player, NodeId start, NodeId end
+        ) {
+            // This method uses the LeastCostTrack available, but first duplicates,
+            // and converts all tracks into the given player's tracks, to avoid
+            // adding other players' tracks' costs.
+            var normTracks = new Dictionary<NodeId, int[]>(tracks);
+            foreach(var node in tracks.Keys)
+            {
+                for(Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
+                {
+                    if(tracks[node][(int)c] != -1)
+                        tracks[node][(int)c] = player;
+                }
+            }
+
+            return DjikstraLeastCostTrack(normTracks, player, start, end);
         }
 
         /// <summary>
@@ -159,7 +202,7 @@ namespace Rails
                 // reverse the list, and the shortest path is returned.
                 if(node.Position == end)
                 {
-                    path = CreateTrackPath(tracks, previous, player, start, end);
+                    path = CreatePathData(tracks, previous, player, start, end);
                     break;
                 }
 
@@ -197,38 +240,12 @@ namespace Rails
         }
 
         /// <summary>
-        /// Finds the lowest distance track available for the given player,
-        /// from a start point to end point.
+        /// Creates a new PathData using the given
+        /// tracks, nodes from start to end and player index
         /// </summary>
-        /// <param name="tracks">The track nodes being traversed on</param>
-        /// <param name="player">The player enacting the traversal</param>
-        /// <param name="start">The start point of the traversal</param>
-        /// <param name="end">The target point of the traversal</param>
-        /// <returns>The lowest distance track</returns>
-        private static PathData LeastDistanceTrack(
-            Dictionary<NodeId, int[]> tracks, 
-            int player, NodeId start, NodeId end
-        ) {
-            // This method uses the LeastCostTrack available, but first duplicates,
-            // and converts all tracks into the given player's tracks, to avoid
-            // adding other players' tracks' costs.
-            var normTracks = new Dictionary<NodeId, int[]>(tracks);
-            foreach(var node in tracks.Keys)
-            {
-                for(Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
-                {
-                    if(tracks[node][(int)c] != -1)
-                        tracks[node][(int)c] = player;
-                }
-            }
-
-            return DjikstraLeastCostTrack(normTracks, player, start, end);
-        }
-
-        private static PathData CreateTrackPath(
+        private static PathData CreatePathData(
             Dictionary<NodeId, int[]> tracks,
-            List<NodeId> nodes, int player, 
-            NodeId start, NodeId end
+            List<NodeId> nodes, int player
         ) {
             int distance = nodes.Count;
             int cost = 0;
@@ -250,7 +267,12 @@ namespace Rails
             return new PathData(distance, cost, nodes);
         }
 
-        private static PathData CreateTrackPath (
+        /// <summary>
+        /// Creates a new PathData using the given tracks,
+        /// a map of all tracks' nodes previous nodes for shortest
+        /// path, player index and start / end points.
+        /// </summary>
+        private static PathData CreatePathData (
             Dictionary<NodeId, int[]> tracks,
             Dictionary<NodeId, NodeId> previous,
             int player, NodeId start, NodeId end
@@ -281,14 +303,8 @@ namespace Rails
             nodes.Reverse();
             return new PathData(distance, cost, nodes);
         }
-
-        public static List<NodeId> LeastWeightPath(
-            Dictionary<NodeId, int[]> tracks, 
-            MapData mapData, int player,
-            NodeId start, NodeId end
-        ) {
-            return null;
-        }
+ 
+        #endregion
     }    
 
     /// <summary>
