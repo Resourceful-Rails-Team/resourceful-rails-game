@@ -11,6 +11,10 @@ namespace Rails
         public Node[] Nodes;
         [SerializeField]
         public NodeSegment[] Segments;
+        [SerializeField]
+        public List<City> Cities = new List<City>();
+        [SerializeField]
+        public List<Good> Goods = new List<Good>();
 
         public MapData()
         {

@@ -3,6 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Rails
 {
     public class Manager : MonoBehaviour
@@ -11,6 +15,16 @@ namespace Rails
         /// Map size.
         /// </summary>
         public const int Size = 64;
+
+        /// <summary>
+        /// Max number of cities.
+        /// </summary>
+        public const int MaxCities = 32;
+
+        /// <summary>
+        /// Max number of goods.
+        /// </summary>
+        public const int MaxGoods = 64;
 
         #region Singleton
 
@@ -66,10 +80,18 @@ namespace Rails
             _singleton = this;
         }
 
+#if UNITY_EDITOR
+
         private void OnDrawGizmos()
         {
+            List<Action> postDraws = new List<Action>();
             if (Map == null || Map.Nodes == null || Map.Nodes.Length == 0)
                 return;
+
+            var labelStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
+            labelStyle.alignment = TextAnchor.UpperCenter;
+            labelStyle.fontSize = 16;
+            labelStyle.fontStyle = FontStyle.Bold;
 
             for (int x = 0; x < Size; x++)
             {
@@ -80,6 +102,21 @@ namespace Rails
                     var pos = GetPosition(node.Id);
                     Gizmos.color = Utilities.GetNodeColor(node.Type);
                     Gizmos.DrawSphere(pos, WSSize * 0.3f);
+
+                    //
+                    if (node.CityId >= 0 && node.CityId < Map.Cities.Count)
+                    {
+                        var city = Map.Cities[node.CityId];
+                        if (node.Type == NodeType.MajorCity || node.Type == NodeType.MediumCity || node.Type == NodeType.SmallCity)
+                        {
+
+                            postDraws.Add(() =>
+                            {
+                                Handles.Label(pos + Vector3.up, city.Name, labelStyle);
+                            });
+
+                        }
+                    }
 
                     // draw segments
                     // we iterate only bottom-right half of segments to prevent drawing them twice
@@ -102,7 +139,12 @@ namespace Rails
                     }
                 }
             }
+
+            foreach (var postDraw in postDraws)
+                postDraw?.Invoke();
         }
+
+#endif
 
         #endregion
 
