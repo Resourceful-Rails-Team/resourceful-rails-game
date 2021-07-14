@@ -1,3 +1,5 @@
+using System;
+
 using UnityEngine;
 
 namespace Rails
@@ -35,7 +37,41 @@ namespace Rails
         /// </summary>
         /// <param name="towards">The Cardinal being reflected</param>
         /// <returns>The opposite cardinal direction to towards</returns> 
-        public static Cardinal ReflectCardinal(Cardinal towards) =>
-            (Cardinal)Mathf.Repeat((int)Cardinal.SW, (int)towards - 3); 
+        public static Cardinal ReflectCardinal(Cardinal towards)
+        {
+            towards -= 3;
+            if(towards < 0) 
+                towards += (int)Cardinal.MAX_CARDINAL;
+
+            return towards;
+        }
+
+        /// <summary>
+        /// Finds the Cardinal between two adjacent NodeIds.
+        /// </summary>
+        /// <param name="node1">The starting NodeId</param>
+        /// <param name="node2">The target NodeId</param>
+        /// <returns>The Cardinal represented from n1 to n2.</returns>
+        public static Cardinal CardinalBetween(NodeId node1, NodeId node2)
+        {
+            var exception = new ArgumentException("Cannot find Cardinal between two non-adjacent NodeIds");
+
+            // Find the direction the NodeIds are moving
+            var dir = node2 - node1;
+            bool isOdd = node1.X % 2 == 1;
+
+            return (dir.X, dir.Y) switch
+            {
+                ( 0,  1) => Cardinal.N,
+                ( 1,  1) => isOdd ? Cardinal.NE     : throw exception,
+                ( 1,  0) => isOdd ? Cardinal.SE     : Cardinal.NE,
+                ( 1, -1) => isOdd ? throw exception : Cardinal.SE,
+                ( 0, -1) => Cardinal.S,
+                (-1, -1) => isOdd ? throw exception : Cardinal.SW,
+                (-1,  0) => isOdd ? Cardinal.SW     : Cardinal.NW,
+                (-1,  1) => isOdd ? Cardinal.NW     : throw exception,
+                _ => throw exception,
+            };
+        }
     }
 }
