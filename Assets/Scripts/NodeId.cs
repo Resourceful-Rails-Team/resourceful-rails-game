@@ -11,6 +11,11 @@ namespace Rails
         public int X;
         public int Y;
 
+        /// <summary>
+        /// Whether or not the NodeId is within the bounds of the map
+        /// </summary>
+        public bool InBounds => X >= 0 && Y >= 0 && X < Manager.Size && Y < Manager.Size;
+
         public NodeId(int x, int y)
         {
             X = x;
@@ -39,6 +44,12 @@ namespace Rails
             }
         }
 
+      
+        public override string ToString()
+        {
+            return $"({X}, {Y})";
+        }
+      
         public static bool operator ==(NodeId n1, NodeId n2) => n1.Equals(n2);
         public static bool operator !=(NodeId n1, NodeId n2) => !n1.Equals(n2); 
 
@@ -48,5 +59,6 @@ namespace Rails
 
         public static float Distance(NodeId n1, NodeId n2) =>
             Mathf.Sqrt((float)Mathf.Pow(n1.X - n2.X, 2) + Mathf.Pow(n1.Y - n2.Y, 2));
+      
     }
 }
