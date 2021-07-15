@@ -9,9 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4e2726362ba7e646bf504d2c89b6f17, type: 3}
+  m_Script: {fileID: 11500000, guid: aeac82e6f99cd499c80ab05d52bdeeb6, type: 3}
   m_Name: Map1
   m_EditorClassIdentifier: 
+  DefaultTokenTemplate: {fileID: 0}
+  Board: {fileID: 0}
+  DefaultPlayerTemplate: {fileID: 0}
   Nodes:
   - Type: 5
     Id:
