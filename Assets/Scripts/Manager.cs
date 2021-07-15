@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Rails.ScriptableObjects;
 
 #if UNITY_EDITOR
 using UnityEditor;

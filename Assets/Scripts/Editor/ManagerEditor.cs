@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Rails.ScriptableObjects;
 using UnityEditor;
 using UnityEngine;
 
