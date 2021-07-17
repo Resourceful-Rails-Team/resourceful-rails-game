@@ -1,12 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using Rails.ScriptableObjects;
 using UnityEngine;
 
-namespace Rails
+namespace Rails.ScriptableObjects
 {
     [CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/Map/MapData", order = 1)]
     public class MapData : ScriptableObject
     {
+        [SerializeField]
+        public MapTokenTemplate DefaultTokenTemplate;
+        [SerializeField]
+        public GameObject Board;
+        [SerializeField]
+        public PlayerTokenTemplate DefaultPlayerTemplate;
+
         [SerializeField]
         public Node[] Nodes;
         [SerializeField]
