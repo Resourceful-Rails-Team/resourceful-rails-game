@@ -40,13 +40,42 @@ namespace Rails
         public static Cardinal ReflectCardinal(Cardinal towards)
         {
             towards -= 3;
-            if(towards < 0) 
+            if (towards < 0)
                 towards += (int)Cardinal.MAX_CARDINAL;
 
             return towards;
         }
 
         /// <summary>
+        /// Returns the respective color associated with the given NodeType.
+        /// </summary>
+        public static Color GetNodeColor(NodeType nodeType)
+        {
+            switch (nodeType)
+            {
+                case NodeType.Clear: return Color.gray;
+                case NodeType.Water: return Color.blue;
+                case NodeType.Mountain: return Color.black;
+                case NodeType.SmallCity: return Color.green;
+                case NodeType.MediumCity: return Color.yellow;
+                case NodeType.MajorCity: return Color.red;
+                default: return Color.white;
+            }
+        }
+
+        /// <summary>
+        /// Returns the respective color associated with the given NodeSegmentType.
+        /// </summary>
+        public static Color GetSegmentColor(NodeSegmentType segmentType)
+        {
+            switch (segmentType)
+            {
+                case NodeSegmentType.None: return Color.clear;
+                case NodeSegmentType.River: return Color.blue;
+                default: return Color.white;
+            }
+        }
+      
         /// Finds the Cardinal between two adjacent NodeIds.
         /// </summary>
         /// <param name="node1">The starting NodeId</param>

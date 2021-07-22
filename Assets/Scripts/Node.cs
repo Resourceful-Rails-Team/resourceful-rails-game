@@ -25,6 +25,13 @@ namespace Rails
 		public NodeId Id;
 		[SerializeField]
 		private bool[] Rivers = new bool[(int)Cardinal.MAX_CARDINAL];
+
+		/// <summary>
+		/// Index in Cities array that this node is associated with.
+		/// Only applies to a city NodeType
+		/// </summary>
+		[SerializeField]
+		public int CityId = -1;
 		
 		public Node(NodeId id)
 		{
