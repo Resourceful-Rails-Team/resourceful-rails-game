@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Rails.ScriptableObjects;
+using UnityEngine.InputSystem;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,7 +27,7 @@ namespace Rails
         /// Max number of goods.
         /// </summary>
         public const int MaxGoods = 64;
-      
+
         /// <summary>
         /// The Cost for a player to use another player's track
         /// </summary>
@@ -152,6 +153,11 @@ namespace Rails
 
 #endif
 
+        private void Update()
+        {
+            InputUpdate();
+        }
+
         #endregion
 
         #region Utilities
@@ -197,9 +203,9 @@ namespace Rails
             // clamp min to be no less than 0
             // clamp max to be no more than Size-1
             int minX = Mathf.Max(0, (int)centerNodeId.x - extents);
-            int maxX = Mathf.Min(Size-1, Mathf.CeilToInt(centerNodeId.x) + extents);
+            int maxX = Mathf.Min(Size - 1, Mathf.CeilToInt(centerNodeId.x) + extents);
             int minY = Mathf.Max(0, (int)centerNodeId.y - extents);
-            int maxY = Mathf.Min(Size-1, Mathf.CeilToInt(centerNodeId.y) + extents);
+            int maxY = Mathf.Min(Size - 1, Mathf.CeilToInt(centerNodeId.y) + extents);
 
             // iterate bounds
             for (int x = minX; x <= maxX; ++x)
@@ -219,8 +225,6 @@ namespace Rails
             return nodeIds;
         }
 
-        #endregion 
-        
         /// <summary>
         /// Inserts a new track onto the Map, based on position and direction.
         /// </summary>
@@ -231,10 +235,10 @@ namespace Rails
         {
             // If Cardinal data doesn't exist for the point yet,
             // insert and initialize the data
-            if(!Tracks.ContainsKey(position))
+            if (!Tracks.ContainsKey(position))
             {
                 Tracks[position] = new int[(int)Cardinal.MAX_CARDINAL];
-                for(int i = 0; i < (int)Cardinal.MAX_CARDINAL; ++i)
+                for (int i = 0; i < (int)Cardinal.MAX_CARDINAL; ++i)
                     Tracks[position][i] = -1;
             }
 
@@ -244,5 +248,17 @@ namespace Rails
             // target node as well.
             InsertTrack(player, Utilities.PointTowards(position, towards), Utilities.ReflectCardinal(towards));
         }
+
+        #endregion
+
+        #region Input
+
+        void InputUpdate()
+        {
+
+        }
+
+        #endregion
+
     }
 }
