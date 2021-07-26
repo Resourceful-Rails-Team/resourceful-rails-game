@@ -6,8 +6,6 @@ using UnityEngine;
 
 namespace Rails
 {
-    // This class implements Jin Y. Yen's shortest k-path algorithm described
-    // in Wikipedia: https://en.wikipedia.org/wiki/Yen%27s_algorithm 
     public static class Pathfinding
     {
         private const int _maxPaths = 4;
@@ -121,215 +119,81 @@ namespace Rails
 
         #region Public Methods
 
-        /// <summary>
-        /// Finds the best tracks to follow, based on
-        /// cost and distance.
-        /// </summary>
-        /// <param name="tracks">The tracks currently on the map</param>
-        /// <param name="player">The player doing the navigation</param>
-        /// <param name="speed">The speed of the player's train</param>
-        /// <param name="start">The initial location of the train</param>
-        /// <param name="end">The target location of the train</param>
-        /// <returns>A list of `Route`s that represent the best possible tracks.</returns>
-        public static List<Route> BestTracks(
-            Dictionary<NodeId, int[]> tracks,
-            int player, int speed, NodeId start, NodeId end
-        ) => BestRoutes(tracks, null, player, speed, start, end, true);
-        
-        /// <summary>
-        /// Finds the best node paths to follow, based on
-        /// cost and distance.
-        /// </summary>
-        /// <param name="tracks">The tracks currently on the map</param>
-        /// <param name="mapData">The map currently being used</param>
-        /// <param name="start">The initial location of the train</param>
-        /// <param name="end">The target location of the train</param>
-        /// <returns>A list of `Route`s that represent the best possible node paths.</returns>
-        public static List<Route> BestPaths(
-            Dictionary<NodeId, int[]> tracks, 
-            MapData mapData, NodeId start, NodeId end
-        ) => BestRoutes(tracks, mapData, 0, 0, start, end, false);
-
         public static Route ShortestBuild(
             Dictionary<NodeId, int[]> tracks, MapData mapData,
             params NodeId[] segments
         ) {
-            
+            var path = new List<NodeId>(segments.Length - 1);
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostPath(
+                    tracks, mapData, segments[i], 
+                    segments[i + 1], null, false
+                );
+                path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
+            }
+            path.Add(segments.Last());
+
+            return CreatePathRoute(mapData, path);
         }
 
         public static Route CheapestBuild(
             Dictionary<NodeId, int[]> tracks, MapData mapData,
             params NodeId[] segments
         ) {
+            var path = new List<NodeId>(segments.Length - 1);
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostPath(
+                    tracks, mapData, segments[i], 
+                    segments[i + 1], null, true
+                );
+                path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
+            }
+            path.Add(segments.Last());
 
+            return CreatePathRoute(mapData, path);
         }
 
         public static Route ShortestMove(
             Dictionary<NodeId, int[]> tracks,
             int player, int speed, params NodeId [] segments
         ) {
+            var path = new List<NodeId>(segments.Length - 1);
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostTrack(
+                    tracks, player, speed, 
+                    segments[i], segments[i + 1], false
+                );
+                path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
+            }
+            path.Add(segments.Last());
 
+            return CreateTrackRoute(tracks, player, speed, path); 
         }
 
         public static Route CheapestMove(
             Dictionary<NodeId, int[]> tracks,
             int player, int speed, params NodeId [] segments
         ) {
+            var path = new List<NodeId>(segments.Length - 1);
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostTrack(
+                    tracks, player, speed, 
+                    segments[i], segments[i + 1], true
+                );
+                path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
+            }
+            path.Add(segments.Last());
 
+            return CreateTrackRoute(tracks, player, speed, path); 
         }
 
         #endregion
 
-        #region Private Methods        
-
-        /// Calculates either the best tracks or best paths
-        /// available for a player who wishes to move from start to end.
-        private static List<Route> BestRoutes(
-            Dictionary<NodeId, int[]> tracks,
-            MapData map,
-            int player, int speed, 
-            NodeId start, NodeId end,
-            bool trackOrPath
-        ) {
-            // First determine the least cost track (if it exists)
-            var leastCost = trackOrPath ? 
-                LeastCostTrack(tracks, player, speed, start, end, true) :
-                LeastCostPath(tracks, map, start, end, null, true);
-
-            if(leastCost == null) return null;
-
-            // A copy of the track map - nodes and edges are removed from
-            // this map while keeping the original unchanged
-            var spurTracks = new Dictionary<NodeId, int[]>(tracks);
-
-            // Create the returned list, starting with the initial least cost path
-            var paths = new List<Route> { leastCost };
-
-            // A list of spur paths to be added to returned list
-            var pathSpurs = new List<Route>();
-
-            var removedNodes = new HashSet<NodeId>();
-            var removedEdges = new Dictionary<Tuple<NodeId, Cardinal>, int>();
-
-            for(int k = 1; k <= _maxPaths - 2; ++k)
-            {
-                // Iterate through all nodes in the latest shortest path
-                // added to the returned list
-                for(int i = 0; i < paths[k - 1].Nodes.Count - 2; ++i)
-                {
-                    // Select a node to branch off of
-                    var spurNode = paths[k - 1].Nodes[i];
-
-                    // Create a sub-track from the root of the start of the
-                    // chosen path to spurNode 
-                    var rootPath = paths[k-1].Nodes.GetRange(0, i + 1);
-
-                    // Remove the current edge to force the pathfinding algorithm
-                    // to find a different route.
-                    foreach(var p in paths.Select(path => path.Nodes))
-                    {
-                        if(p.Count >= rootPath.Count && p.GetRange(0, i + 1).SequenceEqual(rootPath))
-                        {
-                            if(spurTracks.ContainsKey(p[i]))
-                            {
-                                Cardinal c = Utilities.CardinalBetween(p[i], p[i+1]);
-                                if(spurTracks[p[i]][(int)c] != -1)
-                                {
-                                    removedEdges.Add(Tuple.Create(p[i], c), spurTracks[p[i]][(int)c]);
-                                    spurTracks[p[i]][(int)c] = -1;
-
-                                    c = Utilities.CardinalBetween(p[i+1], p[i]);
-                                    removedEdges.Add(Tuple.Create(p[i+1], c), spurTracks[p[i+1]][(int)c]);
-                                    spurTracks[p[i+1]][(int)c] = -1;
-                                } 
-                            }
-                        }   
-                    }
-
-                    foreach(var node in rootPath.Where(p => p != spurNode))
-                    {
-                        if(trackOrPath)
-                        {
-                            for(int e = 0; e < (int)Cardinal.MAX_CARDINAL; ++e)
-                            {
-                                if(spurTracks[node][e] != -1)
-                                    removedEdges.Add(Tuple.Create(node, (Cardinal)e), spurTracks[node][e]);
-                            }
-                        }
-                        removedNodes.Add(node);
-                        spurTracks.Remove(node);
-                    }
-
-                    // Calculate the shortest path from the spur node to the end node
-                    var spurPath = trackOrPath ?
-                         LeastCostTrack(spurTracks, player, speed, spurNode, end, true) :
-                         LeastCostPath(spurTracks, map, spurNode, end, removedEdges.Keys, true);
-
-                    Route totalPath;
-                    if(spurPath != null)
-                    {
-                        totalPath = trackOrPath ? 
-                            CreateTrackRoute(tracks, player, speed, rootPath, spurPath.Nodes) :
-                            CreatePathRoute(map, rootPath, spurPath.Nodes);
-
-                        // If that path doesn't exist in pathSpurs, add it to the pathSpurs list
-                        // to be considered as the shortest path
-                        if(!pathSpurs.Any(p => p.Nodes.SequenceEqual(totalPath.Nodes)))
-                            pathSpurs.Add(totalPath); 
-                    }
-                    foreach(var node in removedNodes)
-                    {
-                        spurTracks[node] = new int[(int)Cardinal.MAX_CARDINAL];
-                        for(int c = 0; c < (int)Cardinal.MAX_CARDINAL; ++c)
-                            spurTracks[node][c] = -1;
-                    }
-                    foreach(var edge in removedEdges.Keys)
-                        spurTracks[edge.Item1][(int)edge.Item2] = removedEdges[edge];
-
-                    removedNodes.Clear();
-                    removedEdges.Clear();
-                }
-                // If there aren't enough shortest paths to continue the
-                // loop, break and return what is present
-                if(pathSpurs.Count == 0)
-                    break;
-
-                // Finally, sort pathSpurs to retrieve the shortest path generated
-                // from the iteration of spur nodes. Add that to the returned list
-                pathSpurs.Sort((p1, p2) => p1.Cost.CompareTo(p2.Cost));
-                paths.Add(pathSpurs.First());
-                pathSpurs.RemoveAt(0);
-            }
-
-            // Finally, add the least distance path as an added consideration
-            // (if it isn't already part of the list)
-            var leastDistance = trackOrPath ?
-                 LeastDistanceTrack(tracks, player, speed, start, end) :
-                 LeastDistancePath(tracks, map, start, end);
-            if(leastDistance != null && !paths.Any(p => p.Nodes.SequenceEqual(leastDistance.Nodes)))
-                paths.Insert(0, leastDistance);
-
-            // Remove tracks that offer no benefit compared to others
-            // (ie. distance and cost is greater than another's)
-            for(int i = 0; i < paths.Count; ++i)
-            {
-                for(int j = 0; j < paths.Count; ++j)
-                {
-                    if(i == j) continue;
-                    if(paths[i].Cost >= paths[j].Cost && paths[i].Distance >= paths[j].Distance)
-                    {
-                        paths.RemoveAt(i);
-                        if(i > 0) --i;
-                        if(j > 0) --j;
-                    }
-                }
-            }
-
-            paths.Sort((p1, p2) => p1.Distance.CompareTo(p2.Distance));
-
-            return paths;
-        }
-
+        #region Private Methods         
 
         // Finds the lowest distance track available for the given player,
         // from a start point to end point.
