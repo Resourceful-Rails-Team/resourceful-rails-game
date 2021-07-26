@@ -150,6 +150,34 @@ namespace Rails
             MapData mapData, NodeId start, NodeId end
         ) => BestRoutes(tracks, mapData, 0, 0, start, end, false);
 
+        public static Route ShortestBuild(
+            Dictionary<NodeId, int[]> tracks, MapData mapData,
+            params NodeId[] segments
+        ) {
+            
+        }
+
+        public static Route CheapestBuild(
+            Dictionary<NodeId, int[]> tracks, MapData mapData,
+            params NodeId[] segments
+        ) {
+
+        }
+
+        public static Route ShortestMove(
+            Dictionary<NodeId, int[]> tracks,
+            int player, int speed, params NodeId [] segments
+        ) {
+
+        }
+
+        public static Route CheapestMove(
+            Dictionary<NodeId, int[]> tracks,
+            int player, int speed, params NodeId [] segments
+        ) {
+
+        }
+
         #endregion
 
         #region Private Methods        
