@@ -6,312 +6,283 @@ using UnityEngine;
 
 namespace Rails
 {
-    // This class implements Jin Y. Yen's shortest k-path algorithm described
-    // in Wikipedia: https://en.wikipedia.org/wiki/Yen%27s_algorithm 
-    public static class Pathfinding
+    // These pathfinding methods rely on Edsger W. Dijkstra's algorithm
+    // found on Wikipedia (https://en.wikipedia.org/wiki/Dijkstra's_algorithm)
+    // combined with Peter Hart, Nils Nilsson and Bertram Raphael's A*
+    // heuristic algorithm found on Wikipedia 
+    // (https://en.wikipedia.org/wiki/A*_search_algorithm)
+
+    #region Data Structures
+
+    /// <summary>
+    /// Represents information related to a path found by the
+    /// Pathfinder class.
+    /// </summary>
+    public class Route
     {
-        private const int _maxPaths = 4;
+        public int Cost { get; set; }
+        public int Distance => Nodes.Count - 1;
+        public List<NodeId> Nodes { get; set; }
 
-        #region Data Structures
-
-        /// <summary>
-        /// Represents information related to a path found by the
-        /// Pathfinder class.
-        /// </summary>
-        public class Route
+        public Route(int cost, List<NodeId> nodes)
         {
-            public int Cost { get; set; }
-            public int Distance => Nodes.Count - 1;
-            public List<NodeId> Nodes { get; set; }
-
-            public Route(int cost, List<NodeId> nodes)
-            {
-                Cost = cost;
-                Nodes = nodes;
-            }
-
+            Cost = cost;
+            Nodes = nodes;
         }
 
-        /// <summary>
-        /// A comparable object representing the position,
-        /// and weight to reach a node given a known start
-        /// position. Used in pathfinding
-        /// </summary>
-        class WeightedNode : IComparable<WeightedNode>
+    }
+
+    /// <summary>
+    /// A comparable object representing the position,
+    /// and weight to reach a node given a known start
+    /// position. Used in pathfinding
+    /// </summary>
+    class WeightedNode : IComparable<WeightedNode>
+    {
+        public NodeId Position { get; set; }
+        public int Weight { get; set; }
+        public bool[] AltTracksPaid { get; set; }
+
+        public int SpacesLeft { get; set; }
+        
+        // Compared by Weight
+        public int CompareTo(WeightedNode other) => Weight.CompareTo(other.Weight);
+    }
+
+    public class PriorityQueue<T> where T: IComparable<T>
+    {
+        private List<T> items;
+
+        public PriorityQueue() => items = new List<T>();
+
+        public T Peek() => items.FirstOrDefault();
+        public T Pop()
         {
-            public NodeId Position { get; set; }
-            public int Weight { get; set; }
-            public bool[] AltTracksPaid { get; set; }
+            var item = items.FirstOrDefault();
 
-            public int SpacesLeft { get; set; }
-            
-            // Compared by Weight
-            public int CompareTo(WeightedNode other) => Weight.CompareTo(other.Weight);
-        }
-
-        public class PriorityQueue<T> where T: IComparable<T>
-        {
-            private List<T> items;
-
-            public PriorityQueue() => items = new List<T>();
-
-            public T Peek() => items.FirstOrDefault();
-            public T Pop()
+            if(items.Count > 0)
             {
-                var item = items.FirstOrDefault();
+                items[0] = items.Last();
 
-                if(items.Count > 0)
-                {
-                    items[0] = items.Last();
+                int index = 0;
+                int childIndex = 1;
 
-                    int index = 0;
-                    int childIndex = 1;
+                bool traversed = true;
 
-                    bool traversed = true;
+                while(traversed)
+                { 
+                    traversed = false;
 
-                    while(traversed)
-                    { 
-                        traversed = false;
+                    if(childIndex > items.Count - 1) 
+                        break;
 
-                        if(childIndex > items.Count - 1) 
-                            break;
+                    if(childIndex + 1 < items.Count && items[childIndex].CompareTo(items[childIndex + 1]) > 0)
+                        childIndex += 1;
 
-                        if(childIndex + 1 < items.Count && items[childIndex].CompareTo(items[childIndex + 1]) > 0)
-                            childIndex += 1;
+                    if(items[index].CompareTo(items[childIndex]) > 0)
+                    {
+                        T temp = items[index];
+                        items[index] = items[childIndex];
+                        items[childIndex] = temp;
 
-                        if(items[index].CompareTo(items[childIndex]) > 0)
-                        {
-                            T temp = items[index];
-                            items[index] = items[childIndex];
-                            items[childIndex] = temp;
+                        traversed = true;
+                    }
 
-                            traversed = true;
-                        }
+                    index = childIndex;
+                    childIndex = 2 * childIndex + 1;
+                } 
 
-                        index = childIndex;
-                        childIndex = 2 * childIndex + 1;
-                    } 
-
-                    items.RemoveAt(items.Count - 1);
-                }
-
-                return item;
+                items.RemoveAt(items.Count - 1);
             }
 
-            public void Insert(T item)
+            return item;
+        }
+
+        public void Insert(T item)
+        {
+            int index = items.Count;
+            int parent = Mathf.FloorToInt((index - 1) / 2);
+
+            items.Add(item);
+
+            while(items[index].CompareTo(items[parent]) < 0)
             {
-                int index = items.Count;
-                int parent = Mathf.FloorToInt((index - 1) / 2);
+                var temp = items[parent];
+                items[parent] = items[index];
+                items[index] = temp;
 
-                items.Add(item);
-
-                while(items[index].CompareTo(items[parent]) < 0)
-                {
-                    var temp = items[parent];
-                    items[parent] = items[index];
-                    items[index] = temp;
-
-                    index = parent;
-                    parent = Mathf.FloorToInt((index - 1) / 2);
-                }
+                index = parent;
+                parent = Mathf.FloorToInt((index - 1) / 2);
             }
         }
+    }
 
         #endregion
-
+    public static class Pathfinding
+    { 
         #region Public Methods
 
         /// <summary>
-        /// Finds the best tracks to follow, based on
-        /// cost and distance.
+        /// Finds the least-distance build route given a series of
+        /// intermediate segment nodes.
+        /// 
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached.
         /// </summary>
-        /// <param name="tracks">The tracks currently on the map</param>
-        /// <param name="player">The player doing the navigation</param>
-        /// <param name="speed">The speed of the player's train</param>
-        /// <param name="start">The initial location of the train</param>
-        /// <param name="end">The target location of the train</param>
-        /// <returns>A list of `Route`s that represent the best possible tracks.</returns>
-        public static List<Route> BestTracks(
-            Dictionary<NodeId, int[]> tracks,
-            int player, int speed, NodeId start, NodeId end
-        ) => BestRoutes(tracks, null, player, speed, start, end, true);
-        
+        /// <param name="tracks">The maps current rail tracks</param>
+        /// <param name="mapData">The map's data</param>
+        /// <param name="segments">The segments the route must pass through</param>
+        /// <returns></returns>
+        public static Route ShortestBuild(
+            Dictionary<NodeId, int[]> tracks, MapData mapData,
+            params NodeId[] segments
+        ) {
+            var path = new List<NodeId>();
+            path.Add(segments[0]);
+
+            var newTracks = new Dictionary<NodeId, int[]>(tracks);
+
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostPath(
+                    newTracks, mapData, segments[i], 
+                    segments[i + 1], null, false
+                );
+                if(route == null) break;
+
+                for(int j = 0; j < route.Nodes.Count - 1; ++j)
+                {
+                    if(!newTracks.ContainsKey(route.Nodes[j]))
+                        newTracks.Add(route.Nodes[j], Enumerable.Repeat(-1, 6).ToArray());
+                    if(!newTracks.ContainsKey(route.Nodes[j+1]))
+                        newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
+
+                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 0;
+                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 0;
+                }
+
+                path.AddRange(route.Nodes);
+            }
+
+            return CreatePathRoute(mapData, path);
+        }
+
         /// <summary>
-        /// Finds the best node paths to follow, based on
-        /// cost and distance.
+        /// Finds the least-cost build route given a series of
+        /// intermediate segment nodes.
+        /// 
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached.
         /// </summary>
-        /// <param name="tracks">The tracks currently on the map</param>
-        /// <param name="mapData">The map currently being used</param>
-        /// <param name="start">The initial location of the train</param>
-        /// <param name="end">The target location of the train</param>
-        /// <returns>A list of `Route`s that represent the best possible node paths.</returns>
-        public static List<Route> BestPaths(
-            Dictionary<NodeId, int[]> tracks, 
-            MapData mapData, NodeId start, NodeId end
-        ) => BestRoutes(tracks, mapData, 0, 0, start, end, false);
+        /// <param name="tracks">The maps current rail tracks</param>
+        /// <param name="mapData">The map's data</param>
+        /// <param name="segments">The segments the route must pass through</param>
+        /// <returns></returns>
+
+        public static Route CheapestBuild(
+            Dictionary<NodeId, int[]> tracks, MapData mapData,
+            params NodeId[] segments
+        ) {
+            var path = new List<NodeId>();
+            path.Add(segments[0]);
+
+            var newTracks = new Dictionary<NodeId, int[]>(tracks);
+
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostPath(
+                    newTracks, mapData, segments[i], 
+                    segments[i + 1], null, true
+                );
+                if(route == null) break;
+                
+                for(int j = 0; j < route.Nodes.Count - 1; ++j)
+                {
+                    if(!newTracks.ContainsKey(route.Nodes[j]))
+                        newTracks.Add(route.Nodes[j], Enumerable.Repeat(-1, 6).ToArray());
+                    if(!newTracks.ContainsKey(route.Nodes[j+1]))
+                        newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
+
+                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 0;
+                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 0;
+                }
+
+                path.AddRange(route.Nodes);
+            }
+
+            return CreatePathRoute(mapData, path);
+        }
+
+        /// <summary>
+        /// Finds the least-distance traversal on a rail track,
+        /// given a `player`, the player's train's `speed`, and
+        /// a series of intermediate segments.
+        /// 
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached.
+        /// </summary>
+        /// <param name="tracks">The current rail tracks on the map</param>
+        /// <param name="player">The player performing the traversal</param>
+        /// <param name="speed">The speed of the player's train</param>
+        /// <param name="segments">The segments the route must pass through</param>
+        /// <returns></returns>
+        public static Route ShortestMove(
+            Dictionary<NodeId, int[]> tracks,
+            int player, int speed, params NodeId [] segments
+        ) {
+            var path = new List<NodeId>();
+            path.Add(segments[0]);
+
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostTrack(
+                    tracks, player, speed, 
+                    segments[i], segments[i + 1], false
+                );
+                if(route == null) break;
+                path.AddRange(route.Nodes);
+            }
+
+            return CreateTrackRoute(tracks, player, speed, path); 
+        }
+
+        /// <summary>
+        /// Finds the least-cost traversal on a rail track,
+        /// given a `player`, the player's train's `speed`, and
+        /// a series of intermediate segments.
+        /// 
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached.
+        /// </summary>
+        /// <param name="tracks">The current rail tracks on the map</param>
+        /// <param name="player">The player performing the traversal</param>
+        /// <param name="speed">The speed of the player's train</param>
+        /// <param name="segments">The segments the route must pass through</param>
+        /// <returns></returns>
+
+        public static Route CheapestMove(
+            Dictionary<NodeId, int[]> tracks,
+            int player, int speed, params NodeId [] segments
+        ) {
+            var path = new List<NodeId>();
+            path.Add(segments[0]);
+
+            for(int i = 0; i < segments.Length - 1; ++i)
+            {
+                var route = LeastCostTrack(
+                    tracks, player, speed, 
+                    segments[i], segments[i + 1], true
+                );
+                if(route == null) break;
+                path.AddRange(route.Nodes);
+            }
+
+            return CreateTrackRoute(tracks, player, speed, path); 
+        }
 
         #endregion
 
-        #region Private Methods        
-
-        /// Calculates either the best tracks or best paths
-        /// available for a player who wishes to move from start to end.
-        private static List<Route> BestRoutes(
-            Dictionary<NodeId, int[]> tracks,
-            MapData map,
-            int player, int speed, 
-            NodeId start, NodeId end,
-            bool trackOrPath
-        ) {
-            // First determine the least cost track (if it exists)
-            var leastCost = trackOrPath ? 
-                LeastCostTrack(tracks, player, speed, start, end, true) :
-                LeastCostPath(tracks, map, start, end, null, true);
-
-            if(leastCost == null) return null;
-
-            // A copy of the track map - nodes and edges are removed from
-            // this map while keeping the original unchanged
-            var spurTracks = new Dictionary<NodeId, int[]>(tracks);
-
-            // Create the returned list, starting with the initial least cost path
-            var paths = new List<Route> { leastCost };
-
-            // A list of spur paths to be added to returned list
-            var pathSpurs = new List<Route>();
-
-            var removedNodes = new HashSet<NodeId>();
-            var removedEdges = new Dictionary<Tuple<NodeId, Cardinal>, int>();
-
-            for(int k = 1; k <= _maxPaths - 2; ++k)
-            {
-                // Iterate through all nodes in the latest shortest path
-                // added to the returned list
-                for(int i = 0; i < paths[k - 1].Nodes.Count - 2; ++i)
-                {
-                    // Select a node to branch off of
-                    var spurNode = paths[k - 1].Nodes[i];
-
-                    // Create a sub-track from the root of the start of the
-                    // chosen path to spurNode 
-                    var rootPath = paths[k-1].Nodes.GetRange(0, i + 1);
-
-                    // Remove the current edge to force the pathfinding algorithm
-                    // to find a different route.
-                    foreach(var p in paths.Select(path => path.Nodes))
-                    {
-                        if(p.Count >= rootPath.Count && p.GetRange(0, i + 1).SequenceEqual(rootPath))
-                        {
-                            if(spurTracks.ContainsKey(p[i]))
-                            {
-                                Cardinal c = Utilities.CardinalBetween(p[i], p[i+1]);
-                                if(spurTracks[p[i]][(int)c] != -1)
-                                {
-                                    removedEdges.Add(Tuple.Create(p[i], c), spurTracks[p[i]][(int)c]);
-                                    spurTracks[p[i]][(int)c] = -1;
-
-                                    c = Utilities.CardinalBetween(p[i+1], p[i]);
-                                    removedEdges.Add(Tuple.Create(p[i+1], c), spurTracks[p[i+1]][(int)c]);
-                                    spurTracks[p[i+1]][(int)c] = -1;
-                                } 
-                            }
-                        }   
-                    }
-
-                    foreach(var node in rootPath.Where(p => p != spurNode))
-                    {
-                        if(trackOrPath)
-                        {
-                            for(int e = 0; e < (int)Cardinal.MAX_CARDINAL; ++e)
-                            {
-                                if(spurTracks[node][e] != -1)
-                                    removedEdges.Add(Tuple.Create(node, (Cardinal)e), spurTracks[node][e]);
-                            }
-                        }
-                        removedNodes.Add(node);
-                        spurTracks.Remove(node);
-                    }
-
-                    // Calculate the shortest path from the spur node to the end node
-                    var spurPath = trackOrPath ?
-                         LeastCostTrack(spurTracks, player, speed, spurNode, end, true) :
-                         LeastCostPath(spurTracks, map, spurNode, end, removedEdges.Keys, true);
-
-                    Route totalPath;
-                    if(spurPath != null)
-                    {
-                        totalPath = trackOrPath ? 
-                            CreateTrackRoute(tracks, player, speed, rootPath, spurPath.Nodes) :
-                            CreatePathRoute(map, rootPath, spurPath.Nodes);
-
-                        // If that path doesn't exist in pathSpurs, add it to the pathSpurs list
-                        // to be considered as the shortest path
-                        if(!pathSpurs.Any(p => p.Nodes.SequenceEqual(totalPath.Nodes)))
-                            pathSpurs.Add(totalPath); 
-                    }
-                    foreach(var node in removedNodes)
-                    {
-                        spurTracks[node] = new int[(int)Cardinal.MAX_CARDINAL];
-                        for(int c = 0; c < (int)Cardinal.MAX_CARDINAL; ++c)
-                            spurTracks[node][c] = -1;
-                    }
-                    foreach(var edge in removedEdges.Keys)
-                        spurTracks[edge.Item1][(int)edge.Item2] = removedEdges[edge];
-
-                    removedNodes.Clear();
-                    removedEdges.Clear();
-                }
-                // If there aren't enough shortest paths to continue the
-                // loop, break and return what is present
-                if(pathSpurs.Count == 0)
-                    break;
-
-                // Finally, sort pathSpurs to retrieve the shortest path generated
-                // from the iteration of spur nodes. Add that to the returned list
-                pathSpurs.Sort((p1, p2) => p1.Cost.CompareTo(p2.Cost));
-                paths.Add(pathSpurs.First());
-                pathSpurs.RemoveAt(0);
-            }
-
-            // Finally, add the least distance path as an added consideration
-            // (if it isn't already part of the list)
-            var leastDistance = trackOrPath ?
-                 LeastDistanceTrack(tracks, player, speed, start, end) :
-                 LeastDistancePath(tracks, map, start, end);
-            if(leastDistance != null && !paths.Any(p => p.Nodes.SequenceEqual(leastDistance.Nodes)))
-                paths.Insert(0, leastDistance);
-
-            // Remove tracks that offer no benefit compared to others
-            // (ie. distance and cost is greater than another's)
-            for(int i = 0; i < paths.Count; ++i)
-            {
-                for(int j = 0; j < paths.Count; ++j)
-                {
-                    if(i == j) continue;
-                    if(paths[i].Cost >= paths[j].Cost && paths[i].Distance >= paths[j].Distance)
-                    {
-                        paths.RemoveAt(i);
-                        if(i > 0) --i;
-                        if(j > 0) --j;
-                    }
-                }
-            }
-
-            paths.Sort((p1, p2) => p1.Distance.CompareTo(p2.Distance));
-
-            return paths;
-        }
-
-
-        // Finds the lowest distance track available for the given player,
-        // from a start point to end point.
-        private static Route LeastDistanceTrack(
-            Dictionary<NodeId, int[]> tracks, 
-            int player, int speed, 
-            NodeId start, NodeId end
-        ) {
-            return LeastCostTrack(tracks, player, speed, start, end, false);
-        }
+        #region Private Methods         
 
         /// <summary>
         /// Finds the lowest cost track available for the given player,
@@ -322,7 +293,7 @@ namespace Rails
         /// <param name="start">The start point of the traversal</param>
         /// <param name="end">The target point of the traversal</param>
         /// <returns>The lowest cost track</returns>
-        public static Route LeastCostTrack(
+        private static Route LeastCostTrack(
             Dictionary<NodeId, int[]> tracks, 
             int player, int speed, 
             NodeId start, NodeId end,
@@ -427,7 +398,7 @@ namespace Rails
         /// <param name="start">The start point of the traversal</param>
         /// <param name="end">The target point of the traversal</param>
         /// <returns>The lowest cost track</returns>
-        public static Route LeastCostPath(
+        private static Route LeastCostPath(
             Dictionary<NodeId, int[]> tracks, 
             MapData map, NodeId start, NodeId end,
             IEnumerable<Tuple<NodeId, Cardinal>> removedEdges,
@@ -506,11 +477,6 @@ namespace Rails
             return path;
         }
 
-        private static Route LeastDistancePath(
-            Dictionary<NodeId, int[]> tracks,
-            MapData map, NodeId start, NodeId end
-        ) => LeastCostPath(tracks, map, start, end, null, false);
-
         /// <summary>
         /// Creates a new PathData using the given
         /// tracks, nodes from start to end and player index
@@ -518,53 +484,37 @@ namespace Rails
         private static Route CreateTrackRoute(
             Dictionary<NodeId, int[]> tracks,
             int player, int speed,
-            params List<NodeId>[] paths
+            List<NodeId> path
         ) {
             int spacesLeft = speed + 1;
             int cost = 0;
-            var nodes = new List<NodeId>();
 
             bool [] tracksPaid = new bool[6] { false, false, false, false, false, false };
             tracksPaid[player] = true; 
 
-            for(int p = 0; p < paths.Length; ++p)
+            for(int i = 0; i < path.Count - 1; ++i)
             {
-                for(int i = 0; i < paths[p].Count; ++i)
+                Cardinal c = Utilities.CardinalBetween(path[i], path[i+1]);
+                if(!tracksPaid[tracks[path[i]][(int)c]])
                 {
-                    nodes.Add(paths[p][i]); 
+                    cost += Manager.AltTrackCost;
+                    tracksPaid[tracks[path[i]][(int)c]] = true;
+                }
 
-                    NodeId node1; NodeId ? node2 = null;
-                    node1 = paths[p][i];
+                spacesLeft -= 1;
 
-                    if(i < paths[p].Count - 1)
-                        node2 = paths[p][i+1];
-                    else if(p < paths.Length - 1)
-                        node2 = paths[p+1][0];
+                if(spacesLeft == 0)
+                {
+                    spacesLeft = speed;
 
-                    if(node2.HasValue)
-                    {
-                        Cardinal c = Utilities.CardinalBetween(node1, node2.Value);
-                        if(!tracksPaid[tracks[node1][(int)c]])
-                        {
-                            cost += Manager.AltTrackCost;
-                            tracksPaid[tracks[node1][(int)c]] = true;
-                        }
-                    }
+                    for(int t = 0; t < 6; ++t)
+                        tracksPaid[t] = false;
 
-                    spacesLeft -= 1;
-
-                    if(spacesLeft == 0)
-                    {
-                        spacesLeft = speed;
-                        for(int t = 0; t < 6; ++t)
-                            tracksPaid[t] = false;
-
-                        tracksPaid[player] = true;
-                    }
+                    tracksPaid[player] = true;
                 }
             }
 
-            return new Route(cost, nodes);
+            return new Route(cost, path);
         }
 
         /// <summary>
@@ -637,35 +587,17 @@ namespace Rails
             while(current != start);
 
             nodes.Reverse();
-            Debug.Log(nodes.Count);
             return new Route(cost, nodes);
         }
 
         private static Route CreatePathRoute(
             MapData map,
-            params List<NodeId>[] paths
+            List<NodeId> path
         ) {
             int cost = 0;
-            List<NodeId> path = new List<NodeId>();
 
-            for(int p = 0; p < paths.Length; ++p)
-            {
-                for(int i = 0; i < paths[p].Count; ++i)
-                {
-                    path.Add(paths[p][i]); 
-
-                    NodeId node1; NodeId ? node2 = null;
-                    node1 = paths[p][i];
-
-                    if(i < paths[p].Count - 1)
-                        node2 = paths[p][i+1];
-                    else if(p < paths.Length - 1)
-                        node2 = paths[p+1][0];
-
-                    if(node2.HasValue)
-                        cost += map.Nodes[node2.Value.X * Manager.Size + node2.Value.Y].Type == NodeType.Clear ? 1 : 2;
-                }
-            }
+            for(int i = 0; i < path.Count; ++i)
+                cost += map.Nodes[path[i].X * Manager.Size + path[i].Y].Type == NodeType.Clear ? 1 : 2;
  
             return new Route(cost, path);
         }
