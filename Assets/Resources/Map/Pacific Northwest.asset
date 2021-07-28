@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Pacific Northwest
   m_EditorClassIdentifier: 
   DefaultTokenTemplate: {fileID: 11400000, guid: 842ab5969c93ae3498bae2eba04fd15f, type: 2}
-  Board: {fileID: 0}
+  Board: {fileID: 8168019083947493543, guid: 2958ce6622ebf684cb14bed443b177d1, type: 3}
   DefaultPlayerTemplate: {fileID: 11400000, guid: 86ac9f33bedaae8ac874fd709ec69c6d, type: 2}
   Nodes:
   - Type: 5
@@ -1732,12 +1732,12 @@ MonoBehaviour:
       Y: 29
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 2
     Id:
       X: 4
       Y: 30
     Rivers: 000000000000
-    CityId: 0
+    CityId: 45
   - Type: 5
     Id:
       X: 4
@@ -2134,12 +2134,12 @@ MonoBehaviour:
       Y: 32
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 2
     Id:
       X: 5
       Y: 33
     Rivers: 000000000000
-    CityId: 0
+    CityId: 46
   - Type: 1
     Id:
       X: 5
@@ -8194,12 +8194,12 @@ MonoBehaviour:
       Y: 18
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 2
     Id:
       X: 21
       Y: 19
     Rivers: 000000000000
-    CityId: 0
+    CityId: 30
   - Type: 1
     Id:
       X: 21
@@ -8728,12 +8728,12 @@ MonoBehaviour:
       Y: 43
     Rivers: 000000000000
     CityId: 0
-  - Type: 2
+  - Type: 1
     Id:
       X: 22
       Y: 44
     Rivers: 000000000000
-    CityId: 41
+    CityId: 0
   - Type: 1
     Id:
       X: 22
@@ -11746,12 +11746,12 @@ MonoBehaviour:
       Y: 34
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 2
     Id:
       X: 30
       Y: 35
     Rivers: 000000000000
-    CityId: -1
+    CityId: 38
   - Type: 1
     Id:
       X: 30
@@ -12520,12 +12520,12 @@ MonoBehaviour:
       Y: 35
     Rivers: 000000000000
     CityId: 0
-  - Type: 2
+  - Type: 0
     Id:
       X: 32
       Y: 36
     Rivers: 000000000000
-    CityId: 38
+    CityId: 0
   - Type: 0
     Id:
       X: 32
@@ -12928,7 +12928,7 @@ MonoBehaviour:
       Y: 39
     Rivers: 000000000000
     CityId: 1
-  - Type: 1
+  - Type: 0
     Id:
       X: 33
       Y: 40
@@ -15112,19 +15112,19 @@ MonoBehaviour:
       Y: 19
     Rivers: 000000000000
     CityId: 4
-  - Type: 0
+  - Type: 1
     Id:
       X: 39
       Y: 20
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 2
     Id:
       X: 39
       Y: 21
     Rivers: 000000000000
-    CityId: 0
-  - Type: 0
+    CityId: 47
+  - Type: 1
     Id:
       X: 39
       Y: 22
@@ -15496,19 +15496,19 @@ MonoBehaviour:
       Y: 19
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 40
       Y: 20
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 40
       Y: 21
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 40
       Y: 22
@@ -15880,24 +15880,24 @@ MonoBehaviour:
       Y: 19
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 41
       Y: 20
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 41
       Y: 21
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 41
       Y: 22
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 1
     Id:
       X: 41
@@ -16282,12 +16282,12 @@ MonoBehaviour:
       Y: 22
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 42
       Y: 23
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 1
     Id:
       X: 42
@@ -18154,7 +18154,7 @@ MonoBehaviour:
       Y: 14
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 0
     Id:
       X: 47
       Y: 15
@@ -49171,7 +49171,8 @@ MonoBehaviour:
   - Type: 0
   Cities:
   - Name: Seattle, WA
-    Goods: []
+    Goods:
+    - {x: 15, y: 1}
   - Name: Missoula, MT
     Goods: []
   - Name: Casper, WY
@@ -49179,85 +49180,180 @@ MonoBehaviour:
   - Name: Denver, CO
     Goods: []
   - Name: Salt Lake City, UT
-    Goods: []
+    Goods:
+    - {x: 19, y: 1}
   - Name: Redding, CA
-    Goods: []
+    Goods:
+    - {x: 7, y: 1}
+    - {x: 16, y: 1}
   - Name: Portland, OR
     Goods: []
   - Name: Kennewick, WA
-    Goods: []
+    Goods:
+    - {x: 2, y: 1}
+    - {x: 0, y: 1}
   - Name: Eugene, OR
-    Goods: []
+    Goods:
+    - {x: 5, y: 1}
+    - {x: 4, y: 1}
+    - {x: 8, y: 1}
   - Name: Billings, MT
-    Goods: []
+    Goods:
+    - {x: 20, y: 1}
+    - {x: 0, y: 1}
+    - {x: 23, y: 1}
   - Name: Boise, ID
-    Goods: []
+    Goods:
+    - {x: 4, y: 1}
   - Name: Reno, NV
-    Goods: []
+    Goods:
+    - {x: 19, y: 1}
+    - {x: 5, y: 1}
   - Name: Elko, NV
-    Goods: []
+    Goods:
+    - {x: 16, y: 1}
+    - {x: 21, y: 1}
   - Name: Idaho Falls, ID
-    Goods: []
+    Goods:
+    - {x: 21, y: 1}
   - Name: Great Falls, MT
-    Goods: []
+    Goods:
+    - {x: 0, y: 1}
+    - {x: 1, y: 1}
   - Name: Grand Junction, CO
-    Goods: []
+    Goods:
+    - {x: 1, y: 1}
+    - {x: 12, y: 1}
   - Name: Cheyenne, WY
-    Goods: []
+    Goods:
+    - {x: 21, y: 1}
+    - {x: 9, y: 1}
   - Name: Rock Springs, WY
-    Goods: []
+    Goods:
+    - {x: 9, y: 1}
   - Name: Glasgow, MT
-    Goods: []
+    Goods:
+    - {x: 23, y: 1}
+    - {x: 1, y: 1}
   - Name: Miles City, MT
-    Goods: []
+    Goods:
+    - {x: 24, y: 1}
+    - {x: 3, y: 1}
   - Name: Glendive, MT
-    Goods: []
+    Goods:
+    - {x: 23, y: 1}
+    - {x: 9, y: 1}
   - Name: Bozeman, MT
-    Goods: []
+    Goods:
+    - {x: 21, y: 1}
   - Name: Helena, MT
-    Goods: []
+    Goods:
+    - {x: 20, y: 1}
+    - {x: 17, y: 1}
   - Name: Spokane, WA
-    Goods: []
+    Goods:
+    - {x: 3, y: 0}
   - Name: Yakima, WA
-    Goods: []
+    Goods:
+    - {x: 10, y: 0}
   - Name: Lewingston, MT
-    Goods: []
+    Goods:
+    - {x: 3, y: 0}
   - Name: Pocatello, ID
-    Goods: []
+    Goods:
+    - {x: 7, y: 1}
   - Name: Twin Falls, ID
-    Goods: []
+    Goods:
+    - {x: 21, y: 1}
   - Name: Bend, OR
-    Goods: []
+    Goods:
+    - {x: 6, y: 1}
+    - {x: 10, y: 1}
   - Name: Medford, OR
-    Goods: []
+    Goods:
+    - {x: 5, y: 0}
+    - {x: 10, y: 0}
   - Name: Winnemucca, NV
-    Goods: []
+    Goods:
+    - {x: 16, y: 0}
   - Name: Payette, ID
-    Goods: []
+    Goods:
+    - {x: 0, y: 0}
   - Name: Baker City, OR
-    Goods: []
+    Goods:
+    - {x: 10, y: 0}
   - Name: Fort Collins, CO
-    Goods: []
+    Goods:
+    - {x: 1, y: 1}
+    - {x: 12, y: 1}
   - Name: Wendell, CA
-    Goods: []
+    Goods:
+    - {x: 8, y: 1}
+    - {x: 7, y: 1}
   - Name: Burns, OR
-    Goods: []
+    Goods:
+    - {x: 16, y: 0}
   - Name: Boulder, WY
-    Goods: []
+    Goods:
+    - {x: 13, y: 1}
   - Name: Gillette, WY
-    Goods: []
+    Goods:
+    - {x: 13, y: 1}
   - Name: Darby, ID
-    Goods: []
+    Goods:
+    - {x: 21, y: 1}
   - Name: Salmon, ID
-    Goods: []
+    Goods:
+    - {x: 4, y: 0}
   - Name: Kalispell, MT
-    Goods: []
+    Goods:
+    - {x: 17, y: 0}
+    - {x: 20, y: 0}
   - Name: Colville, WA
-    Goods: []
+    Goods:
+    - {x: 10, y: 0}
   - Name: Tuscarora, NV
-    Goods: []
+    Goods:
+    - {x: 16, y: 1}
   - Name: Fields, OR
-    Goods: []
+    Goods:
+    - {x: 0, y: 1}
   - Name: Cody, WY
-    Goods: []
-  Goods: []
+    Goods:
+    - {x: 21, y: 1}
+  - Name: Newport, OR
+    Goods:
+    - {x: 15, y: 1}
+  - Name: Tillamook, OR
+    Goods:
+    - {x: 7, y: 0}
+  - Name: Logan, UT
+    Goods:
+    - {x: 23, y: 0}
+    - {x: 11, y: 0}
+  Goods:
+  - Name: Wheat
+  - Name: Beef
+  - Name: Potatoes
+  - Name: Aircraft Parts
+  - Name: Semiconductors
+  - Name: Integrated Circuits
+  - Name: Hazelnuts
+  - Name: Dairy
+  - Name: Wine
+  - Name: Heavy Machinery
+  - Name: Apples
+  - Name: Medical Supplies
+  - Name: Spacecraft Parts
+  - Name: Vehicle Parts
+  - Name: Cement
+  - Name: Seafood
+  - Name: Computer Hardware
+  - Name: Copper
+  - Name: Silver
+  - Name: Gold
+  - Name: Coal
+  - Name: Minerals
+  - Name: Propane
+  - Name: Cattle
+  - Name: Lentils
