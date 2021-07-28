@@ -326,7 +326,7 @@ namespace Rails {
     public int Win_Money = 250;
     
     // The cost to build a track to a respective NodeType
-    public readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
+    public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
         new Dictionary<NodeType, int>
         {
             { NodeType.Clear,      1 },
@@ -336,6 +336,9 @@ namespace Rails {
             { NodeType.MajorCity,  5 },
         }
     );
+
+    // The cost to build over a river
+    public const int RiverCost = 2;
 
     // The trains that players can use.
     public TrainData[] trainData;

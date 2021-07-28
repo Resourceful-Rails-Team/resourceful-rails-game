@@ -533,8 +533,11 @@ namespace Rails
                     var newNode = new WeightedNode { Position = newPoint };
 
                     var newCost = distMap[node.Position] + 1;
-                    if(map.Nodes[newNode.Position.X * Manager.Size + newNode.Position.Y].Type == NodeType.Mountain && addWeight)
-                        newCost += 1;
+                    
+                    // Add the node cost to newCost, as well as river cost if the edge is over a river
+                    newCost += Manager.NodeCosts[map.Nodes[node.Position.GetSingleId()].Type];
+                    if (map.GetNodeSegments(node.Position)[(int)c].Type == NodeSegmentType.River)
+                        newCost += Manager.RiverCost;
 
                     // If a shorter path has already been found, continue
                     if(distMap.TryGetValue(newPoint, out int currentCost) && currentCost <= newCost)
@@ -669,19 +672,19 @@ namespace Rails
 
             // While the start node has not been reached, traverse
             // down the previous map.
-            do
+            while(current != start)
             {
                 nodes.Add(current);
 
-                current = previous[current];
-                
                 // Add the cost of building the track, based on NodeType
-                // and NodeSegment
-                if(current != start)
-                    cost += map.Nodes[current.X * Manager.Size + current.Y].Type == NodeType.Clear ?
-                        1 : 2;
-            } 
-            while(current != start);
+                // and NodeSegment 
+                cost += Manager.NodeCosts[map.Nodes[current.GetSingleId()].Type];
+                if (map.GetNodeSegments(current)[(int)Utilities.CardinalBetween(current, previous[current])].Type == NodeSegmentType.River)
+                    cost += Manager.RiverCost;
+
+                current = previous[current];
+            }
+            nodes.Add(start);
 
             nodes.Reverse();
             return new Route(cost, nodes);
@@ -697,10 +700,14 @@ namespace Rails
             int cost = 0;
 
             // Traverse the path, adding the cost of each edge while doing so
-            for(int i = 0; i < path.Count; ++i)  
-                // Add the cost of building the track, based on NodeType
-                // and NodeSegment
-                cost += map.Nodes[path[i].X * Manager.Size + path[i].Y].Type == NodeType.Clear ? 1 : 2;
+            for (int i = 0; i < path.Count - 1; ++i)
+            {
+                // Add the node cost to newCost, as well as river cost if the edge is over a river
+                cost += Manager.NodeCosts[map.Nodes[path[i+1].GetSingleId()].Type];
+
+                if (map.GetNodeSegments(path[i])[(int)Utilities.CardinalBetween(path[i], path[i + 1])].Type == NodeSegmentType.River)
+                    cost += Manager.RiverCost;
+            }
  
             return new Route(cost, path);
         }
