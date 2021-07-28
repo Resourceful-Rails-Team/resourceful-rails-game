@@ -44,5 +44,31 @@ namespace Rails
             else
                 UnityEngine.Debug.LogError($"Test Failed: method {methodName}");
         }
+ 
+        /// <summary>
+        /// Tests the given method, confirming that it throws
+        /// the given Exception type.
+        /// </summary>
+        /// <param name="method">The method to test</param>
+        /// <param name="exceptionType">The exception type expected to be thrown</param>
+        protected void TestThrowsException(Action method, Type exceptionType)
+        {
+            if (method == null) return;
+            var methodName = method.Method.Name;
+
+            try
+            {
+                method.Invoke();
+            }
+            catch(Exception e)
+            {
+                if(e.GetType() == exceptionType)
+                    UnityEngine.Debug.Log($"Test Succeeded: method {methodName}");
+                else
+                    UnityEngine.Debug.LogError($"Test Failed: method {methodName}");
+            }
+
+            UnityEngine.Debug.LogError($"Test Failed: method {methodName}");
+        }
     }
 }

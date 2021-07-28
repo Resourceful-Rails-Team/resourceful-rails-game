@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,6 +23,7 @@ namespace Rails
             TestMethod(TestReflectCardinal);
             TestMethod(TestCardinalBetween);
             TestMethod(TestPointTowards);
+            TestThrowsException(TestCardinalBetweenException, typeof(ArgumentException));
         }
 
         #region PriorityQueueTests 
@@ -79,6 +81,8 @@ namespace Rails
             Assert(Utilities.CardinalBetween(nodeMid, nodeSW) == Cardinal.SW);
             Assert(Utilities.CardinalBetween(nodeMid, nodeNW) == Cardinal.NW);
         }
+
+        private void TestCardinalBetweenException() => Utilities.CardinalBetween(nodeMid, new NodeId(20, 20));
 
         private void TestPointTowards()
         {
