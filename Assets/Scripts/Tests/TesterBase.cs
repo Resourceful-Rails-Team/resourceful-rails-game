@@ -22,9 +22,7 @@ namespace Rails
             if(!statement)
             {
                 var method = trace.GetFrame(1).GetMethod();
-
                 _methods.Add(method.Name);
-                UnityEngine.Debug.LogError($"Test Error: method {method} failed.");
             }
         }
         
