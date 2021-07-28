@@ -34,10 +34,11 @@ namespace Rails
         /// <param name="method">The method to test</param>
         protected void TestMethod(Action method)
         {
-            var trace = new StackTrace();
+            if (method == null) return;
+
             var methodName = method.Method.Name;
 
-            method?.Invoke();
+            method.Invoke();
             if (!_methods.Contains(methodName))
                 UnityEngine.Debug.Log($"Test Succeeded: method {methodName}");
             else
