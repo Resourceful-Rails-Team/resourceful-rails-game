@@ -1,0 +1,36 @@
+control name
+  MKB (QWERTY)
+  Gamepad
+
+pan camera
+  WASD
+  left analog
+rotate camera
+  mouse delta
+  right analog
+zoom camera
+  scroll wheel
+  L2-R2
+
+add point
+  mouse left
+  cross
+remove last point
+  mouse right
+  circle
+cycle points
+  Q-E
+  L1-R1
+change path
+  R
+  triangle
+  
+open player info window
+  F
+  select
+pause
+  ESC
+  start
+end phase
+  Space
+  square
