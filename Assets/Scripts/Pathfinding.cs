@@ -175,6 +175,11 @@ namespace Rails
             params NodeId[] segments
         ) {
             var path = new List<NodeId>();
+
+            // If no segments were given, return an empty Route
+            if (segments.Length == 0) 
+                return new Route(0, path);
+
             path.Add(segments[0]);
 
             // A duplicate of the current tracks - ensures that Pathfinder
@@ -186,7 +191,7 @@ namespace Rails
             {
                 var route = LeastCostPath(
                     newTracks, mapData, segments[i], 
-                    segments[i + 1], null, false
+                    segments[i + 1], false
                 );
                 if(route == null) break;
                 
@@ -225,6 +230,11 @@ namespace Rails
             params NodeId[] segments
         ) {
             var path = new List<NodeId>();
+            
+            // If no segments were given, return an empty Route
+            if (segments.Length == 0) 
+                return new Route(0, path);
+
             path.Add(segments[0]);
 
             // A duplicate of the current tracks - ensures that Pathfinder
@@ -236,7 +246,7 @@ namespace Rails
             {
                 var route = LeastCostPath(
                     newTracks, mapData, segments[i], 
-                    segments[i + 1], null, true
+                    segments[i + 1], true
                 );
                 if(route == null) break;
                 
@@ -277,6 +287,11 @@ namespace Rails
             int player, int speed, params NodeId [] segments
         ) {
             var path = new List<NodeId>();
+
+            // If no segments were given, return an empty Route
+            if (segments.Length == 0) 
+                return new Route(0, path);
+
             path.Add(segments[0]);
     
             // For each segment, find the least-distance path between it and the next segment.
@@ -314,6 +329,11 @@ namespace Rails
             int player, int speed, params NodeId [] segments
         ) {
             var path = new List<NodeId>();
+            
+            // If no segments were given, return an empty Route
+            if (segments.Length == 0) 
+                return new Route(0, path);
+
             path.Add(segments[0]);
 
             // For each segment, find the least-cost path between it and the next segment.
@@ -635,9 +655,8 @@ namespace Rails
         }
 
         /// <summary>
-        /// Creates a new Route using the MapData, the given tracks,
-        /// and a map of all tracks' nodes previous nodes for shortest
-        /// path.
+        /// Creates a new Route using the MapData and a map of all tracks' 
+        /// nodes previous nodes for shortest path.
         /// </summary>
         private static Route CreatePathRoute(
             MapData map,
@@ -667,7 +686,10 @@ namespace Rails
             nodes.Reverse();
             return new Route(cost, nodes);
         }
-
+        
+        /// <summary>
+        /// Creates a new Route using the MapData and a list of NodeIds
+        /// </summary>
         private static Route CreatePathRoute(
             MapData map,
             List<NodeId> path
@@ -682,6 +704,7 @@ namespace Rails
  
             return new Route(cost, path);
         }
+        
         #endregion
     }    
 }
