@@ -161,14 +161,15 @@ namespace Rails
         /// <summary>
         /// Finds the least-distance build route given a series of
         /// intermediate segment nodes.
-        /// 
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached.
         /// </summary>
-        /// <param name="tracks">The maps current rail tracks</param>
-        /// <param name="mapData">The map's data</param>
-        /// <param name="segments">The segments the route must pass through</param>
-        /// <returns></returns>
+        /// <param name="tracks">The map's current player tracks</param>
+        /// <param name="mapData">The map's node information</param>
+        /// <param name="segments">The NodeIds the route must pass through</param>'
+        /// <returns>
+        /// The shortest-distance Route that connects all segments.
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached. 
+        /// </returns>
         public static Route ShortestBuild(
             Dictionary<NodeId, int[]> tracks, MapData mapData,
             params NodeId[] segments
@@ -176,8 +177,11 @@ namespace Rails
             var path = new List<NodeId>();
             path.Add(segments[0]);
 
+            // A duplicate of the current tracks - ensures that Pathfinder
+            // doesn't reuse already commited paths in later traversals.
             var newTracks = new Dictionary<NodeId, int[]>(tracks);
-
+            
+            // For each segment, find the least-distance path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostPath(
@@ -185,7 +189,8 @@ namespace Rails
                     segments[i + 1], null, false
                 );
                 if(route == null) break;
-
+                
+                // Add the new path to newTracks
                 for(int j = 0; j < route.Nodes.Count - 1; ++j)
                 {
                     if(!newTracks.ContainsKey(route.Nodes[j]))
@@ -196,25 +201,25 @@ namespace Rails
                     newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 0;
                     newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 0;
                 }
-
+         
                 path.AddRange(route.Nodes);
             }
-
+            
             return CreatePathRoute(mapData, path);
         }
 
         /// <summary>
         /// Finds the least-cost build route given a series of
         /// intermediate segment nodes.
-        /// 
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached.
         /// </summary>
-        /// <param name="tracks">The maps current rail tracks</param>
-        /// <param name="mapData">The map's data</param>
-        /// <param name="segments">The segments the route must pass through</param>
-        /// <returns></returns>
-
+        /// <param name="tracks">The map's current player tracks</param>
+        /// <param name="mapData">The map's node information</param>
+        /// <param name="segments">The NodeIds the route must pass through</param>
+        /// <returns>
+        /// The shortest-cost Route that connects all segments.
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached. 
+        /// </returns>
         public static Route CheapestBuild(
             Dictionary<NodeId, int[]> tracks, MapData mapData,
             params NodeId[] segments
@@ -222,8 +227,11 @@ namespace Rails
             var path = new List<NodeId>();
             path.Add(segments[0]);
 
+            // A duplicate of the current tracks - ensures that Pathfinder
+            // doesn't reuse already commited paths in later traversals.
             var newTracks = new Dictionary<NodeId, int[]>(tracks);
 
+            // For each segment, find the least-cost path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostPath(
@@ -232,6 +240,7 @@ namespace Rails
                 );
                 if(route == null) break;
                 
+                // Add the new path to newTracks
                 for(int j = 0; j < route.Nodes.Count - 1; ++j)
                 {
                     if(!newTracks.ContainsKey(route.Nodes[j]))
@@ -250,25 +259,27 @@ namespace Rails
         }
 
         /// <summary>
-        /// Finds the least-distance traversal on a rail track,
+        /// Finds the least-distance traversal on a track,
         /// given a `player`, the player's train's `speed`, and
         /// a series of intermediate segments.
-        /// 
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached.
         /// </summary>
-        /// <param name="tracks">The current rail tracks on the map</param>
-        /// <param name="player">The player performing the traversal</param>
+        /// <param name="tracks">The map's current player tracks</param>
+        /// <param name="player">The index of the player performing the traversal</param>
         /// <param name="speed">The speed of the player's train</param>
-        /// <param name="segments">The segments the route must pass through</param>
-        /// <returns></returns>
+        /// <param name="segments">The NodeIds the route must pass through</param>
+        /// <returns>
+        /// The shortest-distance Route that connects all segments.
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached. 
+        /// </returns>
         public static Route ShortestMove(
             Dictionary<NodeId, int[]> tracks,
             int player, int speed, params NodeId [] segments
         ) {
             var path = new List<NodeId>();
             path.Add(segments[0]);
-
+    
+            // For each segment, find the least-distance path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostTrack(
@@ -276,6 +287,8 @@ namespace Rails
                     segments[i], segments[i + 1], false
                 );
                 if(route == null) break;
+
+                // Add the new path to newTracks
                 path.AddRange(route.Nodes);
             }
 
@@ -283,19 +296,19 @@ namespace Rails
         }
 
         /// <summary>
-        /// Finds the least-cost traversal on a rail track,
+        /// Finds the least-cost traversal on a track,
         /// given a `player`, the player's train's `speed`, and
         /// a series of intermediate segments.
-        /// 
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached.
         /// </summary>
-        /// <param name="tracks">The current rail tracks on the map</param>
-        /// <param name="player">The player performing the traversal</param>
+        /// <param name="tracks">The map's current player tracks</param>
+        /// <param name="player">The index of the player performing the traversal</param>
         /// <param name="speed">The speed of the player's train</param>
-        /// <param name="segments">The segments the route must pass through</param>
-        /// <returns></returns>
-
+        /// <param name="segments">The NodeIds the route must pass through</param>
+        /// <returns>
+        /// The shortest-distance Route that connects all segments.
+        /// Returns the furthest path between segments possible
+        /// if a segment cannot be reached. 
+        /// </returns>
         public static Route CheapestMove(
             Dictionary<NodeId, int[]> tracks,
             int player, int speed, params NodeId [] segments
@@ -303,6 +316,7 @@ namespace Rails
             var path = new List<NodeId>();
             path.Add(segments[0]);
 
+            // For each segment, find the least-cost path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostTrack(
@@ -310,6 +324,8 @@ namespace Rails
                     segments[i], segments[i + 1], true
                 );
                 if(route == null) break;
+                
+                // Add the new path to newTracks
                 path.AddRange(route.Nodes);
             }
 
