@@ -1,0 +1,87 @@
+struct player{
+  string name;
+  Color color;
+  int turn_order;
+  int money;
+}
+
+
+Set-up
+ask for gametype/map
+ask for # of players
+for each player
+  ask for name & color
+assign player order
+assign $50 money
+draw 3 cards
+
+Building turn
+for each player
+  build-phase
+for each player->reverse
+  build-phase
+
+First turn
+place train
+  must be on city
+  city must be connected
+  to that player's track
+goto Normal turn
+
+Normal turn
+discard hand?
+  // ends turn
+move-phase
+  unload good
+  load good
+  claim delivery
+build-phase
+  upgrade train == $20
+    overrides track
+  or build track <= $20
+  finalize build
+
+Game-loop
+Set-up
+Build-turns
+First-turns
+Normal-turns
+End-game
+
+
+Build phase
+Upgrade
+  change train
+  end turn
+Place track
+  push point
+  pop point
+  peek point
+  update
+    track count
+    total cost
+Build
+  deduct cost
+  place track in list
+  end turn
+
+Move phase
+push point
+pop point
+confirm move
+  move train along path
+
+Discard hand
+  put current cards in
+  discard pile
+  draw 3 new cards
+  end turn
+
+
+Turn order
+while (!win)
+  for each player
+    UI info update
+    move phase
+    build phase
+    check win
