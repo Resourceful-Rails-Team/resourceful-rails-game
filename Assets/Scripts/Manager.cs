@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Rails.ScriptableObjects;
 using UnityEngine.InputSystem;
+using System.Collections.ObjectModel;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -253,7 +254,7 @@ namespace Rails {
           var node = MapData.Nodes[(y * Size) + x];
           var pos = GetPosition(node.Id);
           Gizmos.color = Utilities.GetNodeColor(node.Type);
-          Gizmos.DrawSphere(pos, WSSize * 0.3f);
+          Gizmos.DrawCube(pos, Vector3.one * WSSize * 0.3f);
 
           //
           if (node.CityId >= 0 && node.CityId < MapData.Cities.Count) {
@@ -361,6 +362,21 @@ namespace Rails {
     /// The amount of money needed to win.
     /// </summary>
     public int Win_Money = 250;
+    
+    // The cost to build a track to a respective NodeType
+    public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
+        new Dictionary<NodeType, int>
+        {
+            { NodeType.Clear,      1 },
+            { NodeType.Mountain,   2 },
+            { NodeType.SmallCity,  3 },
+            { NodeType.MediumCity, 3 },
+            { NodeType.MajorCity,  5 },
+        }
+    );
+
+    // The cost to build over a river
+    public const int RiverCost = 2;
 
     /// <summary>
     /// The trains that players can use.
