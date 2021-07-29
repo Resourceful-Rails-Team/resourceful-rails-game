@@ -7,6 +7,7 @@ namespace Rails
 {
     public class CameraController : MonoBehaviour
     {
+        public Transform targetTransform;
         public float focusDistance = 1f;
         public float moveSpeed = 1f;
         public float rotateSpeed = 1f;
@@ -15,33 +16,39 @@ namespace Rails
         public float zoomMinDist = 1f;
         public float zoomMaxDist = 10f;
 
-        private Vector2 _moveInput;
-        private Vector2 _rotateInput;
-        private float _zoomInput;
+        public float lerpSpeed = 2.0f;
+
         private Vector3 focus;
         private float distance;
+       
+        private Transform _transform;
+
+        private void Awake() => _transform = transform;
 
         private void Start()
         {
-            _moveInput = Vector2.zero;
-            _rotateInput = Vector2.zero;
-            focus = transform.position;
+            focus = _transform.position;
             focus.y = 0;
             focus.z += focusDistance;
-            transform.LookAt(focus);
+
+            _transform.LookAt(focus);
+
+            targetTransform.position = _transform.position;
+            targetTransform.rotation = _transform.rotation;
         }
         void Update()
         {
-            distance = Vector3.Distance(transform.position, focus);
+            distance = Vector3.Distance(targetTransform.position, focus);
             Move(GameInput.MoveInput, distance);
             Rotate(GameInput.RotateInput);
             Zoom(GameInput.ZoomInput, distance);
 
-            if (GameInput.SelectPressed)
+            _transform.position = Vector3.Lerp(_transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
+            _transform.rotation = targetTransform.rotation;
+
+            if (GameInput.SelectJustPressed)
                 Select();
         }
-
-
         #region Methods
 
         // Moves the camera across the X-Z plane.
@@ -53,24 +60,31 @@ namespace Rails
               Vector3.ProjectOnPlane(transform.forward, Vector3.up), Vector3.up);
 
             move = planarDirection * move * distance * Time.deltaTime;
-            transform.position += move;
             focus += move;
+            targetTransform.position += move;
+
             return;
         }
 
         // Rotates the camera around the focus point.
         private void Rotate(Vector2 input)
         {
+            var targetPos = targetTransform.position;
+
             // Rotate horizontally along vertical axis.
             float rot = rotateSpeed * input.x * Time.deltaTime;
-            transform.RotateAround(focus, Vector3.up, rot);
+            targetTransform.RotateAround(focus, Vector3.up, rot);
 
             // Rotate vertically along side axis.
-            float dot = Vector3.Dot(Vector3.down, transform.forward);
-            if ((dot < 0.05f && input.y < 0f) || (dot > 0.99f && input.y > 0f))
+            float dot = Vector3.Dot(Vector3.down, targetTransform.forward);
+            if ((dot < 0.15f && input.y < 0f) || (dot >= 0.99f && input.y > 0f))
                 return;
+
             rot = rotateSpeed * input.y * Time.deltaTime;
-            transform.RotateAround(focus, transform.right, rot);
+            targetTransform.RotateAround(focus, targetTransform.right, rot);
+
+            _transform.position += targetTransform.position - targetPos;
+            
             return;
         }
 
@@ -78,9 +92,13 @@ namespace Rails
         private void Zoom(float input, float distance)
         {
             if ((distance < zoomMinDist && input > 0) || (distance > zoomMaxDist && input < 0))
+            {
+                distance = Mathf.Clamp(distance, zoomMinDist, zoomMaxDist);
                 return;
+            }
+
             float zoomDelta = zoomSpeed * input * distance * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, focus, zoomDelta);
+            targetTransform.position = Vector3.MoveTowards(targetTransform.position, focus, zoomDelta);
             return;
         }
 
@@ -93,12 +111,12 @@ namespace Rails
 
             if (plane.Raycast(ray, out enter))
             {
-                Debug.DrawLine(transform.position, ray.GetPoint(enter), Color.green, 2f);
+                Debug.DrawLine(_transform.position, ray.GetPoint(enter), Color.green, 2f);
 
             }
             else
             {
-                Debug.DrawRay(transform.position, ray.direction, Color.red, 2f);
+                Debug.DrawRay(_transform.position, ray.direction, Color.red, 2f);
             }
 
             return;

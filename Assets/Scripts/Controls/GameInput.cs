@@ -29,7 +29,7 @@ public class GameInput : MonoBehaviour
     private void OnRotate(InputValue value)
     {
         if (_rotateTriggered)
-            RotateInput = value.Get<Vector2>();
+            RotateInput = value.Get<Vector2>() * new Vector2(1.0f, -1.0f);
     }
     private void OnSelect(InputValue value)
     {
@@ -37,9 +37,5 @@ public class GameInput : MonoBehaviour
         SelectJustPressed = SelectPressed;
     }
 
-    private void LateUpdate()
-    {
-        ZoomInput = 0.0f;
-        SelectJustPressed = false;
-    }
+    private void LateUpdate() => SelectJustPressed = false;
 }
