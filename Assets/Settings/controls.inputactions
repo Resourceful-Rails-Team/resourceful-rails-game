@@ -30,12 +30,20 @@
                     "interactions": ""
                 },
                 {
+                    "name": "RotateTriggered",
+                    "type": "Button",
+                    "id": "02481f95-c700-4b51-ba52-2c03360d7ab3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
+                },
+                {
                     "name": "Select",
                     "type": "Button",
                     "id": "df9b7fed-326b-4ddf-b6da-cd5c75b4991d",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "Press(behavior=2)"
                 }
             ],
             "bindings": [
@@ -212,6 +220,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9c76758d-f235-49ce-a660-242badfdd623",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "RotateTriggered",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
