@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Rails
+namespace Rails.Controls
 {
     public class CameraController : MonoBehaviour
     {
@@ -45,9 +43,6 @@ namespace Rails
 
             _transform.position = Vector3.Lerp(_transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
             _transform.rotation = targetTransform.rotation;
-
-            if (GameInput.SelectJustPressed)
-                Select();
         }
         #region Methods
 
@@ -92,33 +87,10 @@ namespace Rails
         private void Zoom(float input, float distance)
         {
             if ((distance < zoomMinDist && input > 0) || (distance > zoomMaxDist && input < 0))
-            {
-                distance = Mathf.Clamp(distance, zoomMinDist, zoomMaxDist);
                 return;
-            }
 
             float zoomDelta = zoomSpeed * input * distance * Time.deltaTime;
             targetTransform.position = Vector3.MoveTowards(targetTransform.position, focus, zoomDelta);
-            return;
-        }
-
-        // Gets a position on the map.
-        private void Select()
-        {
-            Plane plane = new Plane(Vector3.up, 0f);
-            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-            float enter = 0f;
-
-            if (plane.Raycast(ray, out enter))
-            {
-                Debug.DrawLine(_transform.position, ray.GetPoint(enter), Color.green, 2f);
-
-            }
-            else
-            {
-                Debug.DrawRay(_transform.position, ray.direction, Color.red, 2f);
-            }
-
             return;
         }
         #endregion

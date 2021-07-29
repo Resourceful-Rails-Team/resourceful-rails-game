@@ -88,12 +88,24 @@ namespace Rails {
       return pos;
     }
 
-    /// <summary>
-    /// Returns a collection of NodeIds of nodes that lie within the given circle.
-    /// </summary>
-    /// <param name="position">Position of the circle</param>
-    /// <param name="radius">Radius of circle</param>
-    public List<NodeId> GetNodeIdsByPosition(Vector3 position, float radius) {
+    public NodeId GetNodeId(Vector3 position) {
+        var w = 2 * WSSize;
+        var h = Mathf.Sqrt(3) * WSSize;
+        var wspace = 0.75f * w;
+
+        int posX = Mathf.RoundToInt(position.x / wspace);
+        if (posX % 2 == 1)
+            position.z -= h / 2;
+        
+        return new NodeId(posX, Mathf.RoundToInt(position.z / h));
+    }
+
+     /// <summary>
+     /// Returns a collection of NodeIds of nodes that lie within the given circle.
+     /// </summary>
+     /// <param name="position">Position of the circle</param>
+     /// <param name="radius">Radius of circle</param>
+     public List<NodeId> GetNodeIdsByPosition(Vector3 position, float radius) {
       List<NodeId> nodeIds = new List<NodeId>();
       var w = 2 * WSSize;
       var h = Mathf.Sqrt(3) * WSSize;
