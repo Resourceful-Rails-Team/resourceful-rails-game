@@ -72,82 +72,11 @@ namespace Rails {
     /// Stores the tracks on the map.
     /// </summary>
     [SerializeField]
-    private Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
+    public Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
 		#endregion // Properties
 
     #region Utilities
-    public Vector3 GetPosition(NodeId id) {
-      var w = 2 * WSSize;
-      var h = Mathf.Sqrt(3) * WSSize;
-      var wspace = 0.75f * w;
-      var pos = new Vector3(id.X * wspace, 0, id.Y * h);
-      int parity = id.X & 1;
-      if (parity == 1)
-        pos.z += h / 2;
-
-      return pos;
-    }
-
-    public NodeId GetNodeId(Vector3 position) {
-        var w = 2 * WSSize;
-        var h = Mathf.Sqrt(3) * WSSize;
-        var wspace = 0.75f * w;
-
-        int posX = Mathf.RoundToInt(position.x / wspace);
-        if (posX % 2 == 1)
-            position.z -= h / 2;
-        
-        return new NodeId(posX, Mathf.RoundToInt(position.z / h));
-    }
-
-     /// <summary>
-     /// Returns a collection of NodeIds of nodes that lie within the given circle.
-     /// </summary>
-     /// <param name="position">Position of the circle</param>
-     /// <param name="radius">Radius of circle</param>
-     public List<NodeId> GetNodeIdsByPosition(Vector3 position, float radius) {
-      List<NodeId> nodeIds = new List<NodeId>();
-      var w = 2 * WSSize;
-      var h = Mathf.Sqrt(3) * WSSize;
-      var wspace = 0.75f * w;
-
-      // Algorithm generates a bounding square
-      // It then iterates all nodes within that box
-      // Checking if the world space position of that node is within the circle
-
-      // get grid-space node position
-      Vector2 centerNodeId = new Vector2(position.x / wspace, position.z / h);
-      if ((int)centerNodeId.x % 2 == 1)
-        centerNodeId.y -= h / 2;
-
-      // determine grid-space size of radius
-      int extents = Mathf.CeilToInt(radius / wspace);
-
-      // generate bounds from center and radius
-      // clamp min to be no less than 0
-      // clamp max to be no more than Size-1
-      int minX = Mathf.Max(0, (int)centerNodeId.x - extents);
-      int maxX = Mathf.Min(Size - 1, Mathf.CeilToInt(centerNodeId.x) + extents);
-      int minY = Mathf.Max(0, (int)centerNodeId.y - extents);
-      int maxY = Mathf.Min(Size - 1, Mathf.CeilToInt(centerNodeId.y) + extents);
-
-      // iterate bounds
-      for (int x = minX; x <= maxX; ++x) {
-        for (int y = minY; y <= maxY; ++y) {
-          // get position from NodeId
-          var nodeId = new NodeId(x, y);
-          var pos = GetPosition(nodeId);
-
-          // check if position is within circle
-          if (Vector3.Distance(pos, position) < radius)
-            nodeIds.Add(nodeId);
-        }
-      }
-
-      return nodeIds;
-    }
-
-    /// <summary>
+      /// <summary>
     /// Inserts a new track onto the Map, based on position and direction.
     /// </summary>
     /// <param name="player">The player who owns the track</param>
@@ -176,37 +105,13 @@ namespace Rails {
     [SerializeField]
     public MapTokenTemplate MapGraphics;
     private GameObject[] PlayerTrains;
-    private GameObject GetNodeType(MapTokenTemplate mapStyle, Node node) {
-      GameObject model = null;
-      switch (node.Type) {
-        case NodeType.Clear:
-          model = mapStyle.Clear;
-          break;
-        case NodeType.Mountain:
-          model = mapStyle.Mountain;
-          break;
-        case NodeType.SmallCity:
-          model = mapStyle.SmallCity;
-          break;
-        case NodeType.MediumCity:
-          model = mapStyle.MediumCity;
-          break;
-        case NodeType.MajorCity:
-          model = mapStyle.MajorCity;
-          break;
-        case NodeType.Water:
-          model = null;
-          break;
-      }
-      return model;
-    }
     private void CreateNodes() {
       for (int x = 0; x < Size; x++) {
         for (int y = 0; y < Size; y++) {
           // draw node
           Node node = MapData.Nodes[(y * Size) + x];
-          Vector3 pos = GetPosition(node.Id);
-          GameObject model = GetNodeType(MapGraphics, node);
+          Vector3 pos = Utilities.GetPosition(node.Id);
+          GameObject model = MapGraphics.GetToken(node.Type);
           if (model) {
             GameObject inst = Instantiate(model, transform);
             inst.transform.position = pos;
@@ -224,8 +129,8 @@ namespace Rails {
     private IEnumerator MoveTrain(int player, NodeId start, NodeId end, float speed) {
       float norm = 0f;
       float time = 0f;
-      Vector3 startv = GetPosition(start);
-      Vector3 endv = GetPosition(end);
+      Vector3 startv = Utilities.GetPosition(start);
+      Vector3 endv = Utilities.GetPosition(end);
       float distance = Vector3.Distance(startv, endv);
       Vector3 pos;
 
@@ -264,7 +169,7 @@ namespace Rails {
         for (int y = 0; y < Size; y++) {
           // draw node
           var node = MapData.Nodes[(y * Size) + x];
-          var pos = GetPosition(node.Id);
+          var pos = Utilities.GetPosition(node.Id);
           Gizmos.color = Utilities.GetNodeColor(node.Type);
           Gizmos.DrawCube(pos, Vector3.one * WSSize * 0.3f);
 
@@ -293,7 +198,7 @@ namespace Rails {
               if (nextNodeId.InBounds) {
                 // draw line to
                 Gizmos.color = Utilities.GetSegmentColor(segment.Type);
-                Gizmos.DrawLine(pos, GetPosition(nextNodeId));
+                Gizmos.DrawLine(pos, Utilities.GetPosition(nextNodeId));
               }
             }
           }

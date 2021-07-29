@@ -48,7 +48,7 @@ namespace Rails.Controls
             Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
             if (plane.Raycast(ray, out float enter))
-                MouseNodeId = Manager.Singleton.GetNodeId(ray.GetPoint(enter));
+                MouseNodeId = Utilities.GetNodeId(ray.GetPoint(enter));
         }
         private void LateUpdate() => SelectJustPressed = false;
     }

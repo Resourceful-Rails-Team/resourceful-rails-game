@@ -41,7 +41,7 @@ namespace Rails.Controls
             Rotate(GameInput.RotateInput);
             Zoom(GameInput.ZoomInput, distance);
 
-            _transform.position = Vector3.Lerp(_transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
+            _transform.position = Vector3.Slerp(_transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
             _transform.rotation = targetTransform.rotation;
         }
         #region Methods
