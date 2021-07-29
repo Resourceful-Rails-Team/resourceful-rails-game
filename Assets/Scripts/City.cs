@@ -16,5 +16,9 @@ namespace Rails
         /// </summary>
         [SerializeField]
         public List<Vector2Int> Goods;
+
+        public override bool Equals(object obj) =>
+            obj is City city && city.Name == Name;
+        public override int GetHashCode() => Name.GetHashCode();
     }
 }
