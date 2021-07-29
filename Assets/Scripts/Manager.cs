@@ -57,18 +57,18 @@ namespace Rails {
     public const int AltTrackCost = 4;
 
     /// <summary>
-    /// 
+    /// Controls the spacing between nodes in terms of Unity units.
     /// </summary>
     public float WSSize = 1f;
 
     /// <summary>
-    /// 
+    /// Stores the layout of the map, including nodes, cities, goods, etc.
     /// </summary>
     [SerializeField]
-    public MapData Map;
+    public MapData MapData;
 
     /// <summary>
-    ///
+    /// Stores the tracks on the map.
     /// </summary>
     [SerializeField]
     private Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
@@ -162,6 +162,7 @@ namespace Rails {
     #region Graphics
     [SerializeField]
     public MapTokenTemplate MapGraphics;
+    private GameObject[] PlayerTrains;
     private GameObject GetNodeType(MapTokenTemplate mapStyle, Node node) {
       GameObject model = null;
       switch (node.Type) {
@@ -186,11 +187,11 @@ namespace Rails {
       }
       return model;
     }
-    private void DrawNodes() {
+    private void CreateNodes() {
       for (int x = 0; x < Size; x++) {
         for (int y = 0; y < Size; y++) {
           // draw node
-          Node node = Map.Nodes[(y * Size) + x];
+          Node node = MapData.Nodes[(y * Size) + x];
           Vector3 pos = GetPosition(node.Id);
           GameObject model = GetNodeType(MapGraphics, node);
           if (model) {
@@ -200,6 +201,30 @@ namespace Rails {
         }
       }
     }
+    private void CreateTrains() {
+      for (int p = 0; p < MaxPlayers; p++) {
+        PlayerTrains[p] = Instantiate(trainData[0].model, transform);
+        PlayerTrains[p].SetActive(false);
+        // TODO: Set the material to the correct color.
+			}
+		}
+    private IEnumerator MoveTrain(int player, NodeId start, NodeId end, float speed) {
+      float norm = 0f;
+      float time = 0f;
+      Vector3 startv = GetPosition(start);
+      Vector3 endv = GetPosition(end);
+      float distance = Vector3.Distance(startv, endv);
+      Vector3 pos;
+
+      while (norm <= 1f) {
+        time += Time.deltaTime;
+        norm = speed * time / distance;
+        pos = Vector3.Slerp(startv, endv, norm);
+        PlayerTrains[player].transform.position = pos;
+
+        yield return null;
+			}
+		}
     #endregion
 
     #region Unity Events
@@ -207,14 +232,14 @@ namespace Rails {
     private void Awake() {
       // set singleton reference on awake
       _singleton = this;
-      DrawNodes();
+      CreateNodes();
     }
 
 #if UNITY_EDITOR
 
     private void OnDrawGizmos() {
       List<Action> postDraws = new List<Action>();
-      if (Map == null || Map.Nodes == null || Map.Nodes.Length == 0)
+      if (MapData == null || MapData.Nodes == null || MapData.Nodes.Length == 0)
         return;
 
       var labelStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
@@ -225,14 +250,14 @@ namespace Rails {
       for (int x = 0; x < Size; x++) {
         for (int y = 0; y < Size; y++) {
           // draw node
-          var node = Map.Nodes[(y * Size) + x];
+          var node = MapData.Nodes[(y * Size) + x];
           var pos = GetPosition(node.Id);
           Gizmos.color = Utilities.GetNodeColor(node.Type);
           Gizmos.DrawSphere(pos, WSSize * 0.3f);
 
           //
-          if (node.CityId >= 0 && node.CityId < Map.Cities.Count) {
-            var city = Map.Cities[node.CityId];
+          if (node.CityId >= 0 && node.CityId < MapData.Cities.Count) {
+            var city = MapData.Cities[node.CityId];
             if (node.Type == NodeType.MajorCity || node.Type == NodeType.MediumCity || node.Type == NodeType.SmallCity) {
 
               postDraws.Add(() =>
@@ -245,7 +270,7 @@ namespace Rails {
 
           // draw segments
           // we iterate only bottom-right half of segments to prevent drawing them twice
-          var segments = Map.GetNodeSegments(node.Id);
+          var segments = MapData.GetNodeSegments(node.Id);
           for (Cardinal c = Cardinal.NE; c <= Cardinal.S; ++c) {
             // get segment
             var segment = segments[(int)c];
@@ -287,7 +312,7 @@ namespace Rails {
       public string name;
       public Color color;
       public int money;
-      public int train;
+      public int trainStyle;
       public int majorcities;
       public NodeId train_position;
       public Stack<NodeId> movepath;
@@ -300,7 +325,7 @@ namespace Rails {
         this.name = name;
         this.color = color;
         this.money = money;
-        this.train = train;
+        this.trainStyle = train;
         majorcities = 0;
         train_position = new NodeId(0, 0);
         movepath = new Stack<NodeId>();
@@ -312,22 +337,42 @@ namespace Rails {
     }
 
     #region Public Data
+    /// <summary>
+    /// The number of players playing this game.
+    /// </summary>
     public int MaxPlayers = 6;
-    // The amount of money each player starts with.
+    /// <summary>
+    /// The amount of money each player starts with.
+    /// </summary>
     public int MoneyStart = 50;
-    // The max amount of money that can be spent building.
+    /// <summary>
+    /// The max amount of money that can be spent building.
+    /// </summary>
     public int MaxBuild = 20;
-    // The cost to for players to upgrade their train.
+    /// <summary>
+    /// The cost to for players to upgrade their train.
+    /// </summary>
     public int TrainUpgrade = 20;
-    // The number of major cities that must be connected to win.
+    /// <summary>
+    /// The number of major cities that must be connected to win.
+    /// </summary>
     public int Win_MajorCities = 6;
-    // The amount of money needed to win.
+    /// <summary>
+    /// The amount of money needed to win.
+    /// </summary>
     public int Win_Money = 250;
 
-    // The trains that players can use.
+    /// <summary>
+    /// The trains that players can use.
+    /// </summary>
     public TrainData[] trainData;
-    // 
+    /// <summary>
+    /// UI window that shows stats of the current player.
+    /// </summary>
     public GameObject PlayerInfoPanel;
+    /// <summary>
+    /// UI windows that show the controls for each phase.
+    /// </summary>
     public GameObject[] PhasePanels;
     #endregion
 
@@ -339,6 +384,9 @@ namespace Rails {
     int currentPhase = -2;
     #endregion
 
+    /// <summary>
+    /// Sets up the current game.
+    /// </summary>
     private void GameLoopSetup() {
       phases = PhasePanels.Length;
 
@@ -496,7 +544,7 @@ namespace Rails {
 
       // Deduct value from player's money stock and change train value.
       player.money -= TrainUpgrade;
-      player.train = choice;
+      player.trainStyle = choice;
       Debug.Log(currentPlayer + " $" + player.money);
       return;
     }
