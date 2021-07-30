@@ -1,13 +1,15 @@
 using Rails.Data;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Rails.Systems
 {
-   
     public static class Deck
     {
+        private const int DemandCardCount = 136;
+
         // Test data structure
         // -----------------------
         private static Demand[][] _demandCards = new Demand[][]
@@ -35,21 +37,40 @@ namespace Rails.Systems
 
         private static List<Demand[]> _drawPile;
         private static List<Demand[]> _discardPile;
+        private static Manager _manager;
 
         public static void Initialize()
         {
+            _drawPile = new List<Demand[]>();
+            _discardPile = new List<Demand[]>();
+            _manager = Manager.Singleton;
 
+            var smCities = _manager.MapData.AllCitiesOfType(NodeType.SmallCity);
+            var mdCities = _manager.MapData.AllCitiesOfType(NodeType.MediumCity);
+            var mjCities = _manager.MapData.AllCitiesOfType(NodeType.MajorCity);
+
+            var goods = _manager.MapData.Goods; 
+            // Create a map determining the general position of a Good (ie
+            // find a city's NodeId with that good). Then, one can compare the
+            // distances to determine if the requesting city is far enough).
+             
         }
 
         public static Demand[] DrawOne()
-            => _demandCards[Random.Range(0, _demandCards.Length)];
-
-        public static void Discard(Demand[] demand)
         {
-            _discardPile.Add(demand);
+            if (_drawPile.Count == 0)
+                ShuffleDiscards();
+
+            var index = _drawPile.Count - 1;
+            var card = _drawPile[index];
+
+            _drawPile.RemoveAt(index);
+            return card;
         }
 
-        public static void ShuffleDiscards()
+        public static void Discard(Demand[] demand) => _discardPile.Add(demand);
+
+        private static void ShuffleDiscards()
         {
             while(_discardPile.Count > 0)
             {

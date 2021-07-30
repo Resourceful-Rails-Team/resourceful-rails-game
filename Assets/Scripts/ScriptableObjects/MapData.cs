@@ -75,5 +75,14 @@ namespace Rails.ScriptableObjects
                 .Select(nId => Tuple.Create(nId, Nodes[nId.GetSingleId()]))
                 .ToArray();
         }
+
+        public City[] AllCitiesOfType(NodeType nodeType) => nodeType switch
+        {
+            NodeType.Clear | NodeType.Mountain | NodeType.Water => null,
+            _ => Nodes
+                .Where(n => n.Type == nodeType)
+                .Select(n => n.CityId)
+                .Select(i => Cities[i]).ToArray()
+        };
     }
 }
