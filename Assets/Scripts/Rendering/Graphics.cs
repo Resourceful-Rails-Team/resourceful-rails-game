@@ -15,12 +15,15 @@ namespace Rails.Rendering
         private Dictionary<int, List<GameToken>> _potentialTracks;
         private int _trackId = 0;
 
+        private ObjectPool<GameToken> _trackPool;
+
         private void Start()
         {
             _manager = Manager.Singleton;
             _mapTokens = new Dictionary<NodeId, GameToken>();
             _trackTokens = new Dictionary<NodeId, GameToken[]>();
             _potentialTracks = new Dictionary<int, List<GameToken>>();
+            _trackPool = new ObjectPool<GameToken>(_manager.MapData.DefaultPlayerTemplate.RailToken, 20, 20);
 
             GenerateBoard();
             GenerateNodes();
@@ -52,11 +55,9 @@ namespace Rails.Rendering
                     Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1])
                 );
 
-                var trackToken = Instantiate(
-                    _manager.MapData.DefaultPlayerTemplate.RailToken,
-                    Utilities.GetPosition(route.Nodes[i]),
-                    Quaternion.Euler(0.0f, rotateY, 0.0f)
-                ).GetComponent<GameToken>();
+                var trackToken = _trackPool.Retrieve();
+                trackToken.transform.position = Utilities.GetPosition(route.Nodes[i]);
+                trackToken.transform.rotation = Quaternion.Euler(0.0f, rotateY, 0.0f);
 
                 trackToken.SetColor(Color.yellow);
                 trackTokens.Add(trackToken);
@@ -76,9 +77,17 @@ namespace Rails.Rendering
             if(_potentialTracks.TryGetValue(trackId, out var trackTokens))
             {
                 foreach (var trackToken in trackTokens)
-                    Destroy(trackToken.gameObject);
+                    _trackPool.Return(trackToken);
 
                 _potentialTracks.Remove(trackId);
+            }
+        }
+        
+        public void CommitPotentialTrack(int trackId, int player)
+        {
+            if(_potentialTracks.TryGetValue(trackId, out var trackTokens))
+            {
+                    
             }
         }
         #endregion
@@ -99,19 +108,19 @@ namespace Rails.Rendering
                 for (int y = 0; y < Manager.Size; y++)
                 {
                     var nodeId = new NodeId(x, y);
-                    Node node = _manager.MapData.Nodes[nodeId.GetSingleId()];
-                    Vector3 pos = Utilities.GetPosition(node.Id);
+                    var node = _manager.MapData.Nodes[nodeId.GetSingleId()];
+                    var pos = Utilities.GetPosition(node.Id);
 
-                    GameObject model = _manager.MapData.DefaultTokenTemplate.GetToken(node.Type);
+                    var modelToken = _manager.MapData.DefaultTokenTemplate.GetToken(node.Type);
 
-                    if (model)
+                    if (modelToken != null)
                     {
                         if (node.Type == NodeType.MajorCity)
                         {
                             var neighborNodes = _manager.MapData.GetNeighborNodes(nodeId);
                             if (neighborNodes.All(nn => nn.Item2.CityId == node.CityId))
                             {
-                                GameToken token = Instantiate(model, transform).GetComponent<GameToken>();
+                                var token = Instantiate(modelToken, transform);
                                 token.transform.position = pos;
 
                                 foreach (var nId in neighborNodes.Select(nn => nn.Item1))
@@ -122,7 +131,7 @@ namespace Rails.Rendering
                         }
                         else
                         {
-                            GameToken token = Instantiate(model, transform).GetComponent<GameToken>();
+                            var token = Instantiate(modelToken, transform);
                             token.transform.position = pos;
 
                             _mapTokens[nodeId] = token;

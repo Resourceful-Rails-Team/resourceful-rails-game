@@ -17,38 +17,34 @@ namespace Rails.Controls
         public float lerpSpeed = 2.0f;
 
         private Vector3 focus;
-        private float distance;
        
-        private Transform _transform;
-
-        private void Awake() => _transform = transform;
-
         private void Start()
         {
-            focus = _transform.position;
+            focus = transform.position;
             focus.y = 0;
             focus.z += focusDistance;
 
-            _transform.LookAt(focus);
+            transform.LookAt(focus);
 
-            targetTransform.position = _transform.position;
-            targetTransform.rotation = _transform.rotation;
+            targetTransform.position = transform.position;
+            targetTransform.rotation = transform.rotation;
         }
         void Update()
         {
-            distance = Vector3.Distance(targetTransform.position, focus);
-            Move(GameInput.MoveInput, distance);
+            Move(GameInput.MoveInput);
             Rotate(GameInput.RotateInput);
-            Zoom(GameInput.ZoomInput, distance);
+            Zoom(GameInput.ZoomInput);
 
-            _transform.position = Vector3.Slerp(_transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
-            _transform.rotation = targetTransform.rotation;
+            transform.position = Vector3.Lerp(transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
+            transform.rotation = targetTransform.rotation;
         }
         #region Methods
 
         // Moves the camera across the X-Z plane.
-        private void Move(Vector2 input, float distance)
+        private void Move(Vector2 input)
         {
+            float distance = Vector3.Distance(targetTransform.position, focus);
+
             Vector3 move = (Vector3.right * input.x * moveSpeed)
                 + (Vector3.forward * input.y * moveSpeed);
             Quaternion planarDirection = Quaternion.LookRotation(
@@ -78,20 +74,19 @@ namespace Rails.Controls
             rot = rotateSpeed * input.y * Time.deltaTime;
             targetTransform.RotateAround(focus, targetTransform.right, rot);
 
-            _transform.position += targetTransform.position - targetPos;
+            transform.position += targetTransform.position - targetPos;
             
             return;
         }
 
         // Zooms the camera towards or away from the focus point.
-        private void Zoom(float input, float distance)
+        private void Zoom(float input)
         {
-            if ((distance < zoomMinDist && input > 0) || (distance > zoomMaxDist && input < 0))
-                return;
+            float distance = Vector3.Distance(targetTransform.position, focus);
+            float zoomDelta = zoomSpeed * input * distance  * Time.deltaTime;
 
-            float zoomDelta = zoomSpeed * input * distance * Time.deltaTime;
-            targetTransform.position = Vector3.MoveTowards(targetTransform.position, focus, zoomDelta);
-            return;
+            distance = Mathf.Clamp(distance - zoomDelta, zoomMinDist, zoomMaxDist);
+            targetTransform.position = focus - (targetTransform.forward * distance);
         }
         #endregion
     }

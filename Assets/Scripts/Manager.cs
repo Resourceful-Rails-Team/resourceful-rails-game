@@ -261,7 +261,7 @@ namespace Rails {
         new Dictionary<NodeType, int>
         {
             { NodeType.Clear,      1 },
-            { NodeType.Mountain,   2 },
+            { NodeType.Mountain,   4 },
             { NodeType.SmallCity,  3 },
             { NodeType.MediumCity, 3 },
             { NodeType.MajorCity,  5 },
