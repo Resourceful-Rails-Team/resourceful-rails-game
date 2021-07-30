@@ -1,3 +1,4 @@
+using Rails.Data;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -178,5 +179,7 @@ namespace Rails
 
             return nodeIds;
         }
+
+        public static float GetCardinalRotation(Cardinal c) => (int)c * 60.0f;
     }
 }

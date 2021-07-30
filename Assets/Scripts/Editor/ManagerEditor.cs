@@ -1,5 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
+using Rails.Data;
 using Rails.ScriptableObjects;
 using UnityEditor;
 using UnityEngine;

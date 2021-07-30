@@ -10,8 +10,20 @@ namespace Rails.ScriptableObjects
         public string TrainName => _trainName;
 
         [SerializeField]
-        private GameObject _trainToken;
-        public GameObject TrainToken => _trainToken;
+        private GameObject _baseTrainToken;
+        public GameObject BaseTrainToken => _baseTrainToken;
+
+        [SerializeField]
+        private GameObject _fastTrainToken;
+        public GameObject FastTrainToken => _fastTrainToken;
+
+        [SerializeField]
+        private GameObject _heavyTrainToken;
+        public GameObject HeavyTrainToken => _heavyTrainToken;
+
+        [SerializeField]
+        private GameObject _superTrainToken;
+        public GameObject SuperTrainToken => _superTrainToken;
 
         [SerializeField]
         private GameObject _railToken;

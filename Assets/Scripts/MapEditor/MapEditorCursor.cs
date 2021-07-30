@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.Rendering;
+using Rails.Data;
 
 #if UNITY_EDITOR
 using UnityEditor;

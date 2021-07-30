@@ -1,3 +1,4 @@
+using Rails.Data;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,23 +11,75 @@ namespace Rails.Rendering
     {
         private Manager _manager;
         private Dictionary<NodeId, GameToken> _mapTokens;
-        private ReadOnlyDictionary<NodeId, int[]> _mapTracks;
+        private Dictionary<NodeId, GameToken[]> _trackTokens;
+        private Dictionary<int, List<GameToken>> _potentialTracks;
+        private int _trackId = 0;
 
         private void Start()
         {
             _manager = Manager.Singleton;
             _mapTokens = new Dictionary<NodeId, GameToken>();
-            _mapTracks = new ReadOnlyDictionary<NodeId, int[]>(_manager.Tracks);
+            _trackTokens = new Dictionary<NodeId, GameToken[]>();
+            _potentialTracks = new Dictionary<int, List<GameToken>>();
 
             GenerateBoard();
             GenerateNodes();
         }
 
         #region Public Methods
-        public GameToken GetToken(NodeId nodeId)
+        /// <summary>
+        /// Retrieves the GameToken located at the given NodeId
+        /// </summary>
+        /// <param name="nodeId">The NodeId the token is stored at</param>
+        /// <returns>The GameToken, if any are located at the NodeId position</returns>
+        public GameToken GetMapToken(NodeId nodeId)
         {
             _mapTokens.TryGetValue(nodeId, out var token);
             return token;
+        }
+        
+        /// <summary>
+        /// Generates a highlighted track given a Route
+        /// </summary>
+        /// <param name="route">The Route to build the track on</param>
+        /// <returns>An index representing the ID of the track</returns>
+        public int GeneratePotentialTrack(Route route)
+        {
+            var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
+            for(int i = 0; i < route.Nodes.Count - 1; ++i)
+            {
+                float rotateY = Utilities.GetCardinalRotation(
+                    Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1])
+                );
+
+                var trackToken = Instantiate(
+                    _manager.MapData.DefaultPlayerTemplate.RailToken,
+                    Utilities.GetPosition(route.Nodes[i]),
+                    Quaternion.Euler(0.0f, rotateY, 0.0f)
+                ).GetComponent<GameToken>();
+
+                trackToken.SetColor(Color.yellow);
+                trackTokens.Add(trackToken);
+            }
+
+            _potentialTracks[_trackId] = trackTokens;
+
+            return _trackId++;
+        }
+
+        /// <summary>
+        /// Destroys a potential-built track given the supplied ID
+        /// </summary>
+        /// <param name="trackId">The ID of the track being destroyed</param>
+        public void DestroyPotentialTrack(int trackId)
+        {
+            if(_potentialTracks.TryGetValue(trackId, out var trackTokens))
+            {
+                foreach (var trackToken in trackTokens)
+                    Destroy(trackToken.gameObject);
+
+                _potentialTracks.Remove(trackId);
+            }
         }
         #endregion
 

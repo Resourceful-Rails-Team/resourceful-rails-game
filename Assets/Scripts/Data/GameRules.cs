@@ -3,7 +3,7 @@ using System;
 namespace Rails.Data
 {
     [Serializable]
-    public struct Settings
+    public struct GameRules
     {
         /// <summary>
         /// The number of players playing this game.
@@ -29,5 +29,10 @@ namespace Rails.Data
         /// The amount of money needed to win.
         /// </summary>
         public int winMoney;
+
+        public TrainSpecs baseTrainSpecs;
+        public TrainSpecs fastTrainSpecs;
+        public TrainSpecs heavyTrainSpecs;
+        public TrainSpecs superTrainSpecs;
     }
 }

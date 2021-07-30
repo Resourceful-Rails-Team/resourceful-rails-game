@@ -1,3 +1,4 @@
+using Rails.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ namespace Rails
 {
     public class Tests : TesterBase
     {
+        char h;
         private NodeId nodeMid = new NodeId(1, 1);
         private NodeId nodeN = new NodeId(1, 2);
         private NodeId nodeNE = new NodeId(2, 2);

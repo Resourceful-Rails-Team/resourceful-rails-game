@@ -79,7 +79,7 @@ namespace Rails {
     #endregion // Properties
 
     private Rails.Rendering.Graphics _graphics;
-    private Settings _settings;
+    private GameRules _rules;
 
     #region Utilities
     /// <summary>
@@ -113,7 +113,7 @@ namespace Rails {
       // set singleton reference on awake
       _singleton = this;
       _graphics = GetComponent<Rails.Rendering.Graphics>();
-      _settings = MapData.DefaultSettings;
+      _rules = MapData.DefaultRules;
     }
 
 #if UNITY_EDITOR
@@ -174,16 +174,43 @@ namespace Rails {
 
 #endif
 
-    private GameToken _token;
+    private GameToken _highlightToken;
+    private int _currentTrack = -1;
+    private List<NodeId> _targetNodes = new List<NodeId>();
+     
     private void Update() {
-      _token?.ResetColor();
-      var highlightToken = _graphics.GetToken(GameInput.MouseNodeId);
+           
+      // ---------------------------
+      // Test of Graphics component
+      // Not production code
+      //
+      _highlightToken?.ResetColor();
+      var highlightToken = _graphics.GetMapToken(GameInput.MouseNodeId);
 
-            if (highlightToken != null)
-            {
-                highlightToken.SetColor(Color.yellow);
-                _token = highlightToken;
-            }
+      if (highlightToken != null)
+      {
+          highlightToken.SetColor(Color.yellow);
+          _highlightToken = highlightToken;
+      }
+
+      if(GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds && !_targetNodes.Contains(GameInput.MouseNodeId))
+      {
+          _targetNodes.Add(GameInput.MouseNodeId); 
+          if(_targetNodes.Count > 1)
+          {
+              _graphics.DestroyPotentialTrack(_currentTrack);
+              var route = Pathfinding.CheapestBuild(Tracks, MapData, _targetNodes.ToArray());
+              _currentTrack = _graphics.GeneratePotentialTrack(route);
+          }
+      }
+
+      if (GameInput.DeleteJustPressed)
+      {
+          _graphics.DestroyPotentialTrack(_currentTrack);
+          _targetNodes.Clear();
+      }
+
+      // ------------------------------------
 
       InputUpdate();
     }
@@ -238,6 +265,7 @@ namespace Rails {
             { NodeType.SmallCity,  3 },
             { NodeType.MediumCity, 3 },
             { NodeType.MajorCity,  5 },
+            { NodeType.Water, 1000   },
         }
     );
 
@@ -273,9 +301,9 @@ namespace Rails {
       phases = PhasePanels.Length;
 
       // Initiate all player info.
-      players = new PlayerInfo[_settings.maxPlayers];
-      for (int p = 0; p < _settings.maxPlayers; p++)
-        players[p] = new PlayerInfo("Player " + p, Color.white, _settings.moneyStart, 0);
+      players = new PlayerInfo[_rules.maxPlayers];
+      for (int p = 0; p < _rules.maxPlayers; p++)
+        players[p] = new PlayerInfo("Player " + p, Color.white, _rules.moneyStart, 0);
 
       // Deactivate all panels just in case.
       for (int u = 0; u < phases; u++)
@@ -419,13 +447,13 @@ namespace Rails {
     // Private method for upgrading.
     private void UpgradeTrain_(int choice) {
       // If player doesn't have enough money, don't upgrade
-      if (player.money < _settings.trainUpgrade) {
+      if (player.money < _rules.trainUpgrade) {
         // TODO: Activate failure UI message here.
         return;
       }
 
       // Deduct value from player's money stock and change train value.
-      player.money -= _settings.trainUpgrade;
+      player.money -= _rules.trainUpgrade;
       player.trainStyle = choice;
       Debug.Log(currentPlayer + " $" + player.money);
       return;
@@ -433,7 +461,7 @@ namespace Rails {
     // Changes the current player
     private int IncrementPlayer() {
       currentPlayer += 1;
-      if (currentPlayer >= _settings.maxPlayers)
+      if (currentPlayer >= _rules.maxPlayers)
         currentPlayer = 0;
       UpdatePlayerInfo();
       return currentPlayer;
@@ -464,8 +492,8 @@ namespace Rails {
     }
     // Check if the current player has won.
     private bool CheckWin() {
-      if (player.majorcities >= _settings.winMajorCities &&
-        player.money >= _settings.winMoney) {
+      if (player.majorcities >= _rules.winMajorCities &&
+        player.money >= _rules.winMoney) {
         return true;
       }
       return false;

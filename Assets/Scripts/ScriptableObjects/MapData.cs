@@ -11,29 +11,17 @@ namespace Rails.ScriptableObjects
     [CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/Map/MapData", order = 1)]
     public class MapData : ScriptableObject
     {
-        [SerializeField]
         public MapTokenTemplate DefaultTokenTemplate;
-        [SerializeField]
-        public GameObject Board;
-        [SerializeField]
         public PlayerTokenTemplate DefaultPlayerTemplate;
+        public GameObject Board;
 
-        [SerializeField]
+        public GameRules DefaultRules;
+        
         public Node[] Nodes;
-        [SerializeField]
         public NodeSegment[] Segments;
-        [SerializeField]
         public List<City> Cities = new List<City>();
-        [SerializeField]
         public List<Good> Goods = new List<Good>();
 
-        [SerializeField]
-        public Settings DefaultSettings;
-
-        public MapData()
-        {
-
-        }
 
         public Node GetNodeAt(NodeId id)
         {

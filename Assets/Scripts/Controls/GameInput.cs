@@ -1,3 +1,4 @@
+using Rails.Data;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -22,6 +23,7 @@ namespace Rails.Controls
         public static bool SelectPressed { get; private set; }
         public static bool SelectJustPressed { get; private set; }
         public static NodeId MouseNodeId { get; private set; }
+        public static bool DeleteJustPressed { get; private set; }
 
         private static bool _rotateTriggered = false;
         private static Camera _mainCamera;
@@ -40,6 +42,10 @@ namespace Rails.Controls
             SelectPressed = value.isPressed;
             SelectJustPressed = SelectPressed;
         }
+        private void OnDelete(InputValue value)
+        {
+            DeleteJustPressed = value.isPressed;
+        }            
         #endregion
 
         private void Update()
@@ -50,6 +56,10 @@ namespace Rails.Controls
             if (plane.Raycast(ray, out float enter))
                 MouseNodeId = Utilities.GetNodeId(ray.GetPoint(enter));
         }
-        private void LateUpdate() => SelectJustPressed = false;
+        private void LateUpdate()
+        {
+            SelectJustPressed = false;
+            DeleteJustPressed = false;
+        }
     }
 }
