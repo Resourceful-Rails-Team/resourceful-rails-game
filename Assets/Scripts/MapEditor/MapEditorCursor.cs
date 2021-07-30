@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.Rendering;
+using Rails.Data;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -168,10 +169,10 @@ namespace Rails.MapEditor
                 var manager = Manager.Singleton;
                 if (manager != null && manager.MapData != null && manager.MapData.Nodes != null && manager.MapData.Nodes.Length > 0)
                 {
-                    var nodeIds = manager.GetNodeIdsByPosition(transform.position, Radius);
+                    var nodeIds = Utilities.GetNodeIdsByPosition(transform.position, Radius);
                     foreach (var nodeId in nodeIds)
                     {
-                        var pos = manager.GetPosition(nodeId);
+                        var pos = Utilities.GetPosition(nodeId);
                         if (HighlightSelectedNodes)
                         {
                             Gizmos.DrawSphere(pos, manager.WSSize * 0.2f);
@@ -189,7 +190,7 @@ namespace Rails.MapEditor
                                     var neighborId = Utilities.PointTowards(nodeId, c);
                                     if (neighborId.InBounds)
                                     {
-                                        var neighborPos = manager.GetPosition(neighborId);
+                                        var neighborPos = Utilities.GetPosition(neighborId);
                                         if (Vector3.Distance(neighborPos, transform.position) < Radius)
                                         {
                                             Gizmos.DrawLine(pos, neighborPos);

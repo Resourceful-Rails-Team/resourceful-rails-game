@@ -30,12 +30,36 @@
                     "interactions": ""
                 },
                 {
+                    "name": "RotateTriggered",
+                    "type": "Button",
+                    "id": "02481f95-c700-4b51-ba52-2c03360d7ab3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
+                },
+                {
                     "name": "Select",
                     "type": "Button",
                     "id": "df9b7fed-326b-4ddf-b6da-cd5c75b4991d",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "Delete",
+                    "type": "Button",
+                    "id": "f1576437-ccc9-406e-82c8-16e8403ce493",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
+                },
+                {
+                    "name": "Enter",
+                    "type": "Button",
+                    "id": "8891410b-09bf-41cd-a597-012579aaacd3",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press(behavior=2)"
                 }
             ],
             "bindings": [
@@ -212,6 +236,39 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9c76758d-f235-49ce-a660-242badfdd623",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "RotateTriggered",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cf0a9eac-94c4-4b6c-8de9-2b07a238b5cf",
+                    "path": "<Keyboard>/delete",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Delete",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3626ae67-f6e6-4e83-81ea-addb0cd3cc45",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Enter",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -1,5 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Rails.Data;
 using Rails.ScriptableObjects;
 using UnityEngine;
 
@@ -8,26 +11,17 @@ namespace Rails.ScriptableObjects
     [CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/Map/MapData", order = 1)]
     public class MapData : ScriptableObject
     {
-        [SerializeField]
         public MapTokenTemplate DefaultTokenTemplate;
-        [SerializeField]
-        public GameObject Board;
-        [SerializeField]
         public PlayerTokenTemplate DefaultPlayerTemplate;
+        public GameObject Board;
 
-        [SerializeField]
+        public GameRules DefaultRules;
+        
         public Node[] Nodes;
-        [SerializeField]
         public NodeSegment[] Segments;
-        [SerializeField]
         public List<City> Cities = new List<City>();
-        [SerializeField]
         public List<Good> Goods = new List<Good>();
 
-        public MapData()
-        {
-
-        }
 
         public Node GetNodeAt(NodeId id)
         {
@@ -66,6 +60,20 @@ namespace Rails.ScriptableObjects
                 return null;
 
             return Segments[index];
+        }
+
+        public Tuple<NodeId, Node>[] GetNeighborNodes(NodeId nodeId)
+        {
+            var node = Nodes[nodeId.GetSingleId()];
+            var cityId = Nodes[nodeId.GetSingleId()].CityId;
+            var cardinalRange = Enumerable.Range((int)Cardinal.N, (int)Cardinal.MAX_CARDINAL);
+
+            return
+                 cardinalRange
+                .Select(c => Utilities.PointTowards(nodeId, (Cardinal)c))
+                .Where(nId => nId.InBounds)
+                .Select(nId => Tuple.Create(nId, Nodes[nId.GetSingleId()]))
+                .ToArray();
         }
     }
 }

@@ -13,8 +13,27 @@ MonoBehaviour:
   m_Name: Pacific Northwest
   m_EditorClassIdentifier: 
   DefaultTokenTemplate: {fileID: 11400000, guid: 842ab5969c93ae3498bae2eba04fd15f, type: 2}
-  Board: {fileID: 8168019083947493543, guid: 2958ce6622ebf684cb14bed443b177d1, type: 3}
   DefaultPlayerTemplate: {fileID: 11400000, guid: 86ac9f33bedaae8ac874fd709ec69c6d, type: 2}
+  Board: {fileID: 8168019083947493543, guid: 2958ce6622ebf684cb14bed443b177d1, type: 3}
+  DefaultRules:
+    maxPlayers: 6
+    moneyStart: 50
+    maxBuild: 20
+    trainUpgrade: 20
+    winMajorCities: 6
+    winMoney: 250
+    baseTrainSpecs:
+      goodsTotal: 9
+      movePoints: 2
+    fastTrainSpecs:
+      goodsTotal: 12
+      movePoints: 2
+    heavyTrainSpecs:
+      goodsTotal: 9
+      movePoints: 3
+    superTrainSpecs:
+      goodsTotal: 12
+      movePoints: 3
   Nodes:
   - Type: 5
     Id:

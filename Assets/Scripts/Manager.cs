@@ -5,6 +5,10 @@ using UnityEngine;
 using Rails.ScriptableObjects;
 using UnityEngine.InputSystem;
 using System.Collections.ObjectModel;
+using Rails.Rendering;
+using Rails.Controls;
+using Rails.Data;
+using Rails.Systems;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -72,69 +76,13 @@ namespace Rails {
     /// Stores the tracks on the map.
     /// </summary>
     [SerializeField]
-    private Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
-		#endregion // Properties
+    public Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
+    #endregion // Properties
+
+    private Rails.Rendering.Graphics _graphics;
+    private GameRules _rules;
 
     #region Utilities
-    public Vector3 GetPosition(NodeId id) {
-      var w = 2 * WSSize;
-      var h = Mathf.Sqrt(3) * WSSize;
-      var wspace = 0.75f * w;
-      var pos = new Vector3(id.X * wspace, 0, id.Y * h);
-      int parity = id.X & 1;
-      if (parity == 1)
-        pos.z += h / 2;
-
-      return pos;
-    }
-
-    /// <summary>
-    /// Returns a collection of NodeIds of nodes that lie within the given circle.
-    /// </summary>
-    /// <param name="position">Position of the circle</param>
-    /// <param name="radius">Radius of circle</param>
-    public List<NodeId> GetNodeIdsByPosition(Vector3 position, float radius) {
-      List<NodeId> nodeIds = new List<NodeId>();
-      var w = 2 * WSSize;
-      var h = Mathf.Sqrt(3) * WSSize;
-      var wspace = 0.75f * w;
-
-      // Algorithm generates a bounding square
-      // It then iterates all nodes within that box
-      // Checking if the world space position of that node is within the circle
-
-      // get grid-space node position
-      Vector2 centerNodeId = new Vector2(position.x / wspace, position.z / h);
-      if ((int)centerNodeId.x % 2 == 1)
-        centerNodeId.y -= h / 2;
-
-      // determine grid-space size of radius
-      int extents = Mathf.CeilToInt(radius / wspace);
-
-      // generate bounds from center and radius
-      // clamp min to be no less than 0
-      // clamp max to be no more than Size-1
-      int minX = Mathf.Max(0, (int)centerNodeId.x - extents);
-      int maxX = Mathf.Min(Size - 1, Mathf.CeilToInt(centerNodeId.x) + extents);
-      int minY = Mathf.Max(0, (int)centerNodeId.y - extents);
-      int maxY = Mathf.Min(Size - 1, Mathf.CeilToInt(centerNodeId.y) + extents);
-
-      // iterate bounds
-      for (int x = minX; x <= maxX; ++x) {
-        for (int y = minY; y <= maxY; ++y) {
-          // get position from NodeId
-          var nodeId = new NodeId(x, y);
-          var pos = GetPosition(nodeId);
-
-          // check if position is within circle
-          if (Vector3.Distance(pos, position) < radius)
-            nodeIds.Add(nodeId);
-        }
-      }
-
-      return nodeIds;
-    }
-
     /// <summary>
     /// Inserts a new track onto the Map, based on position and direction.
     /// </summary>
@@ -160,80 +108,13 @@ namespace Rails {
     #endregion // Utilities
     #endregion // Map
 
-    #region Graphics
-    [SerializeField]
-    public MapTokenTemplate MapGraphics;
-    private GameObject[] PlayerTrains;
-    private GameObject GetNodeType(MapTokenTemplate mapStyle, Node node) {
-      GameObject model = null;
-      switch (node.Type) {
-        case NodeType.Clear:
-          model = mapStyle.Clear;
-          break;
-        case NodeType.Mountain:
-          model = mapStyle.Mountain;
-          break;
-        case NodeType.SmallCity:
-          model = mapStyle.SmallCity;
-          break;
-        case NodeType.MediumCity:
-          model = mapStyle.MediumCity;
-          break;
-        case NodeType.MajorCity:
-          model = mapStyle.MajorCity;
-          break;
-        case NodeType.Water:
-          model = null;
-          break;
-      }
-      return model;
-    }
-    private void CreateNodes() {
-      for (int x = 0; x < Size; x++) {
-        for (int y = 0; y < Size; y++) {
-          // draw node
-          Node node = MapData.Nodes[(y * Size) + x];
-          Vector3 pos = GetPosition(node.Id);
-          GameObject model = GetNodeType(MapGraphics, node);
-          if (model) {
-            GameObject inst = Instantiate(model, transform);
-            inst.transform.position = pos;
-          }
-        }
-      }
-    }
-    private void CreateTrains() {
-      for (int p = 0; p < MaxPlayers; p++) {
-        PlayerTrains[p] = Instantiate(trainData[0].model, transform);
-        PlayerTrains[p].SetActive(false);
-        // TODO: Set the material to the correct color.
-			}
-		}
-    private IEnumerator MoveTrain(int player, NodeId start, NodeId end, float speed) {
-      float norm = 0f;
-      float time = 0f;
-      Vector3 startv = GetPosition(start);
-      Vector3 endv = GetPosition(end);
-      float distance = Vector3.Distance(startv, endv);
-      Vector3 pos;
-
-      while (norm <= 1f) {
-        time += Time.deltaTime;
-        norm = speed * time / distance;
-        pos = Vector3.Slerp(startv, endv, norm);
-        PlayerTrains[player].transform.position = pos;
-
-        yield return null;
-			}
-		}
-    #endregion
-
     #region Unity Events
 
     private void Awake() {
       // set singleton reference on awake
       _singleton = this;
-      CreateNodes();
+      _graphics = GetComponent<Rails.Rendering.Graphics>();
+      _rules = MapData.DefaultRules;
     }
 
 #if UNITY_EDITOR
@@ -252,7 +133,7 @@ namespace Rails {
         for (int y = 0; y < Size; y++) {
           // draw node
           var node = MapData.Nodes[(y * Size) + x];
-          var pos = GetPosition(node.Id);
+          var pos = Utilities.GetPosition(node.Id);
           Gizmos.color = Utilities.GetNodeColor(node.Type);
           Gizmos.DrawCube(pos, Vector3.one * WSSize * 0.3f);
 
@@ -281,7 +162,7 @@ namespace Rails {
               if (nextNodeId.InBounds) {
                 // draw line to
                 Gizmos.color = Utilities.GetSegmentColor(segment.Type);
-                Gizmos.DrawLine(pos, GetPosition(nextNodeId));
+                Gizmos.DrawLine(pos, Utilities.GetPosition(nextNodeId));
               }
             }
           }
@@ -294,7 +175,49 @@ namespace Rails {
 
 #endif
 
+    private GameToken _highlightToken;
+    private Route _currentRoute = null;
+    private List<NodeId> _targetNodes = new List<NodeId>();
+     
     private void Update() {
+           
+      // ---------------------------
+      // Test of Graphics component
+      // Not production code
+      //
+      _highlightToken?.ResetColor();
+      var highlightToken = _graphics.GetMapToken(GameInput.MouseNodeId);
+
+      if (highlightToken != null)
+      {
+          highlightToken.SetColor(Color.yellow);
+          _highlightToken = highlightToken;
+      }
+
+      if(GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds && !_targetNodes.Contains(GameInput.MouseNodeId))
+      {
+          _targetNodes.Add(GameInput.MouseNodeId); 
+          if(_targetNodes.Count > 1)
+          {
+              _graphics.DestroyPotentialTrack(_currentRoute);
+              _currentRoute = Pathfinding.CheapestBuild(Tracks, MapData, _targetNodes.ToArray());
+              _graphics.GeneratePotentialTrack(_currentRoute);
+          }
+      }
+
+      if (GameInput.DeleteJustPressed)
+      {
+          _graphics.DestroyPotentialTrack(_currentRoute);
+          _targetNodes.Clear();
+      }
+      if(GameInput.EnterJustPressed)
+      {
+          _graphics.CommitPotentialTrack(_currentRoute, Color.red);
+          _targetNodes.Clear();
+      }
+
+      // ------------------------------------
+
       InputUpdate();
     }
 
@@ -338,40 +261,17 @@ namespace Rails {
     }
 
     #region Public Data
-    /// <summary>
-    /// The number of players playing this game.
-    /// </summary>
-    public int MaxPlayers = 6;
-    /// <summary>
-    /// The amount of money each player starts with.
-    /// </summary>
-    public int MoneyStart = 50;
-    /// <summary>
-    /// The max amount of money that can be spent building.
-    /// </summary>
-    public int MaxBuild = 20;
-    /// <summary>
-    /// The cost to for players to upgrade their train.
-    /// </summary>
-    public int TrainUpgrade = 20;
-    /// <summary>
-    /// The number of major cities that must be connected to win.
-    /// </summary>
-    public int Win_MajorCities = 6;
-    /// <summary>
-    /// The amount of money needed to win.
-    /// </summary>
-    public int Win_Money = 250;
     
     // The cost to build a track to a respective NodeType
     public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
         new Dictionary<NodeType, int>
         {
             { NodeType.Clear,      1 },
-            { NodeType.Mountain,   2 },
+            { NodeType.Mountain,   4 },
             { NodeType.SmallCity,  3 },
             { NodeType.MediumCity, 3 },
             { NodeType.MajorCity,  5 },
+            { NodeType.Water, 1000   },
         }
     );
 
@@ -407,9 +307,9 @@ namespace Rails {
       phases = PhasePanels.Length;
 
       // Initiate all player info.
-      players = new PlayerInfo[MaxPlayers];
-      for (int p = 0; p < MaxPlayers; p++)
-        players[p] = new PlayerInfo("Player " + p, Color.white, MoneyStart, 0);
+      players = new PlayerInfo[_rules.maxPlayers];
+      for (int p = 0; p < _rules.maxPlayers; p++)
+        players[p] = new PlayerInfo("Player " + p, Color.white, _rules.moneyStart, 0);
 
       // Deactivate all panels just in case.
       for (int u = 0; u < phases; u++)
@@ -553,13 +453,13 @@ namespace Rails {
     // Private method for upgrading.
     private void UpgradeTrain_(int choice) {
       // If player doesn't have enough money, don't upgrade
-      if (player.money < TrainUpgrade) {
+      if (player.money < _rules.trainUpgrade) {
         // TODO: Activate failure UI message here.
         return;
       }
 
       // Deduct value from player's money stock and change train value.
-      player.money -= TrainUpgrade;
+      player.money -= _rules.trainUpgrade;
       player.trainStyle = choice;
       Debug.Log(currentPlayer + " $" + player.money);
       return;
@@ -567,7 +467,7 @@ namespace Rails {
     // Changes the current player
     private int IncrementPlayer() {
       currentPlayer += 1;
-      if (currentPlayer >= MaxPlayers)
+      if (currentPlayer >= _rules.maxPlayers)
         currentPlayer = 0;
       UpdatePlayerInfo();
       return currentPlayer;
@@ -598,8 +498,8 @@ namespace Rails {
     }
     // Check if the current player has won.
     private bool CheckWin() {
-      if (player.majorcities >= Win_MajorCities &&
-        player.money >= Win_Money) {
+      if (player.majorcities >= _rules.winMajorCities &&
+        player.money >= _rules.winMoney) {
         return true;
       }
       return false;

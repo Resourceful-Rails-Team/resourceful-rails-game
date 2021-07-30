@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4881937418234340876}
   - component: {fileID: 4881937418234341363}
   - component: {fileID: 4881937418234341362}
-  - component: {fileID: 1069017420196913621}
+  - component: {fileID: 3875709226839961620}
   m_Layer: 0
   m_Name: Train
   m_TagString: Untagged
@@ -82,7 +82,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &1069017420196913621
+--- !u!114 &3875709226839961620
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -91,6 +91,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 4881937418234341360}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bce1305a433a3f21e9115d50ca322e45, type: 3}
+  m_Script: {fileID: 11500000, guid: 0915823bb0144da40a74871174503da9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

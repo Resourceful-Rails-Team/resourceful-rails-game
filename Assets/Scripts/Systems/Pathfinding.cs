@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rails.Data;
 using Rails.ScriptableObjects;
 using UnityEngine;
 
-namespace Rails
+namespace Rails.Systems
 {
     // These pathfinding methods rely on Edsger W. Dijkstra's algorithm
     // found on Wikipedia (https://en.wikipedia.org/wiki/Dijkstra's_algorithm)
@@ -13,25 +14,7 @@ namespace Rails
     // (https://en.wikipedia.org/wiki/A*_search_algorithm)
 
     #region Data Structures
-
-    /// <summary>
-    /// Represents information related to a path found by the
-    /// Pathfinder class.
-    /// </summary>
-    public class Route
-    {
-        public int Cost { get; set; }
-        public int Distance => Nodes.Count - 1;
-        public List<NodeId> Nodes { get; set; }
-
-        public Route(int cost, List<NodeId> nodes)
-        {
-            Cost = cost;
-            Nodes = nodes;
-        }
-
-    }
-
+ 
     /// <summary>
     /// A comparable object representing the position,
     /// and weight to reach a node given a known start
@@ -202,8 +185,8 @@ namespace Rails
                     if(!newTracks.ContainsKey(route.Nodes[j+1]))
                         newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
 
-                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 0;
-                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 0;
+                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 6;
+                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 6;
                 }
          
                 path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
@@ -257,8 +240,8 @@ namespace Rails
                     if(!newTracks.ContainsKey(route.Nodes[j+1]))
                         newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
 
-                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 0;
-                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 0;
+                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 6;
+                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 6;
                 }
 
                 path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
@@ -523,8 +506,8 @@ namespace Rails
                     var newPoint = Utilities.PointTowards(node.Position, c);
 
                     // If there is a track already at the considered edge, continue
-                    //if (tracks.TryGetValue(node.Position, out var cardinals) && cardinals[(int)c] != -1)
-                        //continue;
+                    if (tracks.TryGetValue(node.Position, out var cardinals) && cardinals[(int)c] != -1)
+                        continue;
 
                     // If the point is outside the map bounds, continue
                     if (newPoint.X < 0 || newPoint.Y < 0 || newPoint.X >= Manager.Size || newPoint.Y >= Manager.Size)
