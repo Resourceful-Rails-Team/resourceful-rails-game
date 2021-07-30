@@ -5,7 +5,7 @@ using Rails.Data;
 using Rails.ScriptableObjects;
 using UnityEngine;
 
-namespace Rails
+namespace Rails.Systems
 {
     // These pathfinding methods rely on Edsger W. Dijkstra's algorithm
     // found on Wikipedia (https://en.wikipedia.org/wiki/Dijkstra's_algorithm)
@@ -14,25 +14,7 @@ namespace Rails
     // (https://en.wikipedia.org/wiki/A*_search_algorithm)
 
     #region Data Structures
-
-    /// <summary>
-    /// Represents information related to a path found by the
-    /// Pathfinder class.
-    /// </summary>
-    public class Route
-    {
-        public int Cost { get; set; }
-        public int Distance => Nodes.Count - 1;
-        public List<NodeId> Nodes { get; set; }
-
-        public Route(int cost, List<NodeId> nodes)
-        {
-            Cost = cost;
-            Nodes = nodes;
-        }
-
-    }
-
+ 
     /// <summary>
     /// A comparable object representing the position,
     /// and weight to reach a node given a known start
