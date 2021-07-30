@@ -1,9 +1,7 @@
 using Rails.Data;
 using Rails.Systems;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 
@@ -15,8 +13,11 @@ namespace Rails.Rendering
         private Dictionary<NodeId, GameToken> _mapTokens;
         private Dictionary<NodeId, GameToken[]> _trackTokens;
         private Dictionary<Route, List<GameToken>> _potentialTracks;
+        private GameToken [] _playerTrains;
 
         private ObjectPool<GameToken> _trackPool;
+
+        private readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
 
         private void Start()
         {
@@ -24,6 +25,7 @@ namespace Rails.Rendering
             _mapTokens = new Dictionary<NodeId, GameToken>();
             _trackTokens = new Dictionary<NodeId, GameToken[]>();
             _potentialTracks = new Dictionary<Route, List<GameToken>>();
+
             _trackPool = new ObjectPool<GameToken>(_manager.MapData.DefaultPlayerTemplate.RailToken, 20, 20);
 
             GenerateBoard();
@@ -43,9 +45,9 @@ namespace Rails.Rendering
         }
         
         /// <summary>
-        /// Generates a highlighted track given a Route
+        /// Generates a highlighted track given a `Route`
         /// </summary>
-        /// <param name="route">The Route to build the track on</param>
+        /// <param name="route">The `Route` to build the track on</param>
         /// <returns>An index representing the ID of the track</returns>
         public void GeneratePotentialTrack(Route route)
         {
@@ -66,10 +68,11 @@ namespace Rails.Rendering
 
             _potentialTracks[route] = trackTokens;
         }
+        
         /// <summary>
-        /// Destroys a potential-built track given the supplied ID
+        /// Destroys a potential-built track given the supplied `Route`
         /// </summary>
-        /// <param name="route">The route of the track being destroyed</param>
+        /// <param name="route">The `Route` of the track being destroyed</param>
         public void DestroyPotentialTrack(Route route)
         {
             if (route == null) return;
@@ -81,6 +84,12 @@ namespace Rails.Rendering
                 _potentialTracks.Remove(route);
             }
         } 
+
+        /// <summary>
+        /// Commits the given `Route` to the map, overlaying the track with a given color.
+        /// </summary>
+        /// <param name="route">The potential `Route` held in the map.</param>
+        /// <param name="color">The color to set the new track to.</param>
         public void CommitPotentialTrack(Route route, Color color)
         {
             if (route == null) return;
@@ -105,9 +114,23 @@ namespace Rails.Rendering
             }
         }
         
-        public void HighlightRoute(Route route)
+        /// <summary>
+        /// Highlights or dehighlights a given track `Route`
+        /// Skips any route index that is not on the track map
+        /// </summary>
+        /// <param name="route">The `Route` to alter</param>
+        /// <param name="highlighted">Whether it should be highlighted, or color reset</param>
+        public void SetHighlightRoute(Route route, bool highlighted)
         {
-
+            for(int i = 0; i < route.Nodes.Count - 1; ++i)
+            {
+                int cIndex = (int)Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1]);
+                if (_trackTokens.TryGetValue(route.Nodes[i], out var tokens))
+                {
+                    if (highlighted) tokens[cIndex]?.SetColor(Color.yellow);
+                    else tokens[cIndex]?.ResetColor();
+                }
+            }
         }
         #endregion
 
@@ -160,26 +183,26 @@ namespace Rails.Rendering
             }
         }
 
-        /*private void CreateTrains()
+        private void GenerateTrains(int playerCount, Color [] playerColors)
         {
-            for (int p = 0; p < MaxPlayers; p++)
+            _playerTrains = new GameToken[playerCount];
+            for (int p = 0; p < playerCount; p++)
             {
-                PlayerTrains[p] = Instantiate(trainData[0].model, transform);
-                PlayerTrains[p].SetActive(false);
-                // TODO: Set the material to the correct color.
+                _playerTrains[p] = Instantiate(_manager.MapData.DefaultPlayerTemplate.BaseTrainToken, transform);
+                _playerTrains[p].gameObject.SetActive(false);
+
+                if (p < playerColors.Length - 1)
+                    _playerTrains[p].SetColor(playerColors[p]);
             }
         }
-        private IEnumerator MoveTrain(int player, NodeId start, NodeId end, float speed)
+        /*private IEnumerator MoveTrain(int player, Route route, float speed)
         {
-            float norm = 0f;
-            float time = 0f;
-            Vector3 startv = Utilities.GetPosition(start);
-            Vector3 endv = Utilities.GetPosition(end);
+            if (player < 0 || player >= _playerTrains.Length)
+                yield return null;
 
-            float distance = Vector3.Distance(startv, endv);
-            Vector3 pos;
+            var tr = _playerTrains[player].transform;
 
-            while (norm <= 1f)
+            while (tr.position != Utilities.Getroute)
             {
                 time += Time.deltaTime;
                 norm = speed * time / distance;

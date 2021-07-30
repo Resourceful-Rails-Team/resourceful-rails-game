@@ -185,8 +185,8 @@ namespace Rails.Systems
                     if(!newTracks.ContainsKey(route.Nodes[j+1]))
                         newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
 
-                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 0;
-                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 0;
+                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 6;
+                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 6;
                 }
          
                 path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
@@ -240,8 +240,8 @@ namespace Rails.Systems
                     if(!newTracks.ContainsKey(route.Nodes[j+1]))
                         newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
 
-                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 0;
-                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 0;
+                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 6;
+                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 6;
                 }
 
                 path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
@@ -506,8 +506,8 @@ namespace Rails.Systems
                     var newPoint = Utilities.PointTowards(node.Position, c);
 
                     // If there is a track already at the considered edge, continue
-                    //if (tracks.TryGetValue(node.Position, out var cardinals) && cardinals[(int)c] != -1)
-                        //continue;
+                    if (tracks.TryGetValue(node.Position, out var cardinals) && cardinals[(int)c] != -1)
+                        continue;
 
                     // If the point is outside the map bounds, continue
                     if (newPoint.X < 0 || newPoint.Y < 0 || newPoint.X >= Manager.Size || newPoint.Y >= Manager.Size)
