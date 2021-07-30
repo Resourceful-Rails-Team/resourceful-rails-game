@@ -2,6 +2,9 @@ using System;
 
 namespace Rails.Data
 {
+    /// <summary>
+    /// A collection of rules associated with a game of Resourceful Rails
+    /// </summary>
     [Serializable]
     public struct GameRules
     {
