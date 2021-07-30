@@ -276,7 +276,7 @@ namespace Rails.MapEditor.Editor
             Undo.RecordObject(manager.MapData, "Paint");
 
             // get surrounding nodes
-            var nodeIds = manager.GetNodeIdsByPosition(position, paintingRadius);
+            var nodeIds = Utilities.GetNodeIdsByPosition(position, paintingRadius);
 
             switch (paintType)
             {
@@ -317,7 +317,7 @@ namespace Rails.MapEditor.Editor
                                     var neighborId = Utilities.PointTowards(nodeId, c);
                                     if (neighborId.InBounds)
                                     {
-                                        var neighborPos = manager.GetPosition(neighborId);
+                                        var neighborPos = Utilities.GetPosition(neighborId);
                                         if (Vector3.Distance(neighborPos, position) < paintingRadius)
                                         {
                                             // set segment

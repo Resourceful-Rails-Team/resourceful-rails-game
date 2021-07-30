@@ -9,18 +9,26 @@ namespace Rails.Rendering
     public class Graphics : MonoBehaviour
     {
         private Manager _manager;
-        private Dictionary<NodeId, IGameToken> _mapTokens;
+        private Dictionary<NodeId, GameToken> _mapTokens;
         private ReadOnlyDictionary<NodeId, int[]> _mapTracks;
 
         private void Start()
         {
             _manager = Manager.Singleton;
-            _mapTokens = new Dictionary<NodeId, IGameToken>();
+            _mapTokens = new Dictionary<NodeId, GameToken>();
             _mapTracks = new ReadOnlyDictionary<NodeId, int[]>(_manager.Tracks);
 
             GenerateBoard();
             GenerateNodes();
         }
+
+        #region Public Methods
+        public GameToken GetToken(NodeId nodeId)
+        {
+            _mapTokens.TryGetValue(nodeId, out var token);
+            return token;
+        }
+        #endregion
 
         #region Private Methods
         // Instantiates the MapData board, and sets it to the correct size
@@ -39,38 +47,39 @@ namespace Rails.Rendering
                 {
                     var nodeId = new NodeId(x, y);
                     Node node = _manager.MapData.Nodes[nodeId.GetSingleId()];
-
-                    if (node.Type == NodeType.MajorCity && !IsCenterOfMajorCity(nodeId))
-                        continue;
-
                     Vector3 pos = Utilities.GetPosition(node.Id);
+
                     GameObject model = _manager.MapData.DefaultTokenTemplate.GetToken(node.Type);
 
                     if (model)
                     {
-                        GameObject nodeObj = Instantiate(model, transform);
-                        nodeObj.transform.position = pos;
+                        if (node.Type == NodeType.MajorCity)
+                        {
+                            var neighborNodes = _manager.MapData.GetNeighborNodes(nodeId);
+                            if (neighborNodes.All(nn => nn.Item2.CityId == node.CityId))
+                            {
+                                GameToken token = Instantiate(model, transform).GetComponent<GameToken>();
+                                token.transform.position = pos;
+
+                                foreach (var nId in neighborNodes.Select(nn => nn.Item1))
+                                    _mapTokens[nId] = token;
+
+                                _mapTokens[nodeId] = token;
+                            }
+                        }
+                        else
+                        {
+                            GameToken token = Instantiate(model, transform).GetComponent<GameToken>();
+                            token.transform.position = pos;
+
+                            _mapTokens[nodeId] = token;
+                        }
                     }
                 }
             }
         }
 
-        private bool IsCenterOfMajorCity(NodeId nodeId)
-        {
-            if (_manager.MapData.Nodes[nodeId.GetSingleId()].Type != NodeType.MajorCity)
-                return false;
-
-            var node = _manager.MapData.Nodes[nodeId.GetSingleId()];
-            var cityId = _manager.MapData.Nodes[nodeId.GetSingleId()].CityId;
-            var cardinalRange = Enumerable.Range((int)Cardinal.N, (int)Cardinal.MAX_CARDINAL);
-
-            return 
-                 cardinalRange
-                .Select(c => Utilities.PointTowards(nodeId, (Cardinal)c))
-                .All(nId => nId.InBounds && _manager.MapData.Nodes[nId.GetSingleId()].CityId == node.CityId);
-        }
-
-        private void CreateTrains()
+        /*private void CreateTrains()
         {
             for (int p = 0; p < MaxPlayers; p++)
             {
@@ -98,7 +107,7 @@ namespace Rails.Rendering
 
                 yield return null;
             }
-        }
+        }*/
         #endregion
     }
 }

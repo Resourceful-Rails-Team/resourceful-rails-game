@@ -1,5 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Rails.Data;
 using Rails.ScriptableObjects;
 using UnityEngine;
 
@@ -23,6 +26,9 @@ namespace Rails.ScriptableObjects
         public List<City> Cities = new List<City>();
         [SerializeField]
         public List<Good> Goods = new List<Good>();
+
+        [SerializeField]
+        public Settings DefaultSettings;
 
         public MapData()
         {
@@ -66,6 +72,20 @@ namespace Rails.ScriptableObjects
                 return null;
 
             return Segments[index];
+        }
+
+        public Tuple<NodeId, Node>[] GetNeighborNodes(NodeId nodeId)
+        {
+            var node = Nodes[nodeId.GetSingleId()];
+            var cityId = Nodes[nodeId.GetSingleId()].CityId;
+            var cardinalRange = Enumerable.Range((int)Cardinal.N, (int)Cardinal.MAX_CARDINAL);
+
+            return
+                 cardinalRange
+                .Select(c => Utilities.PointTowards(nodeId, (Cardinal)c))
+                .Where(nId => nId.InBounds)
+                .Select(nId => Tuple.Create(nId, Nodes[nId.GetSingleId()]))
+                .ToArray();
         }
     }
 }

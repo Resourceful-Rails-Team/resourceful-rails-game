@@ -5,6 +5,9 @@ using UnityEngine;
 using Rails.ScriptableObjects;
 using UnityEngine.InputSystem;
 using System.Collections.ObjectModel;
+using Rails.Rendering;
+using Rails.Controls;
+using Rails.Data;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -73,10 +76,13 @@ namespace Rails {
     /// </summary>
     [SerializeField]
     public Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
-		#endregion // Properties
+    #endregion // Properties
+
+    private Rails.Rendering.Graphics _graphics;
+    private Settings _settings;
 
     #region Utilities
-      /// <summary>
+    /// <summary>
     /// Inserts a new track onto the Map, based on position and direction.
     /// </summary>
     /// <param name="player">The player who owns the track</param>
@@ -101,56 +107,13 @@ namespace Rails {
     #endregion // Utilities
     #endregion // Map
 
-    #region Graphics
-    [SerializeField]
-    public MapTokenTemplate MapGraphics;
-    private GameObject[] PlayerTrains;
-    private void CreateNodes() {
-      for (int x = 0; x < Size; x++) {
-        for (int y = 0; y < Size; y++) {
-          // draw node
-          Node node = MapData.Nodes[(y * Size) + x];
-          Vector3 pos = Utilities.GetPosition(node.Id);
-          GameObject model = MapGraphics.GetToken(node.Type);
-          if (model) {
-            GameObject inst = Instantiate(model, transform);
-            inst.transform.position = pos;
-          }
-        }
-      }
-    }
-    private void CreateTrains() {
-      for (int p = 0; p < MaxPlayers; p++) {
-        PlayerTrains[p] = Instantiate(trainData[0].model, transform);
-        PlayerTrains[p].SetActive(false);
-        // TODO: Set the material to the correct color.
-			}
-		}
-    private IEnumerator MoveTrain(int player, NodeId start, NodeId end, float speed) {
-      float norm = 0f;
-      float time = 0f;
-      Vector3 startv = Utilities.GetPosition(start);
-      Vector3 endv = Utilities.GetPosition(end);
-      float distance = Vector3.Distance(startv, endv);
-      Vector3 pos;
-
-      while (norm <= 1f) {
-        time += Time.deltaTime;
-        norm = speed * time / distance;
-        pos = Vector3.Slerp(startv, endv, norm);
-        PlayerTrains[player].transform.position = pos;
-
-        yield return null;
-			}
-		}
-    #endregion
-
     #region Unity Events
 
     private void Awake() {
       // set singleton reference on awake
       _singleton = this;
-      CreateNodes();
+      _graphics = GetComponent<Rails.Rendering.Graphics>();
+      _settings = MapData.DefaultSettings;
     }
 
 #if UNITY_EDITOR
@@ -211,7 +174,17 @@ namespace Rails {
 
 #endif
 
+    private GameToken _token;
     private void Update() {
+      _token?.ResetColor();
+      var highlightToken = _graphics.GetToken(GameInput.MouseNodeId);
+
+            if (highlightToken != null)
+            {
+                highlightToken.SetColor(Color.yellow);
+                _token = highlightToken;
+            }
+
       InputUpdate();
     }
 
@@ -255,30 +228,6 @@ namespace Rails {
     }
 
     #region Public Data
-    /// <summary>
-    /// The number of players playing this game.
-    /// </summary>
-    public int MaxPlayers = 6;
-    /// <summary>
-    /// The amount of money each player starts with.
-    /// </summary>
-    public int MoneyStart = 50;
-    /// <summary>
-    /// The max amount of money that can be spent building.
-    /// </summary>
-    public int MaxBuild = 20;
-    /// <summary>
-    /// The cost to for players to upgrade their train.
-    /// </summary>
-    public int TrainUpgrade = 20;
-    /// <summary>
-    /// The number of major cities that must be connected to win.
-    /// </summary>
-    public int Win_MajorCities = 6;
-    /// <summary>
-    /// The amount of money needed to win.
-    /// </summary>
-    public int Win_Money = 250;
     
     // The cost to build a track to a respective NodeType
     public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
@@ -324,9 +273,9 @@ namespace Rails {
       phases = PhasePanels.Length;
 
       // Initiate all player info.
-      players = new PlayerInfo[MaxPlayers];
-      for (int p = 0; p < MaxPlayers; p++)
-        players[p] = new PlayerInfo("Player " + p, Color.white, MoneyStart, 0);
+      players = new PlayerInfo[_settings.maxPlayers];
+      for (int p = 0; p < _settings.maxPlayers; p++)
+        players[p] = new PlayerInfo("Player " + p, Color.white, _settings.moneyStart, 0);
 
       // Deactivate all panels just in case.
       for (int u = 0; u < phases; u++)
@@ -470,13 +419,13 @@ namespace Rails {
     // Private method for upgrading.
     private void UpgradeTrain_(int choice) {
       // If player doesn't have enough money, don't upgrade
-      if (player.money < TrainUpgrade) {
+      if (player.money < _settings.trainUpgrade) {
         // TODO: Activate failure UI message here.
         return;
       }
 
       // Deduct value from player's money stock and change train value.
-      player.money -= TrainUpgrade;
+      player.money -= _settings.trainUpgrade;
       player.trainStyle = choice;
       Debug.Log(currentPlayer + " $" + player.money);
       return;
@@ -484,7 +433,7 @@ namespace Rails {
     // Changes the current player
     private int IncrementPlayer() {
       currentPlayer += 1;
-      if (currentPlayer >= MaxPlayers)
+      if (currentPlayer >= _settings.maxPlayers)
         currentPlayer = 0;
       UpdatePlayerInfo();
       return currentPlayer;
@@ -515,8 +464,8 @@ namespace Rails {
     }
     // Check if the current player has won.
     private bool CheckWin() {
-      if (player.majorcities >= Win_MajorCities &&
-        player.money >= Win_Money) {
+      if (player.majorcities >= _settings.winMajorCities &&
+        player.money >= _settings.winMoney) {
         return true;
       }
       return false;
