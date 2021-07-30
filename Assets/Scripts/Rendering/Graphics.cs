@@ -1,5 +1,6 @@
 using Rails.Data;
 using Rails.Systems;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,8 +14,7 @@ namespace Rails.Rendering
         private Manager _manager;
         private Dictionary<NodeId, GameToken> _mapTokens;
         private Dictionary<NodeId, GameToken[]> _trackTokens;
-        private Dictionary<int, List<GameToken>> _potentialTracks;
-        private int _trackId = 0;
+        private Dictionary<Route, List<GameToken>> _potentialTracks;
 
         private ObjectPool<GameToken> _trackPool;
 
@@ -23,7 +23,7 @@ namespace Rails.Rendering
             _manager = Manager.Singleton;
             _mapTokens = new Dictionary<NodeId, GameToken>();
             _trackTokens = new Dictionary<NodeId, GameToken[]>();
-            _potentialTracks = new Dictionary<int, List<GameToken>>();
+            _potentialTracks = new Dictionary<Route, List<GameToken>>();
             _trackPool = new ObjectPool<GameToken>(_manager.MapData.DefaultPlayerTemplate.RailToken, 20, 20);
 
             GenerateBoard();
@@ -47,7 +47,7 @@ namespace Rails.Rendering
         /// </summary>
         /// <param name="route">The Route to build the track on</param>
         /// <returns>An index representing the ID of the track</returns>
-        public int GeneratePotentialTrack(Route route)
+        public void GeneratePotentialTrack(Route route)
         {
             var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
             for(int i = 0; i < route.Nodes.Count - 1; ++i)
@@ -64,32 +64,50 @@ namespace Rails.Rendering
                 trackTokens.Add(trackToken);
             }
 
-            _potentialTracks[_trackId] = trackTokens;
-
-            return _trackId++;
+            _potentialTracks[route] = trackTokens;
         }
-
         /// <summary>
         /// Destroys a potential-built track given the supplied ID
         /// </summary>
-        /// <param name="trackId">The ID of the track being destroyed</param>
-        public void DestroyPotentialTrack(int trackId)
+        /// <param name="route">The route of the track being destroyed</param>
+        public void DestroyPotentialTrack(Route route)
         {
-            if(_potentialTracks.TryGetValue(trackId, out var trackTokens))
+            if (route == null) return;
+            if(_potentialTracks.TryGetValue(route, out var tokens))
             {
-                foreach (var trackToken in trackTokens)
-                    _trackPool.Return(trackToken);
+                foreach (var token in tokens)
+                    _trackPool.Return(token);
 
-                _potentialTracks.Remove(trackId);
+                _potentialTracks.Remove(route);
+            }
+        } 
+        public void CommitPotentialTrack(Route route, Color color)
+        {
+            if (route == null) return;
+            if(_potentialTracks.TryGetValue(route, out var tokens))
+            {
+                for (int i = 0; i < route.Nodes.Count - 1; ++i)
+                {
+                    if (!_trackTokens.ContainsKey(route.Nodes[i]))
+                        _trackTokens.Add(route.Nodes[i], new GameToken[(int)Cardinal.MAX_CARDINAL]);
+                    if (!_trackTokens.ContainsKey(route.Nodes[i+1]))
+                        _trackTokens.Add(route.Nodes[i+1], new GameToken[(int)Cardinal.MAX_CARDINAL]);
+
+                    var direction = Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i+1]);
+                    var reflectDirection = Utilities.CardinalBetween(route.Nodes[i+1], route.Nodes[i]);
+
+                    _trackTokens[route.Nodes[i]][(int)direction] = tokens[i];
+                    _trackTokens[route.Nodes[i + 1]][(int)reflectDirection] = tokens[i];
+
+                    tokens[i].SetPrimaryColor(color);
+                }
+                _potentialTracks.Remove(route);
             }
         }
         
-        public void CommitPotentialTrack(int trackId, int player)
+        public void HighlightRoute(Route route)
         {
-            if(_potentialTracks.TryGetValue(trackId, out var trackTokens))
-            {
-                    
-            }
+
         }
         #endregion
 

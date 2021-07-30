@@ -24,6 +24,7 @@ namespace Rails.Controls
         public static bool SelectJustPressed { get; private set; }
         public static NodeId MouseNodeId { get; private set; }
         public static bool DeleteJustPressed { get; private set; }
+        public static bool EnterJustPressed { get; private set; }
 
         private static bool _rotateTriggered = false;
         private static Camera _mainCamera;
@@ -46,6 +47,10 @@ namespace Rails.Controls
         {
             DeleteJustPressed = value.isPressed;
         }            
+        private void OnEnter(InputValue value)
+        {
+            EnterJustPressed = value.isPressed;
+        }
         #endregion
 
         private void Update()
@@ -60,6 +65,7 @@ namespace Rails.Controls
         {
             SelectJustPressed = false;
             DeleteJustPressed = false;
+            EnterJustPressed = false;
         }
     }
 }

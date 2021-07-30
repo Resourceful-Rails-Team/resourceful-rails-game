@@ -176,7 +176,7 @@ namespace Rails {
 #endif
 
     private GameToken _highlightToken;
-    private int _currentTrack = -1;
+    private Route _currentRoute = null;
     private List<NodeId> _targetNodes = new List<NodeId>();
      
     private void Update() {
@@ -199,15 +199,20 @@ namespace Rails {
           _targetNodes.Add(GameInput.MouseNodeId); 
           if(_targetNodes.Count > 1)
           {
-              _graphics.DestroyPotentialTrack(_currentTrack);
-              var route = Pathfinding.CheapestBuild(Tracks, MapData, _targetNodes.ToArray());
-              _currentTrack = _graphics.GeneratePotentialTrack(route);
+              _graphics.DestroyPotentialTrack(_currentRoute);
+              _currentRoute = Pathfinding.CheapestBuild(Tracks, MapData, _targetNodes.ToArray());
+              _graphics.GeneratePotentialTrack(_currentRoute);
           }
       }
 
       if (GameInput.DeleteJustPressed)
       {
-          _graphics.DestroyPotentialTrack(_currentTrack);
+          _graphics.DestroyPotentialTrack(_currentRoute);
+          _targetNodes.Clear();
+      }
+      if(GameInput.EnterJustPressed)
+      {
+          _graphics.CommitPotentialTrack(_currentRoute, Color.red);
           _targetNodes.Clear();
       }
 
