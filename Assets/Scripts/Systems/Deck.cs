@@ -33,7 +33,30 @@ namespace Rails.Systems
         };
         // ---------------------
 
+        private static List<Demand[]> _drawPile;
+        private static List<Demand[]> _discardPile;
+
+        public static void Initialize()
+        {
+
+        }
+
         public static Demand[] DrawOne()
             => _demandCards[Random.Range(0, _demandCards.Length)];
+
+        public static void Discard(Demand[] demand)
+        {
+            _discardPile.Add(demand);
+        }
+
+        public static void ShuffleDiscards()
+        {
+            while(_discardPile.Count > 0)
+            {
+                int cardIndex = Random.Range(0, _discardPile.Count);
+                _drawPile.Add(_discardPile[cardIndex]);
+                _discardPile.RemoveAt(cardIndex); 
+            }
+        }
     }
 }
