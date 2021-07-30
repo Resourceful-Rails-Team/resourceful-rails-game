@@ -16,8 +16,7 @@ namespace Rails.Rendering
         private GameToken [] _playerTrains;
 
         private ObjectPool<GameToken> _trackPool;
-
-        private readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+        private HashSet<int> _currentlyRunningTrains;
 
         private void Start()
         {
@@ -27,9 +26,11 @@ namespace Rails.Rendering
             _potentialTracks = new Dictionary<Route, List<GameToken>>();
 
             _trackPool = new ObjectPool<GameToken>(_manager.MapData.DefaultPlayerTemplate.RailToken, 20, 20);
+            _currentlyRunningTrains = new HashSet<int>();
 
             GenerateBoard();
             GenerateNodes();
+            GenerateTrains(2, new Color[] { Color.blue, Color.green });
         }
 
         #region Public Methods
@@ -54,13 +55,13 @@ namespace Rails.Rendering
             var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
             for(int i = 0; i < route.Nodes.Count - 1; ++i)
             {
-                float rotateY = Utilities.GetCardinalRotation(
+                var rotation = Utilities.GetCardinalRotation(
                     Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1])
                 );
 
                 var trackToken = _trackPool.Retrieve();
                 trackToken.transform.position = Utilities.GetPosition(route.Nodes[i]);
-                trackToken.transform.rotation = Quaternion.Euler(0.0f, rotateY, 0.0f);
+                trackToken.transform.rotation = rotation;
 
                 trackToken.SetColor(Color.yellow);
                 trackTokens.Add(trackToken);
@@ -111,6 +112,7 @@ namespace Rails.Rendering
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);
+                StartCoroutine(MoveTrain(1, route, 5.0f));
             }
         }
         
@@ -135,14 +137,14 @@ namespace Rails.Rendering
         #endregion
 
         #region Private Methods
-        // Instantiates the MapData board, and sets it to the correct size
+        /// Instantiates the MapData board, and sets it to the correct size
         private void GenerateBoard()
         {
             var board = Instantiate(_manager.MapData.Board);
             board.transform.localScale = Vector3.one * _manager.WSSize;
         }
-
-        // Instantiates all MapData nodes
+        
+        /// Instantiates all MapData nodes
         private void GenerateNodes()
         {
             for (int x = 0; x < Manager.Size; x++)
@@ -182,7 +184,8 @@ namespace Rails.Rendering
                 }
             }
         }
-
+        
+        // Generates all player trains, and assigns them their colors
         private void GenerateTrains(int playerCount, Color [] playerColors)
         {
             _playerTrains = new GameToken[playerCount];
@@ -191,27 +194,57 @@ namespace Rails.Rendering
                 _playerTrains[p] = Instantiate(_manager.MapData.DefaultPlayerTemplate.BaseTrainToken, transform);
                 _playerTrains[p].gameObject.SetActive(false);
 
-                if (p < playerColors.Length - 1)
+                if (p < playerColors.Length)
                     _playerTrains[p].SetColor(playerColors[p]);
             }
         }
-        /*private IEnumerator MoveTrain(int player, Route route, float speed)
+        
+        // Moves a player train through the given `Route`
+        private IEnumerator MoveTrain(int player, Route route, float speed)
         {
             if (player < 0 || player >= _playerTrains.Length)
-                yield return null;
+                yield break;
+            if (route == null || route.Distance == 0)
+                yield break;
 
-            var tr = _playerTrains[player].transform;
-
-            while (tr.position != Utilities.Getroute)
+            if(_currentlyRunningTrains.Contains(player))
             {
-                time += Time.deltaTime;
-                norm = speed * time / distance;
-                pos = Vector3.Slerp(startv, endv, norm);
-                PlayerTrains[player].transform.position = pos;
-
+                _currentlyRunningTrains.Remove(player);
                 yield return null;
             }
-        }*/
+            _currentlyRunningTrains.Add(player);
+
+            var tr = _playerTrains[player].transform;
+            tr.gameObject.SetActive(true);
+
+            Vector3 nextPoint;
+            var nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(route.Nodes[0], route.Nodes[1]));
+
+            tr.position = Utilities.GetPosition(route.Nodes[0]);
+            tr.rotation = nextRotation;
+
+            for(int i = 0; i < route.Distance; ++i)
+            {
+                nextPoint = Utilities.GetPosition(route.Nodes[i+1]);
+                nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i+1])); 
+
+                while (tr.position != nextPoint)
+                {
+                    if (!_currentlyRunningTrains.Contains(player))
+                    {
+                        tr.position = Utilities.GetPosition(route.Nodes.Last());
+                        tr.rotation = Utilities.GetCardinalRotation(
+                            Utilities.CardinalBetween(route.Nodes[route.Nodes.Count - 2], route.Nodes.Last())
+                        );
+                        yield break;
+                    }
+
+                    tr.position = Vector3.MoveTowards(tr.position, nextPoint, speed * Time.deltaTime);
+                    tr.rotation = Quaternion.Slerp(tr.rotation, nextRotation, speed * 2.5f * Time.deltaTime);
+                    yield return null;
+                }
+            }
+        }
         #endregion
     }
 }
