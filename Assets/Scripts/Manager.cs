@@ -9,6 +9,8 @@ using Rails.Rendering;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
+using TMPro;
+using Rails.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -115,6 +117,8 @@ namespace Rails {
       _singleton = this;
       _graphics = GetComponent<Rails.Rendering.Graphics>();
       _rules = MapData.DefaultRules;
+
+      GameLoopSetup();
     }
 
 #if UNITY_EDITOR
@@ -285,7 +289,7 @@ namespace Rails {
     /// <summary>
     /// UI window that shows stats of the current player.
     /// </summary>
-    public GameObject PlayerInfoPanel;
+    public GameHUDManager GameHUDObject;
     /// <summary>
     /// UI windows that show the controls for each phase.
     /// </summary>
@@ -316,7 +320,8 @@ namespace Rails {
         PhasePanels[u].SetActive(false);
 
       // Activate first turn panel.
-      PhasePanels[1].SetActive(true);
+      currentPhase = 1;
+      PhasePanels[currentPhase].SetActive(true);
       player = players[currentPlayer];
       UpdatePlayerInfo();
     }
@@ -482,11 +487,12 @@ namespace Rails {
     }
     // Updates name and money amount. Placeholder.
     private void UpdatePlayerInfo() {
-      //Transform playertext = PlayerInfoPanel.transform.Find("Player");
-      //playertext.GetComponent<TMP_Text>().text = "Player #" + (currentPlayer + 1);
-      //playertext = PlayerInfoPanel.transform.Find("Money");
-      //playertext.GetComponent<TMP_Text>().text = "$" + players[currentPlayer].money;
+      var player = players[currentPlayer];
+      GameHUDObject.PlayerNameText.text = $"Player #{currentPlayer + 1}";
+      GameHUDObject.PlayerMoneyText.text = $"{player.money:C}";
+      GameHUDObject.PlayerTrainText.text = $"{player.trainStyle}";
     }
+    
     // Cycles through UI screens
     private int UpdatePhase() {
       PhasePanels[currentPhase].SetActive(false);
