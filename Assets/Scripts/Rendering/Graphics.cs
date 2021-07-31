@@ -237,7 +237,7 @@ namespace Rails.Rendering
             _playerTrains = new GameToken[playerCount];
             for (int p = 0; p < playerCount; p++)
             {
-                _playerTrains[p] = Instantiate(_manager.MapData.DefaultPlayerTemplate.BaseTrainToken, transform);
+                _playerTrains[p] = Instantiate(_manager.MapData.DefaultPlayerTemplate.TrainTokenOfType(TrainType.Base), transform);
                 _playerTrains[p].gameObject.SetActive(false);
 
                 if (p < playerColors.Length)
