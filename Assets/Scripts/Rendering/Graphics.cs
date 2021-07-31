@@ -1,3 +1,4 @@
+using Rails.Collections;
 using Rails.Data;
 using Rails.Systems;
 using System.Collections;
@@ -13,7 +14,7 @@ namespace Rails.Rendering
         // A collection of all node GameTokens on the map
         private Dictionary<NodeId, GameToken> _mapTokens;
         // A collection of all track GameTokens on the map
-        private Dictionary<NodeId, GameToken[]> _trackTokens;
+        private TrackGraph<GameToken> _trackTokens;
         // A collection of route GameTokens
         private Dictionary<Route, List<GameToken>> _potentialTracks;
 
@@ -31,7 +32,7 @@ namespace Rails.Rendering
         {
             _manager = Manager.Singleton;
             _mapTokens = new Dictionary<NodeId, GameToken>();
-            _trackTokens = new Dictionary<NodeId, GameToken[]>();
+            _trackTokens = new TrackGraph<GameToken>();
             _potentialTracks = new Dictionary<Route, List<GameToken>>();
 
             _trackPool = new ObjectPool<GameToken>(_manager.MapData.DefaultPlayerTemplate.RailToken, 20, 20);
@@ -116,17 +117,7 @@ namespace Rails.Rendering
             {
                 for (int i = 0; i < route.Nodes.Count - 1; ++i)
                 {
-                    if (!_trackTokens.ContainsKey(route.Nodes[i]))
-                        _trackTokens.Add(route.Nodes[i], new GameToken[(int)Cardinal.MAX_CARDINAL]);
-                    if (!_trackTokens.ContainsKey(route.Nodes[i+1]))
-                        _trackTokens.Add(route.Nodes[i+1], new GameToken[(int)Cardinal.MAX_CARDINAL]);
-
-                    var direction = Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i+1]);
-                    var reflectDirection = Utilities.CardinalBetween(route.Nodes[i+1], route.Nodes[i]);
-
-                    _trackTokens[route.Nodes[i]][(int)direction] = tokens[i];
-                    _trackTokens[route.Nodes[i + 1]][(int)reflectDirection] = tokens[i];
-                    
+                    _trackTokens[route.Nodes[i], route.Nodes[i+1]] = tokens[i]; 
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);

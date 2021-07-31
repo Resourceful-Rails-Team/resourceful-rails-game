@@ -54,7 +54,7 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route ShortestBuild(
-            Dictionary<NodeId, int[]> tracks, MapData mapData,
+            TrackGraph<int> tracks, MapData mapData,
             params NodeId[] segments
         ) {
             var path = new List<NodeId>();
@@ -66,8 +66,8 @@ namespace Rails.Systems
 
             // A duplicate of the current tracks - ensures that Pathfinder
             // doesn't reuse already commited paths in later traversals.
-            var newTracks = new Dictionary<NodeId, int[]>(tracks);
-            
+            var newTracks = tracks.Clone(entry => entry.Value.ToArray());
+                
             // For each segment, find the least-distance path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
             {
@@ -79,15 +79,7 @@ namespace Rails.Systems
                 
                 // Add the new path to newTracks
                 for(int j = 0; j < route.Nodes.Count - 1; ++j)
-                {
-                    if(!newTracks.ContainsKey(route.Nodes[j]))
-                        newTracks.Add(route.Nodes[j], Enumerable.Repeat(-1, 6).ToArray());
-                    if(!newTracks.ContainsKey(route.Nodes[j+1]))
-                        newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
-
-                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 6;
-                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 6;
-                }
+                    newTracks[route.Nodes[j], route.Nodes[j + 1]] = 6;
          
                 path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
                 if (i == segments.Length - 2) path.Add(segments.Last());
@@ -109,7 +101,7 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route CheapestBuild(
-            Dictionary<NodeId, int[]> tracks, MapData mapData,
+            TrackGraph<int> tracks, MapData mapData,
             params NodeId[] segments
         ) {
             var path = new List<NodeId>();
@@ -121,7 +113,7 @@ namespace Rails.Systems
 
             // A duplicate of the current tracks - ensures that Pathfinder
             // doesn't reuse already commited paths in later traversals.
-            var newTracks = new Dictionary<NodeId, int[]>(tracks);
+            var newTracks = tracks.Clone(entry => entry.Value.ToArray());
 
             // For each segment, find the least-cost path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
@@ -134,15 +126,7 @@ namespace Rails.Systems
                 
                 // Add the new path to newTracks
                 for(int j = 0; j < route.Nodes.Count - 1; ++j)
-                {
-                    if(!newTracks.ContainsKey(route.Nodes[j]))
-                        newTracks.Add(route.Nodes[j], Enumerable.Repeat(-1, 6).ToArray());
-                    if(!newTracks.ContainsKey(route.Nodes[j+1]))
-                        newTracks.Add(route.Nodes[j+1], Enumerable.Repeat(-1, 6).ToArray());
-
-                    newTracks[route.Nodes[j]][(int)Utilities.CardinalBetween(route.Nodes[j], route.Nodes[j + 1])] = 6;
-                    newTracks[route.Nodes[j+1]][(int)Utilities.CardinalBetween(route.Nodes[j+1], route.Nodes[j])] = 6;
-                }
+                    newTracks[route.Nodes[j], route.Nodes[j+1]] = 6;
 
                 path.AddRange(route.Nodes.Take(route.Nodes.Count - 1));
                 if (i == segments.Length - 2) path.Add(segments.Last());
@@ -166,7 +150,7 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route ShortestMove(
-            Dictionary<NodeId, int[]> tracks,
+            TrackGraph<int> tracks,
             int player, int speed, params NodeId [] segments
         ) {
             var path = new List<NodeId>();
@@ -208,7 +192,7 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route CheapestMove(
-            Dictionary<NodeId, int[]> tracks,
+            TrackGraph<int> tracks,
             int player, int speed, params NodeId [] segments
         ) {
             var path = new List<NodeId>();
@@ -244,12 +228,12 @@ namespace Rails.Systems
         /// from a start point to end point.
         /// </summary>
         private static Route LeastCostTrack(
-            Dictionary<NodeId, int[]> tracks, 
+            TrackGraph<int> tracks, 
             int player, int speed, 
             NodeId start, NodeId end,
             bool addAltTrackCost
         ) {
-            if(start == end || !tracks.ContainsKey(start) || !tracks.ContainsKey(end))
+            if(start == end || !tracks.ContainsVertex(start) || !tracks.ContainsVertex(end))
                 return null;
 
             // The list of nodes to return from method
@@ -309,7 +293,7 @@ namespace Rails.Systems
                 for(Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                 {
                     var newPoint = Utilities.PointTowards(node.Position, c);
-                    if(tracks[node.Position][(int)c] != -1 && tracks.ContainsKey(newPoint))
+                    if(tracks[node.Position, c] != -1 && tracks.ContainsVertex(newPoint))
                     {
                         var newNode = new WeightedNode
                         {
@@ -321,7 +305,7 @@ namespace Rails.Systems
                         var newCost = distMap[node.Position] + 1;
 
                         // Retrieve the track owner of the edge being considered
-                        int trackOwner = tracks[node.Position][(int)Utilities.CardinalBetween(node.Position, newPoint)];
+                        int trackOwner = tracks[node.Position, newPoint];
 
                         // If the current track is owned by a different player,
                         // one whose track the current player currently is not on
@@ -355,7 +339,7 @@ namespace Rails.Systems
         /// Finds the lowest cost path available from a start point to end point.
         /// </summary>
         private static Route LeastCostPath(
-            Dictionary<NodeId, int[]> tracks, 
+            TrackGraph<int> tracks, 
             MapData map, NodeId start, NodeId end,            
             bool addWeight
         ) {
@@ -448,7 +432,7 @@ namespace Rails.Systems
         /// path.
         /// </summary>
         private static Route CreateTrackRoute (
-            Dictionary<NodeId, int[]> tracks,
+            TrackGraph<int> tracks,
             Dictionary<NodeId, NodeId> previous,
             int player, int speed, NodeId start, NodeId end
          ) {
@@ -465,14 +449,13 @@ namespace Rails.Systems
             do
             {
                 nodes.Add(current);
-                Cardinal c = Utilities.CardinalBetween(current, previous[current]);
 
                 // If the track has yet to be paid for this turn
                 // add the cost.
-                if(!tracksPaid[tracks[current][(int)c]])
+                if(!tracksPaid[tracks[current, previous[current]]])
                 {
                     cost += Manager.AltTrackCost;
-                    tracksPaid[tracks[current][(int)c]] = true;
+                    tracksPaid[tracks[current, previous[current]]] = true;
                 }
 
                 current = previous[current];
@@ -501,7 +484,7 @@ namespace Rails.Systems
         /// tracks, nodes from start to end and player index
         /// </summary>
         private static Route CreateTrackRoute(
-            Dictionary<NodeId, int[]> tracks,
+            TrackGraph<int> tracks,
             int player, int speed,
             List<NodeId> path
         ) {
@@ -514,14 +497,12 @@ namespace Rails.Systems
             // Traverse the path, adding the cost of each edge while doing so
             for(int i = 0; i < path.Count - 1; ++i)
             {
-                Cardinal c = Utilities.CardinalBetween(path[i], path[i+1]);
-
                 // If the track has yet to be paid for this turn
                 // add the cost.
-                if(!tracksPaid[tracks[path[i]][(int)c]])
+                if(!tracksPaid[tracks[path[i], path[i+1]]])
                 {
                     cost += Manager.AltTrackCost;
-                    tracksPaid[tracks[path[i]][(int)c]] = true;
+                    tracksPaid[tracks[path[i], path[i+1]]] = true;
                 }
             
                 spacesLeft -= 1;

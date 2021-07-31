@@ -15,10 +15,18 @@ namespace Rails.Collections
     {
         private Dictionary<NodeId, T[]> _adjacencyList;
         private Func<T[]> _defaultEdgesFactory;
-
+        
+        /// <summary>
+        /// Creates a new TrackGraph
+        /// </summary>
         public TrackGraph()
             => _adjacencyList = new Dictionary<NodeId, T[]>();        
-
+        
+        /// <summary>
+        /// Creates a new TrackGraph, supplying a method which gives
+        /// default values upon instantiating a new vertex.
+        /// </summary>
+        /// <param name="defaultEdgesFactory">The method which supplies edge default values.</param>
         public TrackGraph(Func<T[]> defaultEdgesFactory)
         {
             _adjacencyList = new Dictionary<NodeId, T[]>();
@@ -43,6 +51,7 @@ namespace Rails.Collections
         {
             get
             {
+                // Throw an exception if the vertex doesn't exist
                 if (!_adjacencyList.ContainsKey(id))
                     throw new ArgumentException($"TrackGraph does not contain Vertex {id}");
 
@@ -77,6 +86,7 @@ namespace Rails.Collections
         {
             get
             {
+                // Throw exception if either vertex doesn't exist
                 if (!_adjacencyList.ContainsKey(id))
                     throw new ArgumentException($"TrackGraph does not contain Vertex {id}");
                 if (!_adjacencyList.ContainsKey(idAdj))
@@ -89,6 +99,7 @@ namespace Rails.Collections
                 }
                 catch(ArgumentException)
                 {
+                    // Throw an exception if the vertices aren't adjacent
                     throw new ArgumentException($"Attempted to retrieve edge between two non-adjacent nodes: {id} and {idAdj}");
                 }
             }
@@ -105,17 +116,41 @@ namespace Rails.Collections
                 }
             }
         }
+        
+        /// <summary>
+        /// Tests if the `TrackGraph` contains the given `NodeId` vertex
+        /// </summary>
+        /// <param name="nodeId">The vertex position to check</param>
+        /// <returns>True if a vertex is found. False if not</returns>
+        public bool ContainsVertex(NodeId nodeId) => _adjacencyList.ContainsKey(nodeId);
 
+        /// <summary>
+        /// Attempts to retrieve all `Cardinal` values at the given vertex.
+        /// </summary>
+        /// <param name="nodeId">The vertex position to check</param>
+        /// <param name="edgeValues">The array to write the values to</param>
+        /// <returns>True is a vertex is found. False if not</returns>
+        public bool TryGetValue(NodeId nodeId, out T[] edgeValues) => _adjacencyList.TryGetValue(nodeId, out edgeValues);
 
-        public TrackGraph<T> Clone(Func<KeyValuePair<NodeId, T[]>, T[]> cloneEdgeFunction) 
+        /// <summary>
+        /// Clones the given TrackGraph. While the vertices will be automatically deep cloned,
+        /// the values will not. `cloneEdgeFactory` supplies a method to clone the values.
+        /// </summary>
+        /// <param name="cloneEdgeFactory">The method by which the edge `T` values are cloned.</param>
+        /// <returns>The new, cloned TrackGraph</returns>
+        public TrackGraph<T> Clone(Func<KeyValuePair<NodeId, T[]>, T[]> cloneEdgeFactory) 
             => new TrackGraph<T>
             {
                 _adjacencyList = this._adjacencyList.ToDictionary(
                     entry => entry.Key,
-                    entry => cloneEdgeFunction(entry)
-                )
+                    entry => cloneEdgeFactory(entry)
+                ),
+                _defaultEdgesFactory = this._defaultEdgesFactory,
             };        
-
+       
+        
+        // Inserts a vertex (if one doesn't exist) and Cardinal edge value
+        // with the given arguments.
         private void InsertAt(NodeId id, Cardinal card, T value)
         {
             if (!_adjacencyList.ContainsKey(id))

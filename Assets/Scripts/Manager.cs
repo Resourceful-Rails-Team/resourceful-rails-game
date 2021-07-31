@@ -9,6 +9,8 @@ using Rails.Rendering;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
+using Rails.Collections;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -76,36 +78,14 @@ namespace Rails {
     /// Stores the tracks on the map.
     /// </summary>
     [SerializeField]
-    public Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
+    public TrackGraph<int> Tracks 
+      = new TrackGraph<int>(() => Enumerable.Repeat(-1, (int)Cardinal.MAX_CARDINAL).ToArray());
+
     #endregion // Properties
 
     private Rails.Rendering.Graphics _graphics;
     private GameRules _rules;
 
-    #region Utilities
-    /// <summary>
-    /// Inserts a new track onto the Map, based on position and direction.
-    /// </summary>
-    /// <param name="player">The player who owns the track</param>
-    /// <param name="position">The position the track is placed</param>
-    /// <param name="towards">The cardinal direction the track moves towards</param>
-    private void InsertTrack(int player, NodeId position, Cardinal towards) {
-      // If Cardinal data doesn't exist for the point yet,
-      // insert and initialize the data
-      if (!Tracks.ContainsKey(position)) {
-        Tracks[position] = new int[(int)Cardinal.MAX_CARDINAL];
-        for (int i = 0; i < (int)Cardinal.MAX_CARDINAL; ++i)
-          Tracks[position][i] = -1;
-      }
-
-      Tracks[position][(int)towards] = player;
-
-      // As Tracks is undirected, insert a track moving the opposite way from the
-      // target node as well.
-      InsertTrack(player, Utilities.PointTowards(position, towards), Utilities.ReflectCardinal(towards));
-    }
-
-    #endregion // Utilities
     #endregion // Map
 
     #region Unity Events
@@ -213,6 +193,8 @@ namespace Rails {
       if(GameInput.EnterJustPressed)
       {
           _graphics.CommitPotentialTrack(_currentRoute, Color.red);
+            for (int i = 0; i < _currentRoute.Distance; ++i)
+              Tracks[_currentRoute.Nodes[i], _currentRoute.Nodes[i + 1]] = 0;
           _targetNodes.Clear();
       }
 

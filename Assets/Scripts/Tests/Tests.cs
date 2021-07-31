@@ -1,3 +1,4 @@
+using Rails.Collections;
 using Rails.Data;
 using Rails.Systems;
 using System;
