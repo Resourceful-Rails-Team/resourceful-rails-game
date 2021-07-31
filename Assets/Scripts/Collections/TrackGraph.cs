@@ -10,7 +10,7 @@ namespace Rails.Collections
     /// <summary>
     /// An undirected graph representing tracks on the Map.
     /// </summary>
-    /// <typeparam name="T">The type designated for edge values (Cardinal direction)</typeparam>
+    /// <typeparam name="T">The type designated for edge values (stored by `Cardinal` direction)</typeparam>
     public class TrackGraph<T>
     {
         private Dictionary<NodeId, T[]> _adjacencyList;
@@ -133,8 +133,8 @@ namespace Rails.Collections
         public bool TryGetValue(NodeId nodeId, out T[] edgeValues) => _adjacencyList.TryGetValue(nodeId, out edgeValues);
 
         /// <summary>
-        /// Clones the given TrackGraph. While the vertices will be automatically deep cloned,
-        /// the values will not. `cloneEdgeFactory` supplies a method to clone the values.
+        /// Clones the given TrackGraph. While the vertices do not need to be deep cloned,
+        /// the values may. `cloneEdgeFactory` supplies a method to clone the values.
         /// </summary>
         /// <param name="cloneEdgeFactory">The method by which the edge `T` values are cloned.</param>
         /// <returns>The new, cloned TrackGraph</returns>

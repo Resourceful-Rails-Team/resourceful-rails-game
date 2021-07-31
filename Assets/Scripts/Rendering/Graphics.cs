@@ -146,6 +146,13 @@ namespace Rails.Rendering
                 }
             }
         }
+        
+        /// <summary>
+        /// Moves a player train along the given `Route`.
+        /// </summary>
+        /// <param name="player">The player index to move.</param>
+        /// <param name="route">The nodes the player train will traverse on.</param>
+        public void MoveTrain(int player, Route route) => StartCoroutine(MoveTrain(player, route, 5.0f));
         #endregion
 
         #region Private Methods
