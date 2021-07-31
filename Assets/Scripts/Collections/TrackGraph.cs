@@ -80,7 +80,7 @@ namespace Rails.Collections
         ///          
         /// </summary>
         /// <param name="id">The `NodeId` to write/read the given `T` value</param>
-        /// <param name="card">The `Cardinal` to write/read the given `T` value</param>
+        /// <param name="idAdj">The `NodeId` adjacent to `id`</param>
         /// <returns>The given `T` value at the position and direction</returns>
         public T this[NodeId id, NodeId idAdj]
         {
@@ -125,7 +125,7 @@ namespace Rails.Collections
         public bool ContainsVertex(NodeId nodeId) => _adjacencyList.ContainsKey(nodeId);
 
         /// <summary>
-        /// Attempts to retrieve all `Cardinal` values at the given vertex.
+        /// Attempts to retrieve all `T` edge-values at the given vertex.
         /// </summary>
         /// <param name="nodeId">The vertex position to check</param>
         /// <param name="edgeValues">The array to write the values to</param>
