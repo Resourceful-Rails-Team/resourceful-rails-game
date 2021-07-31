@@ -10,12 +10,21 @@ namespace Rails.Rendering
     public class Graphics : MonoBehaviour
     {
         private Manager _manager;
+        // A collection of all node GameTokens on the map
         private Dictionary<NodeId, GameToken> _mapTokens;
+        // A collection of all track GameTokens on the map
         private Dictionary<NodeId, GameToken[]> _trackTokens;
+        // A collection of route GameTokens
         private Dictionary<Route, List<GameToken>> _potentialTracks;
-        private GameToken [] _playerTrains;
 
+        private GameToken [] _playerTrains;
+        
+        // An object pool for the track GameTokens
         private ObjectPool<GameToken> _trackPool;
+
+        // A set of all currently running trains.
+        // Used to avoid coroutine issues when if run on the same train
+        // more than once at a time.
         private HashSet<int> _currentlyRunningTrains;
 
         private void Start()
@@ -55,14 +64,17 @@ namespace Rails.Rendering
             var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
             for(int i = 0; i < route.Nodes.Count - 1; ++i)
             {
+                // Determine the rotation between adjacent Route nodes
                 var rotation = Utilities.GetCardinalRotation(
                     Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1])
                 );
-
+                
+                // Setup the track GameToken
                 var trackToken = _trackPool.Retrieve();
                 trackToken.transform.position = Utilities.GetPosition(route.Nodes[i]);
                 trackToken.transform.rotation = rotation;
-
+                
+                // Highlight the token and add it to the token list
                 trackToken.SetColor(Color.yellow);
                 trackTokens.Add(trackToken);
             }
@@ -77,6 +89,9 @@ namespace Rails.Rendering
         public void DestroyPotentialTrack(Route route)
         {
             if (route == null) return;
+
+            // If the route exists in the current potential tracks,
+            // return all tracks to the ObjectPool
             if(_potentialTracks.TryGetValue(route, out var tokens))
             {
                 foreach (var token in tokens)
@@ -94,6 +109,9 @@ namespace Rails.Rendering
         public void CommitPotentialTrack(Route route, Color color)
         {
             if (route == null) return;
+
+            // If the route exists in the current potential tracks,
+            // Add its GameTokens to the track token map.
             if(_potentialTracks.TryGetValue(route, out var tokens))
             {
                 for (int i = 0; i < route.Nodes.Count - 1; ++i)
@@ -108,11 +126,12 @@ namespace Rails.Rendering
 
                     _trackTokens[route.Nodes[i]][(int)direction] = tokens[i];
                     _trackTokens[route.Nodes[i + 1]][(int)reflectDirection] = tokens[i];
-
+                    
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);
-                StartCoroutine(MoveTrain(1, route, 5.0f));
+
+                StartCoroutine(MoveTrain(1, route, 5.0f)); // For testing purposes only
             }
         }
         
@@ -124,13 +143,15 @@ namespace Rails.Rendering
         /// <param name="highlighted">Whether it should be highlighted, or color reset</param>
         public void SetHighlightRoute(Route route, bool highlighted)
         {
+            // Check each Route node to see if it exists in the track token map.
+            // If it does, (de)activate its highlight.
             for(int i = 0; i < route.Nodes.Count - 1; ++i)
             {
-                int cIndex = (int)Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1]);
+                int direction = (int)Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1]);
                 if (_trackTokens.TryGetValue(route.Nodes[i], out var tokens))
                 {
-                    if (highlighted) tokens[cIndex]?.SetColor(Color.yellow);
-                    else tokens[cIndex]?.ResetColor();
+                    if (highlighted) tokens[direction]?.SetColor(Color.yellow);
+                    else tokens[direction]?.ResetColor();
                 }
             }
         }
@@ -141,12 +162,15 @@ namespace Rails.Rendering
         private void GenerateBoard()
         {
             var board = Instantiate(_manager.MapData.Board);
+
+            // Scale the board to match the current spacing size
             board.transform.localScale = Vector3.one * _manager.WSSize;
         }
         
         /// Instantiates all MapData nodes
         private void GenerateNodes()
         {
+            // Cycle through all NodeIds
             for (int x = 0; x < Manager.Size; x++)
             {
                 for (int y = 0; y < Manager.Size; y++)
@@ -154,11 +178,15 @@ namespace Rails.Rendering
                     var nodeId = new NodeId(x, y);
                     var node = _manager.MapData.Nodes[nodeId.GetSingleId()];
                     var pos = Utilities.GetPosition(node.Id);
-
+                    
+                    // Retrieve the GameToken from the Map's default
                     var modelToken = _manager.MapData.DefaultTokenTemplate.GetToken(node.Type);
-
+       
                     if (modelToken != null)
                     {
+                        // If the node is a MajorCity, determine if its the center
+                        // node (ie. surrounded by nodes with the same CityId).
+                        // If so, spawn the MajorCity token there.
                         if (node.Type == NodeType.MajorCity)
                         {
                             var neighborNodes = _manager.MapData.GetNeighborNodes(nodeId);
