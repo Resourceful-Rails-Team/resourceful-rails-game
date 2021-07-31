@@ -1,5 +1,4 @@
 using Rails.Data;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,7 +8,7 @@ namespace Rails.Systems
     public static class Deck
     {
         // The number of Demand cards to generate
-        private const int DemandCardCount = 136;
+        public const int DemandCardCount = 136;
         // The minumum distance a Demand City can be
         // from the general location of a Demand Good
         private const float MinimumDistance = 20.0f;
@@ -75,7 +74,7 @@ namespace Rails.Systems
 
                         int cityIndex = 0;
                         var distance = 0.0f; // Arbitrary small number,
-                                             // to ensure the next while loop executes
+                                             // to ensure the following while loop executes
                         
                         // Select a random City from the current group.
                         // While the distance between the city and the selected Good
@@ -95,7 +94,10 @@ namespace Rails.Systems
                         // Determine the reward by City NodeType, with distance considered
                         int reward = ((int)distance + (i * 10)) / 10 * 10;
                         demands.Add(new Demand(cities[i][cityIndex], goods[goodIndex], reward));
+
+                        if (demands.Count >= DemandCardCount * 3) break;
                     }
+                    if (demands.Count >= DemandCardCount * 3) break;
                 }
             }
             

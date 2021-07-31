@@ -9,6 +9,7 @@ using Rails.Rendering;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
