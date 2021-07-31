@@ -12,6 +12,10 @@ namespace Rails.Systems
         // The minumum distance a Demand City can be
         // from the general location of a Demand Good
         private const float MinimumDistance = 20.0f;
+
+        // An integer array representing the number of Demands to generate per City type.
+        // Medium cities have the most preference while major cities have the least.
+        private static readonly int [] CityTypePreference = new int[] { 3, 2, 5 };
  
         private static List<Demand[]> _drawPile;
         private static List<Demand[]> _discardPile;
@@ -37,15 +41,6 @@ namespace Rails.Systems
                 _manager.MapData.AllCitiesOfType(NodeType.MajorCity)
             };
             
-            // Create a integer value representing the number of Demands
-            // to generate per City type. Medium cities have the most preference
-            // while major cities have the least.
-            var citiesCount = new int[]
-            {
-                cities[0].Length / 3,
-                cities[1].Length / 2,
-                cities[2].Length / 5
-            };
             
             // Grab all used Goods
             var goods = _manager.MapData.Goods.Where(g => _manager.MapData.LocationsOfGood(g).Length > 0).ToArray();
@@ -67,7 +62,7 @@ namespace Rails.Systems
                 for (int i = 0; i < cities.Length; ++i)
                 {
                     // And repeat Demand generation per City preference count
-                    for (int j = 0; j < citiesCount[i]; ++j)
+                    for (int j = 0; j < CityTypePreference[i]; ++j)
                     {
                         // Select a random Good
                         int goodIndex = Random.Range(0, goods.Length);
