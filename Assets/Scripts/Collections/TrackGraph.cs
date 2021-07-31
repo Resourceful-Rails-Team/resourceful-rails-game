@@ -34,15 +34,18 @@ namespace Rails.Collections
         }
 
         /// <summary>
-        /// Inserts a given `T` edge value at the `NodeId` and `Cardinal`.
-        /// 
-        ///     get: Returns the value at the given location, or throws an `ArgumentException`, if there
-        ///          is nothing at the given `NodeId`.
-        ///      
-        ///     set: Sets the position and direction value to the one given. Automatically
-        ///          inserts a new `NodeId` key with the given cloneEdgeFunction, or `T`s
-        ///          default values, if there is no `NodeId` vertex present.
-        ///          
+        /// <para>
+        /// Selects a given `T` edge value at the `NodeId` and `Cardinal`.
+        /// </para>
+        /// <para>
+        /// get: Returns the value at the given location, or throws an `ArgumentException`, if there
+        /// is nothing at the given `NodeId`.
+        /// </para>
+        /// <para>
+        /// set: Sets the position and direction value to the one given. Automatically
+        /// inserts a new `NodeId` key with the given cloneEdgeFunction, or `T`s
+        /// default values, if there is no `NodeId` vertex present.
+        /// </para>
         /// </summary>
         /// <param name="id">The `NodeId` to write/read the given `T` value</param>
         /// <param name="card">The `Cardinal` to write/read the given `T` value</param>
@@ -69,15 +72,18 @@ namespace Rails.Collections
         }
 
         /// <summary>
-        /// Inserts a given `T` edge value at the two adjacent `NodeId`s.
-        /// 
-        ///     get: Returns the value at the given location, or throws an `ArgumentException`, if there
-        ///          is nothing at either `NodeId`, or if the `NodeId`s aren't adjacent.
-        ///      
-        ///     set: Sets the position and direction value to the one given. Automatically
-        ///          inserts two new `NodeId` key with the given cloneEdgeFunction, or `T`s
-        ///          default values, if there is no `NodeId` vertex present.
-        ///          
+        /// <para>
+        /// Selects a given `T` edge value at the two adjacent `NodeId`s.
+        /// </para>
+        /// <para>
+        /// get: Returns the value at the given location, or throws an `ArgumentException`, if there
+        ///      is nothing at either `NodeId`, or if the `NodeId`s aren't adjacent.
+        /// </para>
+        /// <para>
+        /// set: Sets the position and direction value to the one given. Automatically
+        ///      inserts two new `NodeId` key with the given cloneEdgeFunction, or `T`s
+        ///      default values, if there is no `NodeId` vertex present.
+        /// </para>   
         /// </summary>
         /// <param name="id">The `NodeId` to write/read the given `T` value</param>
         /// <param name="idAdj">The `NodeId` adjacent to `id`</param>

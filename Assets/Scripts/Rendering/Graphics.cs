@@ -1,6 +1,8 @@
+using Assets.Scripts.Data;
 using Rails.Collections;
 using Rails.Data;
 using Rails.Systems;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -147,6 +149,24 @@ namespace Rails.Rendering
             }
         }
         
+        /// <summary>
+        /// Sets a given player's train's `GameToken` based on the `TrainType` provided.
+        /// </summary>
+        public void UpdatePlayerTrain(int player, TrainType type)
+        {
+            if (player < 0 || player >= _playerTrains.Length)
+                throw new ArgumentException("Attempted to upgrade train for player that doesn't exist.");
+
+            var oldToken = _playerTrains[player];
+
+            var newToken = Instantiate(_manager.MapData.DefaultPlayerTemplate.TrainTokenOfType(type));
+            newToken.transform.position = oldToken.transform.position;
+            newToken.transform.rotation = oldToken.transform.rotation;
+            _playerTrains[player] = newToken;
+
+            Destroy(oldToken.gameObject);
+        }
+
         /// <summary>
         /// Moves a player train along the given `Route`.
         /// </summary>
