@@ -9,6 +9,7 @@ namespace Rails.Systems
     public static class Deck
     {
         private const int DemandCardCount = 136;
+        private const float MinimumDistance = 20.0f;
 
         // Test data structure
         // -----------------------
@@ -45,15 +46,84 @@ namespace Rails.Systems
             _discardPile = new List<Demand[]>();
             _manager = Manager.Singleton;
 
-            var smCities = _manager.MapData.AllCitiesOfType(NodeType.SmallCity);
-            var mdCities = _manager.MapData.AllCitiesOfType(NodeType.MediumCity);
-            var mjCities = _manager.MapData.AllCitiesOfType(NodeType.MajorCity);
+            var demands = new List<Demand>();
+            var cities = new City[][]
+            {
+                _manager.MapData.AllCitiesOfType(NodeType.SmallCity),
+                _manager.MapData.AllCitiesOfType(NodeType.MediumCity),
+                _manager.MapData.AllCitiesOfType(NodeType.MajorCity)
+            };
 
-            var goods = _manager.MapData.Goods; 
+            var citiesCount = new int[]
+            {
+                cities[0].Length / 3,
+                cities[1].Length / 2,
+                cities[2].Length / 5
+            };
+
+            var goods = _manager.MapData.Goods.Where(g => _manager.MapData.LocationsOfGood(g).Length > 0).ToArray();
+
             // Create a map determining the general position of a Good (ie
             // find a city's NodeId with that good). Then, one can compare the
             // distances to determine if the requesting city is far enough).
-             
+            var goodsPositions = new List<NodeId>();
+            for (int i = 0; i < goods.Length; ++i)
+            {
+                var ids = _manager.MapData.LocationsOfGood(goods[i]);
+                goodsPositions.Add(ids[0]);
+            }
+
+            while(demands.Count < DemandCardCount * 3)
+            {
+                for (int i = 0; i < cities.Length; ++i)
+                {
+                    for (int j = 0; j < citiesCount[i]; ++j)
+                    {
+                        int goodIndex = Random.Range(0, goods.Length);
+
+                        int cityIndex = 0;
+                        var distance = 0.0f; // Arbitrary small number,
+                                             // to ensure the next while loop executes
+
+                        while (
+                            distance < MinimumDistance || 
+                            cities[i][cityIndex].Goods.Any(g => g.x == goodIndex)
+                        ) {
+                            cityIndex = Random.Range(0, cities[i].Length);
+                            distance = NodeId.Distance(
+                                _manager.MapData.LocationsOfCity(cities[i][cityIndex]).First(),
+                                _manager.MapData.LocationsOfGood(goods[goodIndex]).First()
+                            );
+                        }
+
+                        int reward = ((int)distance + (i * 20)) / 10 * 10;
+                        demands.Add(new Demand(cities[i][cityIndex], goods[goodIndex], reward));
+                    }
+                }
+            }
+ 
+            var demandCards = new List<Demand>();
+            while(demands.Count > 0)
+            {
+                int demandIndex = Random.Range(0, demands.Count);
+                var demand = demands[demandIndex];
+
+                demandCards.Add(demand);
+                if(demandCards.Count == 3)
+                {
+                    _drawPile.Add(demandCards.ToArray());
+                    demandCards.Clear();
+                }
+                demands.RemoveAt(demandIndex);
+            }
+
+            // Add all draw cards to the discard pile, to
+            // ensure the deck is properly shuffled on start
+            for(int i = _drawPile.Count - 1; i >= 0; --i)
+            {
+                _discardPile.Add(_drawPile[i]);
+                _drawPile.RemoveAt(i);
+            }    
         }
 
         public static Demand[] DrawOne()

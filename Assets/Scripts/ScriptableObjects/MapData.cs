@@ -76,13 +76,31 @@ namespace Rails.ScriptableObjects
                 .ToArray();
         }
 
-        public City[] AllCitiesOfType(NodeType nodeType) => nodeType switch
-        {
-            NodeType.Clear | NodeType.Mountain | NodeType.Water => null,
-            _ => Nodes
-                .Where(n => n.Type == nodeType)
-                .Select(n => n.CityId)
-                .Select(i => Cities[i]).ToArray()
-        };
+        public City[] AllCitiesOfType(NodeType nodeType) 
+            => nodeType switch
+            {
+                NodeType.Clear | NodeType.Mountain | NodeType.Water => null,
+                _ => Nodes
+                    .Where(n => n.Type == nodeType)
+                    .Select(n => n.CityId)
+                    .Select(i => Cities[i]).ToArray()
+            };
+        
+        public NodeId[] LocationsOfGood(Good good)
+            => Enumerable.Range(0, Nodes.Length)
+            .Where(i => 
+                (Nodes[i].Type == NodeType.SmallCity ||
+                 Nodes[i].Type == NodeType.MediumCity || 
+                 Nodes[i].Type == NodeType.MajorCity) && Cities[Nodes[i].CityId].Goods
+                    .Any(g => g.x == Goods.IndexOf(good)
+            ))
+            .Select(i => NodeId.FromSingleId(i))
+            .ToArray();
+
+        public NodeId[] LocationsOfCity(City city) 
+            => Enumerable.Range(0, Nodes.Length)
+            .Where(i => Nodes[i].CityId == Cities.IndexOf(city))
+            .Select(i => NodeId.FromSingleId(i))
+            .ToArray(); 
     }
 }

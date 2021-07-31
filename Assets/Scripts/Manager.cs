@@ -115,6 +115,7 @@ namespace Rails {
       _singleton = this;
       _graphics = GetComponent<Rails.Rendering.Graphics>();
       _rules = MapData.DefaultRules;
+      Deck.Initialize();
     }
 
 #if UNITY_EDITOR
