@@ -345,9 +345,9 @@ namespace Rails.Systems
         ) {
             if(start == end)
                 return null;
-            if(tracks.TryGetValue(start, out var startCardinals) && startCardinals.All(p => p != -1))
+            if(tracks.TryGetEdges(start, out var startCardinals) && startCardinals.All(p => p != -1))
                 return null;
-            if(tracks.TryGetValue(end, out var endCardinals) && endCardinals.All(p => p != -1))
+            if(tracks.TryGetEdges(end, out var endCardinals) && endCardinals.All(p => p != -1))
                 return null;
 
             // The list of nodes to return from method
@@ -390,7 +390,7 @@ namespace Rails.Systems
                     var newPoint = Utilities.PointTowards(node.Position, c);
 
                     // If there is a track already at the considered edge, continue
-                    if (tracks.TryGetValue(node.Position, out var cardinals) && cardinals[(int)c] != -1)
+                    if (tracks.TryGetEdges(node.Position, out var cardinals) && cardinals[(int)c] != -1)
                         continue;
 
                     // If the point is outside the map bounds, continue
