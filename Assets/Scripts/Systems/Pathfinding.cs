@@ -393,11 +393,10 @@ namespace Rails.Systems
                     if (tracks.TryGetValue(node.Position, out var cardinals) && cardinals[(int)c] != -1)
                         continue;
 
-                    // If the point is outside the map bounds, continue
-                    if (newPoint.X < 0 || newPoint.Y < 0 || newPoint.X >= Manager.Size || newPoint.Y >= Manager.Size)
+                    if (!newPoint.InBounds)
                         continue;
 
-                    var newCost = distMap[node.Position] + 1;
+                    var newCost = distMap[node.Position];
 
                     if (addWeight)
                     {
@@ -407,6 +406,7 @@ namespace Rails.Systems
                         if (map.Segments[(newPoint.GetSingleId() * 6) + (int)c].Type == NodeSegmentType.River)
                             newCost += Manager.RiverCost;
                     }
+                    else newCost += 1;
 
                     // If a shorter path has already been found, continue
                     if (distMap.TryGetValue(newPoint, out int currentCost) && currentCost <= newCost)

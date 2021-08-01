@@ -65,7 +65,13 @@ namespace Rails.ScriptableObjects
 
             return Segments[index];
         }
-
+    
+        /// <summary>
+        /// Returns all `NodeId`s adjacent to the given `NodeId`, if
+        /// they fall within the game bounds (`Manger.Size`).
+        /// </summary>
+        /// <param name="nodeId">The `NodeId` to check</param>
+        /// <returns>All adjacent `NodeId`s and the `Node` being stored there.</returns>
         public Tuple<NodeId, Node>[] GetNeighborNodes(NodeId nodeId)
         {
             var node = Nodes[nodeId.GetSingleId()];
@@ -79,5 +85,47 @@ namespace Rails.ScriptableObjects
                 .Select(nId => Tuple.Create(nId, Nodes[nId.GetSingleId()]))
                 .ToArray();
         }
+        
+        /// <summary>
+        /// Retrieves All `City`s of a specified type.
+        /// </summary>
+        /// <param name="nodeType">The type of city wished to retrieve.</param>
+        /// <returns>All `City`s of the type provided.</returns>
+        public City[] AllCitiesOfType(NodeType nodeType) 
+            => nodeType switch
+            {
+                NodeType.Clear | NodeType.Mountain | NodeType.Water => null,
+                _ => Nodes
+                    .Where(n => n.Type == nodeType)
+                    .Select(n => n.CityId)
+                    .Select(i => Cities[i]).ToArray()
+            };
+        
+        /// <summary>
+        /// Returns all `NodeId`s where a specified `Good` is found.
+        /// </summary>
+        /// <param name="good">The `Good` wished to be localized</param>
+        /// <returns>All `NodeId`s of the locations of the `Good`</returns>
+        public NodeId[] LocationsOfGood(Good good)
+            => Enumerable.Range(0, Nodes.Length)
+            .Where(i => 
+                (Nodes[i].Type == NodeType.SmallCity ||
+                 Nodes[i].Type == NodeType.MediumCity || 
+                 Nodes[i].Type == NodeType.MajorCity) && Cities[Nodes[i].CityId].Goods
+                    .Any(g => g.x == Goods.IndexOf(good)
+            ))
+            .Select(i => NodeId.FromSingleId(i))
+            .ToArray();
+        
+         /// <summary>
+        /// Returns all `NodeId`s where a specified `City` is found.
+        /// </summary>
+        /// <param name="city">The `City` wished to be localized</param>
+        /// <returns>All `NodeId`s of the locations of the `City`</returns>
+        public NodeId[] LocationsOfCity(City city) 
+            => Enumerable.Range(0, Nodes.Length)
+            .Where(i => Nodes[i].CityId == Cities.IndexOf(city))
+            .Select(i => NodeId.FromSingleId(i))
+            .ToArray(); 
     }
 }
