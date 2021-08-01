@@ -22,11 +22,10 @@ namespace Rails.Data
             Y = y;
         }
 
-        public int GetSingleId()
-        {
-            return (X * Manager.Size) + Y;
-        }
+        public int GetSingleId() => (X * Manager.Size) + Y;
 
+        public static NodeId FromSingleId(int singleId) 
+            => new NodeId(singleId / Manager.Size, singleId % Manager.Size);
         public override bool Equals(object obj)
         {
             if(obj is NodeId node)

@@ -11,6 +11,7 @@ using Rails.Data;
 using Rails.Systems;
 using TMPro;
 using Rails.UI;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -117,7 +118,7 @@ namespace Rails {
       _singleton = this;
       _graphics = GetComponent<Rails.Rendering.Graphics>();
       _rules = MapData.DefaultRules;
-
+      Deck.Initialize();
       GameLoopSetup();
     }
 
