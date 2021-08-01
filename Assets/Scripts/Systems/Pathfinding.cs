@@ -166,7 +166,7 @@ namespace Rails.Systems
 
             // A duplicate of the current tracks - ensures that Pathfinder
             // doesn't reuse already commited paths in later traversals.
-            var newTracks = new Dictionary<NodeId, int[]>(tracks);
+            var newTracks = tracks.ToDictionary(entry => entry.Key, entry => entry.Value.ToArray());
             
             // For each segment, find the least-distance path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
@@ -221,7 +221,7 @@ namespace Rails.Systems
 
             // A duplicate of the current tracks - ensures that Pathfinder
             // doesn't reuse already commited paths in later traversals.
-            var newTracks = new Dictionary<NodeId, int[]>(tracks);
+            var newTracks = tracks.ToDictionary(entry => entry.Key, entry => entry.Value.ToArray());
 
             // For each segment, find the least-cost path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
@@ -509,11 +509,10 @@ namespace Rails.Systems
                     if (tracks.TryGetValue(node.Position, out var cardinals) && cardinals[(int)c] != -1)
                         continue;
 
-                    // If the point is outside the map bounds, continue
-                    if (newPoint.X < 0 || newPoint.Y < 0 || newPoint.X >= Manager.Size || newPoint.Y >= Manager.Size)
+                    if (!newPoint.InBounds)
                         continue;
 
-                    var newCost = distMap[node.Position] + 1;
+                    var newCost = distMap[node.Position];
 
                     if (addWeight)
                     {
@@ -523,6 +522,7 @@ namespace Rails.Systems
                         if (map.Segments[(newPoint.GetSingleId() * 6) + (int)c].Type == NodeSegmentType.River)
                             newCost += Manager.RiverCost;
                     }
+                    else newCost += 1;
 
                     // If a shorter path has already been found, continue
                     if (distMap.TryGetValue(newPoint, out int currentCost) && currentCost <= newCost)
