@@ -38,11 +38,18 @@ namespace Rails
 
             var methodName = method.Method.Name;
 
-            method.Invoke();
-            if (!_methods.Contains(methodName))
-                UnityEngine.Debug.Log($"Test Succeeded: method {methodName}");
-            else
-                UnityEngine.Debug.LogError($"Test Failed: method {methodName}");
+            try
+            {
+                method.Invoke();
+                if (!_methods.Contains(methodName))
+                    UnityEngine.Debug.Log($"Test Succeeded: method {methodName}");
+                else
+                    UnityEngine.Debug.LogError($"Test Failed: method {methodName}");
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError($"Test Failed: method {methodName}. Threw Exception {e.GetType()} - {e.Message}");
+            }
         }
  
         /// <summary>
