@@ -12,5 +12,8 @@ namespace Rails.Data
             Good = good;
             Reward = reward;
         }
+
+        public override string ToString()
+            => $"Demand: {City.Name}, {Good.Name}, {Reward}";
     }
 }

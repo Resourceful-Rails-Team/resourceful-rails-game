@@ -9,6 +9,7 @@ using Rails.Rendering;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -115,6 +116,7 @@ namespace Rails {
       _singleton = this;
       _graphics = GetComponent<Rails.Rendering.Graphics>();
       _rules = MapData.DefaultRules;
+      Deck.Initialize();
     }
 
 #if UNITY_EDITOR
