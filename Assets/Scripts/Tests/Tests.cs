@@ -10,7 +10,6 @@ namespace Rails
 {
     public class Tests : TesterBase
     {
-        char h;
         private NodeId nodeMid = new NodeId(1, 1);
         private NodeId nodeN = new NodeId(1, 2);
         private NodeId nodeNE = new NodeId(2, 2);
@@ -21,9 +20,14 @@ namespace Rails
 
         private void Awake()
         {
+            // PriorityQueue
             TestMethod(TestPriorityQueueOrder);
-            TestMethod(TestPriorityQueuePeek); 
+            TestMethod(TestPriorityQueuePeek);
 
+            // TrackGraph
+            TestMethod(TestTrackGraphInsertion);
+            
+            // Utilities
             TestMethod(TestReflectCardinal);
             TestMethod(TestCardinalBetween);
             TestMethod(TestPointTowards);
@@ -65,6 +69,39 @@ namespace Rails
         }
         #endregion
 
+        #region TrackGraph Tests 
+        private void TestTrackGraphInsertion()
+        {
+            var graph = new TrackGraph<int>();
+
+            var nodeId = new NodeId(10, 10);
+            var nodeIdToward = Utilities.PointTowards(new NodeId(10, 10), Cardinal.NW);
+
+            graph[nodeId, Cardinal.NW] = 20;
+            Assert(graph[nodeId, Cardinal.NW] == 20);
+            Assert(graph[nodeId, nodeIdToward] == 20);
+            Assert(graph[nodeIdToward, Cardinal.SE] == 20);
+            Assert(graph[nodeIdToward, nodeId] == 20);
+        }
+        private void TestTrackGraphTryGetValues()
+        {
+            var graph = new TrackGraph<string>();
+            graph[new NodeId(1, 1), Cardinal.SE] = "Apple";
+            graph[new NodeId(4, 8), Cardinal.S] = "Banana";
+
+            graph[new NodeId(10, 10), Cardinal.NW] = "Orange";
+            graph[new NodeId(10, 10), Cardinal.NE] = "Peach";
+            graph[new NodeId(10, 10), Cardinal.N] = "Strawberry";
+
+            /*Assert(graph.TryGetEdgeValue);
+            Assert(graph[nodeId, nodeIdToward] == 20);
+            Assert(graph[nodeIdToward, Cardinal.SE] == 20);
+            Assert(graph[nodeIdToward, nodeId] == 20);*/
+
+        }
+        #endregion
+
+
         #region UtilitiesTests
         private void TestReflectCardinal()
         {
@@ -98,6 +135,5 @@ namespace Rails
             Assert(Utilities.PointTowards(nodeMid, Cardinal.NW) == nodeNW);
         }
         #endregion
-
     }
 }

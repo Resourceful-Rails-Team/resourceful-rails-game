@@ -66,16 +66,15 @@ namespace Rails
             try
             {
                 method.Invoke();
+                UnityEngine.Debug.LogError($"Test Failed: method {methodName} succeeded, when expected {exceptionType}");
             }
             catch(Exception e)
             {
                 if(e.GetType() == exceptionType)
                     UnityEngine.Debug.Log($"Test Succeeded: method {methodName}");
                 else
-                    UnityEngine.Debug.LogError($"Test Failed: method {methodName}");
+                    UnityEngine.Debug.LogError($"Test Failed: method {methodName}. Received {e.GetType()} when expected {exceptionType}.");
             }
-
-            UnityEngine.Debug.LogError($"Test Failed: method {methodName}");
         }
     }
 }
