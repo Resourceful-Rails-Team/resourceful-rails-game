@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Rails.ScriptableObjects;
-using UnityEngine.InputSystem;
 using System.Collections.ObjectModel;
 using Rails.Rendering;
 using Rails.Controls;

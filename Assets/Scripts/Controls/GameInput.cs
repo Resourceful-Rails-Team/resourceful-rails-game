@@ -26,6 +26,7 @@ namespace Rails.Controls
         public static bool DeleteJustPressed { get; private set; }
         public static bool EnterJustPressed { get; private set; }
 
+        private static bool UsingGamepad => PlayerInput.all[0].currentControlScheme == "Gamepad";
         private static bool _rotateTriggered = false;
         private static Camera _mainCamera;
 
@@ -35,7 +36,7 @@ namespace Rails.Controls
         private void OnRotateTriggered(InputValue value) => _rotateTriggered = value.isPressed;
         private void OnRotate(InputValue value)
         {
-            if (_rotateTriggered)
+            if (_rotateTriggered || UsingGamepad)
                 RotateInput = value.Get<Vector2>() * new Vector2(1.0f, -1.0f);
         }
         private void OnSelect(InputValue value)
@@ -56,7 +57,9 @@ namespace Rails.Controls
         private void Update()
         {
             Plane plane = new Plane(Vector3.up, 0.0f);
-            Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            Ray ray = UsingGamepad ?
+                _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f)) :
+                _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
             if (plane.Raycast(ray, out float enter))
                 MouseNodeId = Utilities.GetNodeId(ray.GetPoint(enter));
