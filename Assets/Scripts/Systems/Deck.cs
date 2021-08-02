@@ -54,6 +54,15 @@ namespace Rails.Systems
                 goodsPositions.Add(ids[0]);
             }
             
+            // Ensures an even selection of the cities per Demand
+            // by removing used ones
+            var citySelectionLists = new List<City>[3]
+            {
+                new List<City>(cities[0].Length),
+                new List<City>(cities[1].Length),
+                new List<City>(cities[2].Length),
+            };
+            
             // Generate 3x the amount of Demand cards
             // as each has three different Demands on them
             while(demands.Count < DemandCardCount * 3)
@@ -63,11 +72,19 @@ namespace Rails.Systems
                 {
                     // And repeat Demand generation per City preference count
                     for (int j = 0; j < CityTypePreference[i]; ++j)
-                    {
-                        // Select a random Good
-                        int goodIndex = Random.Range(0, goods.Length);
+                    {                        
+                        // If all cities have been recently chosen,
+                        // readd them to the pool
+                        if (citySelectionLists[i].Count == 0)
+                        {
+                            foreach (var city in cities[i])
+                                citySelectionLists[i].Add(city);
+                        }
 
-                        int cityIndex = 0;
+                        // Select a random City
+                        var selectedCity = citySelectionLists[i][Random.Range(0, citySelectionLists[i].Count)];
+
+                        int goodIndex = -1;
                         var distance = 0.0f; // Arbitrary small number,
                                              // to ensure the following while loop executes
                         
@@ -77,18 +94,21 @@ namespace Rails.Systems
                         // the Good being sought, reselect a City
                         while (
                             distance < MinimumDistance || 
-                            cities[i][cityIndex].Goods.Any(g => g.x == goodIndex)
+                            selectedCity.Goods.Any(g => g.x == goodIndex)
                         ) {
-                            cityIndex = Random.Range(0, cities[i].Length);
+                            goodIndex = Random.Range(0, goods.Length);
                             distance = NodeId.Distance(
-                                _manager.MapData.LocationsOfCity(cities[i][cityIndex]).First(),
+                                _manager.MapData.LocationsOfCity(selectedCity).First(),
                                 _manager.MapData.LocationsOfGood(goods[goodIndex]).First()
                             );
                         }
                         
+                        // Remove the selected City from the potential choices
+                        citySelectionLists[i].Remove(selectedCity);
+                        
                         // Determine the reward by City NodeType, with distance considered
-                        int reward = ((int)distance + (i * 10)) / 10 * 10;
-                        demands.Add(new Demand(cities[i][cityIndex], goods[goodIndex], reward));
+                        int reward = (((int)distance * 3) + (i * 5)) / 20 * 10;
+                        demands.Add(new Demand(selectedCity, goods[goodIndex], reward));
 
                         if (demands.Count >= DemandCardCount * 3) break;
                     }
