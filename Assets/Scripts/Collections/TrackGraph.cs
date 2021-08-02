@@ -10,7 +10,7 @@ namespace Rails.Collections
     /// <summary>
     /// An undirected graph representing tracks on the Map.
     /// </summary>
-    /// <typeparam name="T">The type designated for edge values (stored by `Cardinal` direction)</typeparam>
+    /// <typeparam name="T">The type designated for edge values (stored by Cardinal direction)</typeparam>
     public class TrackGraph<T>
     {
         private Dictionary<NodeId, T[]> _adjacencyList;
@@ -135,8 +135,53 @@ namespace Rails.Collections
         /// </summary>
         /// <param name="nodeId">The vertex position to check</param>
         /// <param name="edgeValues">The array to write the values to</param>
-        /// <returns>True is a vertex is found. False if not</returns>
-        public bool TryGetValue(NodeId nodeId, out T[] edgeValues) => _adjacencyList.TryGetValue(nodeId, out edgeValues);
+        /// <returns>True if a vertex is found. False if not.</returns>
+        public bool TryGetEdges(NodeId nodeId, out T[] edgeValues) => _adjacencyList.TryGetValue(nodeId, out edgeValues);
+        
+        /// <summary>
+        /// Attempts to retrieve a specific edge value at the given vertex and direction.
+        /// </summary>
+        /// <param name="id">The NodeId vertex to check</param>
+        /// <param name="card">The Cardinal to check</param>
+        /// <param name="edgeValue">The outputted value, if it exists</param>
+        /// <returns>True if a vertex is found. False if not.</returns>
+        public bool TryGetEdgeValue(NodeId id, Cardinal card, out T edgeValue)
+        {
+            if (_adjacencyList.TryGetValue(id, out var edges))
+            {
+                edgeValue = edges[(int)card];
+                return true;
+            }
+
+            edgeValue = default(T);
+            return false;
+        }
+
+        /// <summary>
+        /// Attempts to retrieve a specific edge value at the given adjacent vertices.
+        /// </summary>
+        /// <param name="id">The NodeId vertex to check</param>
+        /// <param name="idAdj">The adjacent NodeId vertex to check</param>
+        /// <param name="edgeValue">The outputted value, if it exists</param>
+        /// <returns>True if a vertex is found. False if not.</returns>
+        public bool TryGetEdgeValue(NodeId id, NodeId idAdj, out T edgeValue)
+        {
+            try
+            {
+                if (_adjacencyList.TryGetValue(id, out var edges))
+                {
+                    var direction = Utilities.CardinalBetween(id, idAdj);
+                    edgeValue = edges[(int)direction];
+                    return true;
+                }
+                edgeValue = default(T);
+                return false;
+            }
+            catch(ArgumentException)
+            {
+                throw new ArgumentException($"Attempted to retrieve edge between two non-adjacent nodes: {id} and {idAdj}");
+            }
+        }
 
         /// <summary>
         /// Clones the given TrackGraph. While the vertices do not need to be deep cloned,
@@ -153,8 +198,7 @@ namespace Rails.Collections
                 ),
                 _defaultEdgesFactory = this._defaultEdgesFactory,
             };        
-       
-        
+            
         // Inserts a vertex (if one doesn't exist) and Cardinal edge value
         // with the given arguments.
         private void InsertAt(NodeId id, Cardinal card, T value)

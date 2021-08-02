@@ -138,13 +138,14 @@ namespace Rails.Rendering
         {
             // Check each Route node to see if it exists in the track token map.
             // If it does, (de)activate its highlight.
-            for(int i = 0; i < route.Nodes.Count - 1; ++i)
+            for(int i = 0; i < route.Distance; ++i)
             {
-                int direction = (int)Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1]);
-                if (_trackTokens.TryGetValue(route.Nodes[i], out var tokens))
+                if (_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var token))
                 {
-                    if (highlighted) tokens[direction]?.SetColor(Color.yellow);
-                    else tokens[direction]?.ResetColor();
+                    if (highlighted)
+                        token.SetColor(Color.yellow);
+                    else
+                        token.ResetColor();
                 }
             }
         }
