@@ -4,6 +4,7 @@ using Rails.Systems;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Rails
@@ -26,6 +27,7 @@ namespace Rails
 
             // TrackGraph
             TestMethod(TestTrackGraphInsertion);
+            TestMethod(TestTrackGraphTryGetValues);
             
             // Utilities
             TestMethod(TestReflectCardinal);
@@ -93,14 +95,24 @@ namespace Rails
             graph[new NodeId(10, 10), Cardinal.NE] = "Peach";
             graph[new NodeId(10, 10), Cardinal.N] = "Strawberry";
 
-            /*Assert(graph.TryGetEdgeValue);
-            Assert(graph[nodeId, nodeIdToward] == 20);
-            Assert(graph[nodeIdToward, Cardinal.SE] == 20);
-            Assert(graph[nodeIdToward, nodeId] == 20);*/
+            var testPoint = Utilities.PointTowards(new NodeId(10, 10), Cardinal.NW);
 
+            Assert(graph.TryGetEdgeValue(new NodeId(1, 1), Cardinal.SE, out var apple) && apple == "Apple");
+            Assert(graph.TryGetEdgeValue(new NodeId(4, 8), Cardinal.S, out var banana) && banana == "Banana");
+
+            var values = graph.TryGetEdges(new NodeId(10, 10), out var strs);
+            Assert(strs.Any(s => s == "Orange"));
+            Assert(strs.Any(s => s == "Peach"));
+            Assert(strs.Any(s => s == "Strawberry"));
+
+            Assert(graph.TryGetEdgeValue(testPoint, new NodeId(10, 10), out var orange) && orange == "Orange");
+
+            Assert(graph.TryGetEdgeValue(testPoint, Cardinal.NW, out var nullVal) && nullVal == null);
+
+            Assert(!graph.TryGetEdgeValue(new NodeId(20, 20), Cardinal.NW, out var _));
+            Assert(!graph.TryGetEdges(new NodeId(20, 20), out var _));
         }
         #endregion
-
 
         #region UtilitiesTests
         private void TestReflectCardinal()
