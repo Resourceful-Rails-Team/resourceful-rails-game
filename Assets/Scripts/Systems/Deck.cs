@@ -88,12 +88,17 @@ namespace Rails.Systems
                         var distance = 0.0f; // Arbitrary small number,
                                              // to ensure the following while loop executes
                         
+                        // Create a way of detecting how many Good selection attempts
+                        // have happened, to avoid infinite loops
+                        float minDist = MinimumDistance;
+                        int checkCounter = 0;
+                        
                         // Select a random City from the current group.
                         // While the distance between the city and the selected Good
                         // is less than the MinimumDistance, or if the City holds
                         // the Good being sought, reselect a City
                         while (
-                            distance < MinimumDistance || 
+                            distance < minDist || 
                             selectedCity.Goods.Any(g => g.x == goodIndex)
                         ) {
                             goodIndex = Random.Range(0, goods.Length);
@@ -101,6 +106,16 @@ namespace Rails.Systems
                                 _manager.MapData.LocationsOfCity(selectedCity).First(),
                                 _manager.MapData.LocationsOfGood(goods[goodIndex]).First()
                             );
+
+                            // If there have been several attempts to find a Good
+                            // that meets the parameters with the given City,
+                            // detract from the minimum distance to expand possible Citys.
+                            checkCounter += 1;
+                            if(checkCounter == cities.Sum(cs => cs.Length))
+                            {
+                                minDist -= 5.0f;
+                                checkCounter = 0;
+                            }
                         }
                         
                         // Remove the selected City from the potential choices
