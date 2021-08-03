@@ -94,7 +94,6 @@ namespace Rails {
         private List<NodeId> _targetNodes = new List<NodeId>();
         private void Update()
         {
-
             // ---------------------------
             // Test of Graphics component
             // Not production code
@@ -127,8 +126,10 @@ namespace Rails {
             if (GameInput.EnterJustPressed)
             {
                 GameGraphics.CommitPotentialTrack(_currentRoute, Color.red);
+
                 for (int i = 0; i < _currentRoute.Distance; ++i)
                     Tracks[_currentRoute.Nodes[i], _currentRoute.Nodes[i + 1]] = 0;
+
                 _targetNodes.Clear();
             }
         }

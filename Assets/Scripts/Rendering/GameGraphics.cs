@@ -132,6 +132,7 @@ namespace Rails.Rendering
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);
+                MoveTrain(1, route);
             }
         }
 
