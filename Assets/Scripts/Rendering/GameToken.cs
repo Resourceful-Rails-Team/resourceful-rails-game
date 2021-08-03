@@ -9,17 +9,17 @@ namespace Rails.Rendering
     /// </summary>
     public class GameToken : MonoBehaviour
     {
-        private MeshRenderer _renderer;
+        private MeshRenderer[] _renderers;
         private Animator _animator;
         private Color _primaryColor;
         private TMPro.TMP_Text _text;
 
         private void Awake()
         {
-            _renderer = GetComponentInChildren<MeshRenderer>();
+            _renderers = GetComponentsInChildren<MeshRenderer>();
             _text = GetComponentInChildren<TMPro.TMP_Text>();
             _animator = GetComponent<Animator>();
-            _primaryColor = _renderer?.material.color ?? Color.white;
+            _primaryColor = _renderers?[0].material.color ?? Color.white;
         }
 
         /// <summary>
@@ -28,8 +28,9 @@ namespace Rails.Rendering
         /// <param name="color">The color to set the mesh</param>
         public void SetColor(Color color)
         {
-            if (_renderer != null)
-                _renderer.material.color = color;
+            if (_renderers != null)
+                foreach(var renderer in _renderers)
+                    renderer.material.color = color;
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace Rails.Rendering
         public void SetPrimaryColor(Color color)
         {
             _primaryColor = color;
-            SetColor(_primaryColor);
+            ResetColor();
         }
         
         /// <summary>
@@ -48,8 +49,9 @@ namespace Rails.Rendering
         /// </summary>
         public void ResetColor()
         {
-            if (_renderer != null)
-                _renderer.material.color = _primaryColor;
+            if (_renderers != null)
+                foreach (var renderer in _renderers)
+                    renderer.material.color = _primaryColor;
         }
 
         /// <summary>

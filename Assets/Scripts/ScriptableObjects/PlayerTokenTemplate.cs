@@ -1,4 +1,7 @@
+using Assets.Scripts.Data;
 using Rails.Rendering;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using UnityEngine;
 
 namespace Rails.ScriptableObjects
@@ -9,25 +12,15 @@ namespace Rails.ScriptableObjects
         [SerializeField]
         private string _trainName;
         public string TrainName => _trainName;
-
-        [SerializeField]
-        private GameToken _baseTrainToken;
-        public GameToken BaseTrainToken => _baseTrainToken;
-
-        [SerializeField]
-        private GameToken _fastTrainToken;
-        public GameToken FastTrainToken => _fastTrainToken;
-
-        [SerializeField]
-        private GameToken _heavyTrainToken;
-        public GameToken HeavyTrainToken => _heavyTrainToken;
-
-        [SerializeField]
-        private GameToken _superTrainToken;
-        public GameToken SuperTrainToken => _superTrainToken;
-
+ 
         [SerializeField]
         private GameToken _railToken;
         public GameToken RailToken => _railToken;
+
+        [SerializeField]
+        private List<GameToken> _trains;
+
+        public GameToken GetTrainToken(int index)
+            => _trains[index];
     }
 }

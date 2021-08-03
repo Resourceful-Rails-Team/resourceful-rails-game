@@ -17,6 +17,9 @@ namespace Rails.Controls
         public float lerpSpeed = 2.0f;
 
         private Vector3 focus;
+
+        [SerializeField]
+        private Transform _markerTransform;
        
         private void Start()
         {
@@ -37,6 +40,8 @@ namespace Rails.Controls
 
             transform.position = Vector3.Lerp(transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
             transform.rotation = targetTransform.rotation;
+
+            
         }
         #region Methods
 
@@ -68,7 +73,7 @@ namespace Rails.Controls
 
             // Rotate vertically along side axis.
             float dot = Vector3.Dot(Vector3.down, targetTransform.forward);
-            if ((dot < 0.15f && input.y < 0f) || (dot >= 0.99f && input.y > 0f))
+            if ((dot < 0.25f && input.y < 0f) || (dot >= 0.99f && input.y > 0f))
                 return;
 
             rot = rotateSpeed * input.y * Time.deltaTime;
