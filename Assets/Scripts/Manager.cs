@@ -75,8 +75,7 @@ namespace Rails {
     /// <summary>
     /// Stores the tracks on the map.
     /// </summary>
-    private static TrackGraph<int> Tracks 
-      => new TrackGraph<int>(() => Enumerable.Repeat(-1, (int)Cardinal.MAX_CARDINAL).ToArray());
+    private static TrackGraph<int> Tracks = new TrackGraph<int>(-1);
 
     #endregion // Map
 
@@ -94,7 +93,6 @@ namespace Rails {
         private List<NodeId> _targetNodes = new List<NodeId>();
         private void Update()
         {
-
             // ---------------------------
             // Test of Graphics component
             // Not production code
@@ -127,8 +125,10 @@ namespace Rails {
             if (GameInput.EnterJustPressed)
             {
                 GameGraphics.CommitPotentialTrack(_currentRoute, Color.red);
+
                 for (int i = 0; i < _currentRoute.Distance; ++i)
                     Tracks[_currentRoute.Nodes[i], _currentRoute.Nodes[i + 1]] = 0;
+
                 _targetNodes.Clear();
             }
         }

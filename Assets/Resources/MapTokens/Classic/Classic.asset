@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fef85e956d1bb0800bc0879c3d7500c0, type: 3}
   m_Name: Classic
   m_EditorClassIdentifier: 
-  _clear: {fileID: 251033227, guid: 6f4c481b33953b2cf92e19834a7ec230, type: 3}
-  _mountain: {fileID: 1531459128, guid: 5c2574404ebcdc15ba7990e4cc631ef9, type: 3}
-  _smallCity: {fileID: 4475813, guid: 26cb19c4e4ddca8babb18627981a4b8a, type: 3}
-  _mediumCity: {fileID: 100976093, guid: 2d5f1a95a3bc57a1c9d061264b464363, type: 3}
-  _majorCity: {fileID: 1984353057, guid: 18665b7bd681dc5e289a56eec1b111ed, type: 3}
+  _clear: {fileID: 2673823654777633062, guid: 6f4c481b33953b2cf92e19834a7ec230, type: 3}
+  _mountain: {fileID: 2522051058291931785, guid: 5c2574404ebcdc15ba7990e4cc631ef9, type: 3}
+  _smallCity: {fileID: 9128617259358469418, guid: c5daad107234fa344917927d3cc096cb, type: 3}
+  _mediumCity: {fileID: 2263226345308692552, guid: 61b686a28ac00f648b8c46d0b4d61cfa, type: 3}
+  _majorCity: {fileID: 7620330496941298563, guid: 297858ba3ebd72d4e9b07ecc79545a90, type: 3}

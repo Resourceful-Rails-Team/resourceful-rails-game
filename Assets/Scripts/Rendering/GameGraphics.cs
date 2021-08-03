@@ -23,7 +23,6 @@ namespace Rails.Rendering
         }
         #endregion
 
-
         // A collection of all node GameTokens on the map
         private static Dictionary<NodeId, GameToken> _mapTokens;
         // A collection of all track GameTokens on the map
@@ -56,6 +55,7 @@ namespace Rails.Rendering
         }
 
         #region Public Methods
+
         /// <summary>
         /// Retrieves the GameToken located at the given NodeId
         /// </summary>
@@ -127,12 +127,13 @@ namespace Rails.Rendering
             // Add its GameTokens to the track token map.
             if (_potentialTracks.TryGetValue(route, out var tokens))
             {
-                for (int i = 0; i < route.Nodes.Count - 1; ++i)
+                for (int i = 0; i < route.Distance; ++i)
                 {
                     _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = tokens[i];
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);
+                MoveTrain(1, route);
             }
         }
 
@@ -182,6 +183,7 @@ namespace Rails.Rendering
         /// <param name="player">The player index to move.</param>
         /// <param name="route">The nodes the player train will traverse on.</param>
         public static void MoveTrain(int player, Route route) => _singleton.StartCoroutine(MoveTrain(player, route, 5.0f));
+        
         #endregion
 
         #region Private Methods
@@ -191,7 +193,7 @@ namespace Rails.Rendering
             var board = Instantiate(mapData.Board);
 
             // Scale the board to match the current spacing size
-            board.transform.localScale = Vector3.one * mapData.WSSize;
+            board.transform.localScale = Vector3.one * Manager.Singleton.WSSize;
         }
 
         /// Instantiates all MapData nodes
