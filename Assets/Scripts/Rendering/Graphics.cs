@@ -159,11 +159,13 @@ namespace Rails.Rendering
                     {
                         if (node.Type == NodeType.MajorCity)
                         {
+                            var city = _manager.MapData.Cities[node.CityId];
                             var neighborNodes = _manager.MapData.GetNeighborNodes(nodeId);
-                            if (neighborNodes.All(nn => nn.Item2.CityId == node.CityId))
+                            if (neighborNodes.All(nn => nn.Item2.Type == NodeType.MajorCity && nn.Item2.CityId == node.CityId))
                             {
                                 var token = Instantiate(modelToken, transform);
                                 token.transform.position = pos;
+                                token.SetText(city.Name);
 
                                 foreach (var nId in neighborNodes.Select(nn => nn.Item1))
                                     _mapTokens[nId] = token;

@@ -12,10 +12,12 @@ namespace Rails.Rendering
         private MeshRenderer _renderer;
         private Animator _animator;
         private Color _primaryColor;
+        private TMPro.TMP_Text _text;
 
         private void Awake()
         {
             _renderer = GetComponentInChildren<MeshRenderer>();
+            _text = GetComponentInChildren<TMPro.TMP_Text>();
             _animator = GetComponent<Animator>();
             _primaryColor = _renderer?.material.color ?? Color.white;
         }
@@ -56,5 +58,15 @@ namespace Rails.Rendering
         /// <param name="animName">The trigger associated with the animation</param>
         public void PlayAnimation(string animName) 
             => _animator?.SetTrigger(animName);
+
+        /// <summary>
+        /// Sets the token's text rendered above to the given string.
+        /// </summary>
+        /// <param name="text">String to set the token text to</param>
+        public void SetText(string text)
+        {
+            if (_text)
+                _text.text = text;
+        }
     }
 }

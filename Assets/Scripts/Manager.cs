@@ -83,7 +83,7 @@ namespace Rails {
     #endregion // Properties
 
     private Rails.Rendering.Graphics _graphics;
-    private GameRules _rules;
+    public GameRules Rules;
 
     #region Utilities
     /// <summary>
@@ -117,7 +117,6 @@ namespace Rails {
       // set singleton reference on awake
       _singleton = this;
       _graphics = GetComponent<Rails.Rendering.Graphics>();
-      _rules = MapData.DefaultRules;
       Deck.Initialize();
       GameLoopSetup();
     }
@@ -241,32 +240,35 @@ namespace Rails {
     #endregion
 
     #region Game Loop
-    public struct PlayerInfo {
-      public string name;
-      public Color color;
-      public int money;
-      public int trainStyle;
-      public int majorcities;
-      public NodeId train_position;
-      public Stack<NodeId> movepath;
-      public List<Stack<NodeId>> buildpaths;
-      public int currentPath;
-      public int movePathStyle;
-      public int buildPathStyle;
+        
+    public struct PlayerInfo
+    {
+        public string name;
+        public Color color;
+        public int money;
+        public int trainStyle;
+        public int majorcities;
+        public NodeId train_position;
+        public Stack<NodeId> movepath;
+        public List<Stack<NodeId>> buildpaths;
+        public int currentPath;
+        public int movePathStyle;
+        public int buildPathStyle;
 
-      public PlayerInfo(string name, Color color, int money, int train) {
-        this.name = name;
-        this.color = color;
-        this.money = money;
-        this.trainStyle = train;
-        majorcities = 0;
-        train_position = new NodeId(0, 0);
-        movepath = new Stack<NodeId>();
-        buildpaths = new List<Stack<NodeId>>();
-        currentPath = 0;
-        movePathStyle = 0;
-        buildPathStyle = 0;
-      }
+        public PlayerInfo(string name, Color color, int money, int train)
+        {
+            this.name = name;
+            this.color = color;
+            this.money = money;
+            this.trainStyle = train;
+            majorcities = 0;
+            train_position = new NodeId(0, 0);
+            movepath = new Stack<NodeId>();
+            buildpaths = new List<Stack<NodeId>>();
+            currentPath = 0;
+            movePathStyle = 0;
+            buildPathStyle = 0;
+        }
     }
 
     #region Public Data
@@ -316,9 +318,9 @@ namespace Rails {
       phases = PhasePanels.Length;
 
       // Initiate all player info.
-      players = new PlayerInfo[_rules.maxPlayers];
-      for (int p = 0; p < _rules.maxPlayers; p++)
-        players[p] = new PlayerInfo("Player " + p, Color.white, _rules.moneyStart, 0);
+      players = new PlayerInfo[Rules.Players.Length];
+      for (int p = 0; p < players.Length; p++)
+        players[p] = new PlayerInfo(Rules.Players[p].Name, Rules.Players[p].Color, Rules.MoneyStart, 0);
 
       // Deactivate all panels just in case.
       for (int u = 0; u < phases; u++)
@@ -463,13 +465,13 @@ namespace Rails {
     // Private method for upgrading.
     private void UpgradeTrain_(int choice) {
       // If player doesn't have enough money, don't upgrade
-      if (player.money < _rules.trainUpgrade) {
+      if (player.money < Rules.TrainUpgrade) {
         // TODO: Activate failure UI message here.
         return;
       }
 
       // Deduct value from player's money stock and change train value.
-      player.money -= _rules.trainUpgrade;
+      player.money -= Rules.TrainUpgrade;
       player.trainStyle = choice;
       Debug.Log(currentPlayer + " $" + player.money);
       return;
@@ -477,7 +479,7 @@ namespace Rails {
     // Changes the current player
     private int IncrementPlayer() {
       currentPlayer += 1;
-      if (currentPlayer >= _rules.maxPlayers)
+      if (currentPlayer >= Rules.Players.Length)
         currentPlayer = 0;
       UpdatePlayerInfo();
       return currentPlayer;
@@ -509,8 +511,8 @@ namespace Rails {
     }
     // Check if the current player has won.
     private bool CheckWin() {
-      if (player.majorcities >= _rules.winMajorCities &&
-        player.money >= _rules.winMoney) {
+      if (player.majorcities >= Rules.WinMajorCities &&
+        player.money >= Rules.WinMoney) {
         return true;
       }
       return false;

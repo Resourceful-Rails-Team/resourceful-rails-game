@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 2138677392}
-  m_IndirectSpecularColor: {r: 0.28502667, g: 0.37139323, b: 0.49600998, a: 1}
+  m_IndirectSpecularColor: {r: 0.2850269, g: 0.3713935, b: 0.49601045, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -270,6 +270,7 @@ GameObject:
   - component: {fileID: 1668001701}
   - component: {fileID: 1668001699}
   - component: {fileID: 1668001700}
+  - component: {fileID: 1668001702}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -291,6 +292,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WSSize: 1
   MapData: {fileID: 11400000, guid: bd76bf9cd5b36414d923968c859357fc, type: 2}
+  Rules: {fileID: 1668001702}
   trainData: []
   GameHUDObject: {fileID: 81101190209798169}
   PhasePanels:
@@ -484,6 +486,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda9953e17d75874999765912debb7d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1668001702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1668001696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f394f4be3a472ca4c9ceb854018838f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MoneyStart: 100
+  MaxBuild: 15
+  TrainUpgrade: 15
+  WinMajorCities: 5
+  WinMoney: 1000
+  BaseTrainSpecs:
+    goodsTotal: 0
+    movePoints: 0
+  FastTrainSpecs:
+    goodsTotal: 0
+    movePoints: 0
+  HeavyTrainSpecs:
+    goodsTotal: 0
+    movePoints: 0
+  SuperTrainSpecs:
+    goodsTotal: 0
+    movePoints: 0
+  Players: []
 --- !u!1 &1687258581
 GameObject:
   m_ObjectHideFlags: 0
