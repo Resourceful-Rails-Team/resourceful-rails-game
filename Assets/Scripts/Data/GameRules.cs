@@ -32,6 +32,10 @@ namespace Rails.Data
         /// The amount of money needed to win.
         /// </summary>
         public int winMoney;
+        /// <summary>
+        /// The Cost for a player to use another player's track
+        /// </summary>
+        public int altTrackCost;
 
         public TrainSpecs baseTrainSpecs;
         public TrainSpecs fastTrainSpecs;

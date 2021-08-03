@@ -10,11 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 067e40db7b0d571b89a450239c4d6903, type: 3}
-  m_Name: TestingTemplate
+  m_Name: Classic
   m_EditorClassIdentifier: 
-  _trainName: Standard
-  _baseTrainToken: {fileID: 3875709226839961620, guid: f4728bd598724e5268f82267b14a8f11, type: 3}
-  _fastTrainToken: {fileID: 0}
-  _heavyTrainToken: {fileID: 0}
-  _superTrainToken: {fileID: 0}
+  _trainName: Classic
   _railToken: {fileID: 648696032200224193, guid: 9b85ee59081fdcbe39d7c7d44fe95f7a, type: 3}
+  _trains:
+  - {fileID: 3875709226839961620, guid: f4728bd598724e5268f82267b14a8f11, type: 3}
