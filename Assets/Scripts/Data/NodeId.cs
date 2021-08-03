@@ -42,8 +42,7 @@ namespace Rails.Data
                 return hash;
             }
         }
-
-      
+  
         public override string ToString()
         {
             return $"({X}, {Y})";

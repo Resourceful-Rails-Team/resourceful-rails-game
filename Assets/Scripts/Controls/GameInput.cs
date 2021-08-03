@@ -17,6 +17,12 @@ namespace Rails.Controls
         }
         #endregion
 
+        private static bool UsingGamepad => PlayerInput.all[0].currentControlScheme == "Gamepad";
+        private static bool _rotateTriggered = false;
+        private static Camera _mainCamera;
+
+        #region Input Global Fields
+
         public static Vector2 MoveInput { get; private set; }
         public static Vector2 RotateInput { get; private set; }
         public static float ZoomInput { get; private set; }
@@ -26,11 +32,10 @@ namespace Rails.Controls
         public static bool DeleteJustPressed { get; private set; }
         public static bool EnterJustPressed { get; private set; }
 
-        private static bool UsingGamepad => PlayerInput.all[0].currentControlScheme == "Gamepad";
-        private static bool _rotateTriggered = false;
-        private static Camera _mainCamera;
+        #endregion
 
         #region Input Events
+
         private void OnMove(InputValue value) => MoveInput = value.Get<Vector2>();
         private void OnZoom(InputValue value) => ZoomInput = Mathf.Clamp(value.Get<float>(), -1, 1);
         private void OnRotateTriggered(InputValue value) => _rotateTriggered = value.isPressed;
@@ -52,6 +57,7 @@ namespace Rails.Controls
         {
             EnterJustPressed = value.isPressed;
         }
+        
         #endregion
 
         private void Update()
