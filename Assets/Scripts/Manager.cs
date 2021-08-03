@@ -75,8 +75,7 @@ namespace Rails {
     /// <summary>
     /// Stores the tracks on the map.
     /// </summary>
-    private static TrackGraph<int> Tracks 
-      => new TrackGraph<int>(() => Enumerable.Repeat(-1, (int)Cardinal.MAX_CARDINAL).ToArray());
+    private static TrackGraph<int> Tracks = new TrackGraph<int>(-1);
 
     #endregion // Map
 

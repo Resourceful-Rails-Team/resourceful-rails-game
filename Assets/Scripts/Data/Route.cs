@@ -25,10 +25,7 @@ namespace Rails.Data
             => obj is Route route && route.Nodes.SequenceEqual(Nodes);
         public override int GetHashCode()
         {
-            unchecked
-            {
-                return Nodes.Sum(n => n.GetHashCode() * 17);
-            }
+            unchecked { return 37 * Nodes.Sum(n => n.GetHashCode() * 17); }
         }
     }
 }

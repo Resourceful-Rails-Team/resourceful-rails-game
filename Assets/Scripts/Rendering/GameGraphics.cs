@@ -55,6 +55,7 @@ namespace Rails.Rendering
         }
 
         #region Public Methods
+
         /// <summary>
         /// Retrieves the GameToken located at the given NodeId
         /// </summary>
@@ -126,7 +127,7 @@ namespace Rails.Rendering
             // Add its GameTokens to the track token map.
             if (_potentialTracks.TryGetValue(route, out var tokens))
             {
-                for (int i = 0; i < route.Nodes.Count - 1; ++i)
+                for (int i = 0; i < route.Distance; ++i)
                 {
                     _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = tokens[i];
                     tokens[i].SetPrimaryColor(color);
@@ -182,6 +183,7 @@ namespace Rails.Rendering
         /// <param name="player">The player index to move.</param>
         /// <param name="route">The nodes the player train will traverse on.</param>
         public static void MoveTrain(int player, Route route) => _singleton.StartCoroutine(MoveTrain(player, route, 5.0f));
+        
         #endregion
 
         #region Private Methods

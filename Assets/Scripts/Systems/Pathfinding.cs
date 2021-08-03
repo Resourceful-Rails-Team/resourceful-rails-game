@@ -136,7 +136,7 @@ namespace Rails.Systems
 
             // A duplicate of the current tracks - ensures that Pathfinder
             // doesn't reuse already commited paths in later traversals.
-            var newTracks = tracks.Clone(edges => edges.ToArray());
+            var newTracks = tracks.Clone();
 
             // For each segment, find the least-cost path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
