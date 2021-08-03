@@ -150,6 +150,7 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route ShortestMove(
+            GameRules rules,
             TrackGraph<int> tracks,
             int player, int speed, params NodeId [] segments
         ) {
@@ -165,6 +166,7 @@ namespace Rails.Systems
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostTrack(
+                    rules,
                     tracks, player, speed, 
                     segments[i], segments[i + 1], false
                 );
@@ -174,7 +176,7 @@ namespace Rails.Systems
                 path.AddRange(route.Nodes);
             }
 
-            return CreateTrackRoute(tracks, player, speed, path); 
+            return CreateTrackRoute(rules, tracks, player, speed, path); 
         }
 
         /// <summary>
@@ -192,6 +194,7 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route CheapestMove(
+            GameRules rules,
             TrackGraph<int> tracks,
             int player, int speed, params NodeId [] segments
         ) {
@@ -207,6 +210,7 @@ namespace Rails.Systems
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostTrack(
+                    rules,
                     tracks, player, speed, 
                     segments[i], segments[i + 1], true
                 );
@@ -216,7 +220,7 @@ namespace Rails.Systems
                 path.AddRange(route.Nodes);
             }
 
-            return CreateTrackRoute(tracks, player, speed, path); 
+            return CreateTrackRoute(rules, tracks, player, speed, path); 
         }
 
         #endregion
@@ -228,6 +232,7 @@ namespace Rails.Systems
         /// from a start point to end point.
         /// </summary>
         private static Route LeastCostTrack(
+            GameRules rules,
             TrackGraph<int> tracks, 
             int player, int speed, 
             NodeId start, NodeId end,
@@ -273,7 +278,7 @@ namespace Rails.Systems
                 // it to the returned PathData
                 if(node.Position == end)
                 {
-                    path = CreateTrackRoute(tracks, previous, player, speed, start, end);
+                    path = CreateTrackRoute(rules, tracks, previous, player, speed, start, end);
                     break;
                 }
                 
@@ -432,6 +437,7 @@ namespace Rails.Systems
         /// path.
         /// </summary>
         private static Route CreateTrackRoute (
+            GameRules rules,
             TrackGraph<int> tracks,
             Dictionary<NodeId, NodeId> previous,
             int player, int speed, NodeId start, NodeId end
@@ -454,7 +460,7 @@ namespace Rails.Systems
                 // add the cost.
                 if(!tracksPaid[tracks[current, previous[current]]])
                 {
-                    cost += Manager.AltTrackCost;
+                    cost += rules.altTrackCost;
                     tracksPaid[tracks[current, previous[current]]] = true;
                 }
 
@@ -484,6 +490,7 @@ namespace Rails.Systems
         /// tracks, nodes from start to end and player index
         /// </summary>
         private static Route CreateTrackRoute(
+            GameRules rules,
             TrackGraph<int> tracks,
             int player, int speed,
             List<NodeId> path
@@ -501,7 +508,7 @@ namespace Rails.Systems
                 // add the cost.
                 if(!tracksPaid[tracks[path[i], path[i+1]]])
                 {
-                    cost += Manager.AltTrackCost;
+                    cost += rules.altTrackCost;
                     tracksPaid[tracks[path[i], path[i+1]]] = true;
                 }
             

@@ -131,7 +131,10 @@ namespace Rails.Collections
         public bool ContainsVertex(NodeId nodeId) => _adjacencyList.ContainsKey(nodeId);
 
         /// <summary>
-        /// Attempts to retrieve all `T` edge-values at the given vertex.
+        /// Attempts to retrieve all T edge-values at the given vertex.
+        /// Will retrieve all Cardinal edges regardless of number of values set.
+        /// All other edges will be default T values, or values defined by
+        /// default edges factory.
         /// </summary>
         /// <param name="nodeId">The vertex position to check</param>
         /// <param name="edgeValues">The array to write the values to</param>
