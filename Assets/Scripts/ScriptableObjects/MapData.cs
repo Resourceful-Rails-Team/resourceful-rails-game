@@ -14,6 +14,7 @@ namespace Rails.ScriptableObjects
         public GameObject Board;
 
         public GameRules DefaultRules;
+        public int WSSize;
         
         [HideInInspector]
         public Node[] Nodes;

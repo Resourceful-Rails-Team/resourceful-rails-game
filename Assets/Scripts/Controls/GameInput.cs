@@ -69,6 +69,7 @@ namespace Rails.Controls
             SelectJustPressed = false;
             DeleteJustPressed = false;
             EnterJustPressed = false;
+            RotateInput = Vector2.zero;
         }
     }
 }
