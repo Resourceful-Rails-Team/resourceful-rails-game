@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Rails.Collections
 {
@@ -192,12 +190,12 @@ namespace Rails.Collections
         /// </summary>
         /// <param name="cloneEdgeFactory">The method by which the edge `T` values are cloned.</param>
         /// <returns>The new, cloned TrackGraph</returns>
-        public TrackGraph<T> Clone(Func<KeyValuePair<NodeId, T[]>, T[]> cloneEdgeFactory) 
+        public TrackGraph<T> Clone(Func<T[], T[]> cloneEdgeFactory) 
             => new TrackGraph<T>
             {
                 _adjacencyList = this._adjacencyList.ToDictionary(
                     entry => entry.Key,
-                    entry => cloneEdgeFactory(entry)
+                    entry => cloneEdgeFactory(entry.Value)
                 ),
                 _defaultEdgesFactory = this._defaultEdgesFactory,
             };        

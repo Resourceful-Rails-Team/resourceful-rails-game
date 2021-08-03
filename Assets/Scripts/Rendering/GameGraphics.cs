@@ -23,7 +23,6 @@ namespace Rails.Rendering
         }
         #endregion
 
-
         // A collection of all node GameTokens on the map
         private static Dictionary<NodeId, GameToken> _mapTokens;
         // A collection of all track GameTokens on the map
@@ -191,7 +190,7 @@ namespace Rails.Rendering
             var board = Instantiate(mapData.Board);
 
             // Scale the board to match the current spacing size
-            board.transform.localScale = Vector3.one * mapData.WSSize;
+            board.transform.localScale = Vector3.one * Manager.Singleton.WSSize;
         }
 
         /// Instantiates all MapData nodes
