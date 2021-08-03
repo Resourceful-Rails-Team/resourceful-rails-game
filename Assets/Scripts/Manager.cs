@@ -191,8 +191,9 @@ namespace Rails {
 
 #endif 
 
+#endregion
+
     #region Game Loop
-    
 
     #region Public Data
     
@@ -230,7 +231,7 @@ namespace Rails {
     #region Private Data
     PlayerInfo[] players;
     PlayerInfo player;
-    int phases;
+    int maxPhases;
     int currentPlayer = 0;
     int currentPhase = -2;
     #endregion
@@ -239,7 +240,7 @@ namespace Rails {
     /// Sets up the current game.
     /// </summary>
     private void GameLoopSetup() {
-      phases = PhasePanels.Length;
+      maxPhases = PhasePanels.Length;
 
       // Initiate all player info.
       players = new PlayerInfo[_rules.maxPlayers];
@@ -247,7 +248,7 @@ namespace Rails {
         players[p] = new PlayerInfo("Player " + p, Color.white, _rules.moneyStart, 0);
 
       // Deactivate all panels just in case.
-      for (int u = 0; u < phases; u++)
+      for (int u = 0; u < maxPhases; u++)
         PhasePanels[u].SetActive(false);
 
       // Activate first turn panel.
@@ -256,50 +257,53 @@ namespace Rails {
       UpdatePlayerInfo();
     }
 
-    #region Player Actions
     // Moves the train to final node in path.
     public void MoveTrain() {
       // TODO: Move train to last pushed node.
-
       // Moving only updates the phase.
-      UpdatePhase();
+      GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
       return;
     }
     // Discards the player's hand.
     public void DiscardHand() {
       // TODO: removing and refilling player's hand
       // Ends the turn.
-      IncrementPlayer();
+      GameLogic.IncrementPlayer(ref currentPlayer, _rules.maxPlayers);
       return;
     }
 
     // Builds the track between the nodes in path.
     public void BuildTrack() {
-      BuildTrack_();
-      // Ends the turn and changes phase.
-      if (phases < 0)
-        BuildTurn();
-      else
-        NormalTurn();
+      GameLogic.BuildTrack();
+      EndTurn();
       return;
     }
     // Upgrades the player's train.
     public void UpgradeTrain(int choice) {
-      UpgradeTrain_(choice);
-      // Ends the turn and changes phase.
-      if (phases < 0)
-        BuildTurn();
-      else
-        NormalTurn();
+      GameLogic.UpgradeTrain(ref player.trainStyle, ref player.money, choice, _rules.trainUpgrade);
+      EndTurn();
       return;
     }
+
+    // Ends the turn and changes phase.
+    private void EndTurn() {
+      if (maxPhases >= 0) {
+        GameLogic.IncrementPlayer(ref currentPlayer, _rules.maxPlayers);
+        GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
+      }
+      else {
+        GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, _rules.maxPlayers);
+      }
+      return;
+    }
+
     // Places the current player's train at position.
     public void PlaceTrain(NodeId position) {
       player.train_position = position;
       return;
     }
 
-    #region Path Methods
+    // Path Management
     // Adds nodes to a path stack
     // Used for building and movement
     public void PushNode(NodeId node) {
@@ -342,106 +346,8 @@ namespace Rails {
       player.currentPath = path;
       return;
     }
-    #endregion // Path
+    #endregion
 
-    #region Private Methods
-    // Updates current player through normal turns.
-    private void NormalTurn() {
-      IncrementPlayer();
-      UpdatePhase();
-      return;
-    }
-    // Updates current player through the intial build turns.
-    private void BuildTurn() {
-      // Phase -2, build turns, normal player order.
-      // Phase -1, build turns, reverse player order.
-      // Phase 0, normal turns, place trains.
-      switch (currentPhase) {
-        case -2: IncrementPlayer(); break;
-        case -1: DecrementPlayer(); break;
-      }
-      if (currentPlayer == 5 || currentPlayer == 0) {
-        UpdatePhase();
-      }
-      if (currentPhase == 0) {
-        // TODO: Change buttons to normal build/upgrade methods.
-
-      }
-      return;
-    }
-    // Private method for building.
-    private void BuildTrack_() {
-      // TODO: Build track between all nodes in stack.
-      List<Route> routes = new List<Route>();
-
-      foreach (Stack<NodeId> stack in player.buildpaths) {
-        NodeId start;
-        while (stack.Count != 0) {
-          start = stack.Pop();
-
-        }
-      }
-
-      return;
-    }
-    // Private method for upgrading.
-    private void UpgradeTrain_(int choice) {
-      // If player doesn't have enough money, don't upgrade
-      if (player.money < _rules.trainUpgrade) {
-        // TODO: Activate failure UI message here.
-        return;
-      }
-
-      // Deduct value from player's money stock and change train value.
-      player.money -= _rules.trainUpgrade;
-      player.trainStyle = choice;
-      Debug.Log(currentPlayer + " $" + player.money);
-      return;
-    }
-    // Changes the current player
-    private int IncrementPlayer() {
-      currentPlayer += 1;
-      if (currentPlayer >= _rules.maxPlayers)
-        currentPlayer = 0;
-      UpdatePlayerInfo();
-      return currentPlayer;
-    }
-    // Changes players for switchback start.
-    private int DecrementPlayer() {
-      currentPlayer -= 1;
-      if (currentPlayer < 0)
-        currentPlayer = 0;
-      UpdatePlayerInfo();
-      return currentPlayer;
-    }
-    // Updates name and money amount. Placeholder.
-    private void UpdatePlayerInfo() {
-      //Transform playertext = PlayerInfoPanel.transform.Find("Player");
-      //playertext.GetComponent<TMP_Text>().text = "Player #" + (currentPlayer + 1);
-      //playertext = PlayerInfoPanel.transform.Find("Money");
-      //playertext.GetComponent<TMP_Text>().text = "$" + players[currentPlayer].money;
-    }
-    // Cycles through UI screens
-    private int UpdatePhase() {
-      PhasePanels[currentPhase].SetActive(false);
-      currentPhase += 1;
-      if (currentPhase >= phases)
-        currentPhase = 0;
-      PhasePanels[currentPhase].SetActive(true);
-      return currentPhase;
-    }
-    // Check if the current player has won.
-    private bool CheckWin() {
-      if (player.majorcities >= _rules.winMajorCities &&
-        player.money >= _rules.winMoney) {
-        return true;
-      }
-      return false;
-    }
-    #endregion // Private
 
   }
 }
-#endregion
-#endregion
-#endregion
