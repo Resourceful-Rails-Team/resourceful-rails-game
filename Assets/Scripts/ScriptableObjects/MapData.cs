@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Rails.Data;
-using Rails.ScriptableObjects;
 using UnityEngine;
 
 namespace Rails.ScriptableObjects
@@ -16,10 +14,15 @@ namespace Rails.ScriptableObjects
         public GameObject Board;
 
         public GameRules DefaultRules;
+        public int WSSize;
         
+        [HideInInspector]
         public Node[] Nodes;
+        [HideInInspector]
         public NodeSegment[] Segments;
+        [HideInInspector]
         public List<City> Cities = new List<City>();
+        [HideInInspector]
         public List<Good> Goods = new List<Good>();
 
 
