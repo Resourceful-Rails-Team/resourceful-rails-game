@@ -8,41 +8,36 @@ namespace Rails.Data
     /// A collection of rules associated with a game of Resourceful Rails
     /// </summary>
     [Serializable]
-    public class GameRules : MonoBehaviour
+    public class GameRules
     {
         /// <summary>
         /// The amount of money each player starts with.
         /// </summary>
-        public int MoneyStart;
+        public int MoneyStart = 100;
         /// <summary>
         /// The max amount of money that can be spent building.
         /// </summary>
-        public int MaxBuild;
+        public int MaxBuild = 15;
         /// <summary>
         /// The cost to for players to upgrade their train.
         /// </summary>
-        public int TrainUpgrade;
+        public int TrainUpgrade = 15;
         /// <summary>
         /// The number of major cities that must be connected to win.
         /// </summary>
-        public int WinMajorCities;
+        public int WinMajorCities = 5;
         /// <summary>
         /// The amount of money needed to win.
         /// </summary>
-        public int WinMoney;
+        public int WinMoney = 1000;
+        /// <summary>
+        /// The Cost for a player to use another player's track
+        /// </summary>
+        public int AltTrackCost = 15;
 
         public TrainSpecs BaseTrainSpecs;
         public TrainSpecs FastTrainSpecs;
         public TrainSpecs HeavyTrainSpecs;
         public TrainSpecs SuperTrainSpecs;
-
-        public StartPlayerInfo[] Players;
-    }
-
-    [Serializable]
-    public struct StartPlayerInfo
-    {
-        public string Name;
-        public Color Color;
     }
 }

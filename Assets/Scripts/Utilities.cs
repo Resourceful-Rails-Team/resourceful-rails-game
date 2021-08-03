@@ -180,6 +180,7 @@ namespace Rails
             return nodeIds;
         }
 
-        public static float GetCardinalRotation(Cardinal c) => (int)c * 60.0f;
+        public static Quaternion GetCardinalRotation(Cardinal c)
+            => Quaternion.Euler(0.0f, (int)c * 60.0f, 0.0f);
     }
 }

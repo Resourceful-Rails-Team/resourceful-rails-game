@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Rails.ScriptableObjects;
-using UnityEngine.InputSystem;
 using System.Collections.ObjectModel;
 using Rails.Rendering;
 using Rails.Controls;
@@ -12,6 +10,8 @@ using Rails.Systems;
 using TMPro;
 using Rails.UI;
 using System.Linq;
+using Assets.Scripts.Data;
+using Rails.Collections;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -60,11 +60,6 @@ namespace Rails {
     public const int MaxGoods = 64;
 
     /// <summary>
-    /// The Cost for a player to use another player's track
-    /// </summary>
-    public const int AltTrackCost = 4;
-
-    /// <summary>
     /// Controls the spacing between nodes in terms of Unity units.
     /// </summary>
     public float WSSize = 1f;
@@ -75,59 +70,89 @@ namespace Rails {
     [SerializeField]
     public MapData MapData;
 
+
+    #endregion // Properties
+    public GameRules _rules;
+        public GameStartRules _startRules;
+
     /// <summary>
     /// Stores the tracks on the map.
     /// </summary>
-    [SerializeField]
-    public Dictionary<NodeId, int[]> Tracks = new Dictionary<NodeId, int[]>();
-    #endregion // Properties
+    private static TrackGraph<int> Tracks = new TrackGraph<int>(-1);
 
-    private Rails.Rendering.Graphics _graphics;
-    public GameRules Rules;
+        #endregion // Map
 
-    #region Utilities
-    /// <summary>
-    /// Inserts a new track onto the Map, based on position and direction.
-    /// </summary>
-    /// <param name="player">The player who owns the track</param>
-    /// <param name="position">The position the track is placed</param>
-    /// <param name="towards">The cardinal direction the track moves towards</param>
-    private void InsertTrack(int player, NodeId position, Cardinal towards) {
-      // If Cardinal data doesn't exist for the point yet,
-      // insert and initialize the data
-      if (!Tracks.ContainsKey(position)) {
-        Tracks[position] = new int[(int)Cardinal.MAX_CARDINAL];
-        for (int i = 0; i < (int)Cardinal.MAX_CARDINAL; ++i)
-          Tracks[position][i] = -1;
-      }
+        #region Unity Events
 
-      Tracks[position][(int)towards] = player;
+        private void Awake()
+        {
+            // set singleton reference on awake
+            _singleton = this;
+            _startRules = FindObjectOfType<GameStartRules>();
 
-      // As Tracks is undirected, insert a track moving the opposite way from the
-      // target node as well.
-      InsertTrack(player, Utilities.PointTowards(position, towards), Utilities.ReflectCardinal(towards));
-    }
+            // generate start rules if empty
+            if (_startRules == null)
+            {
+                GameObject go = new GameObject("start rules");
+                _startRules = go.AddComponent<GameStartRules>();
+                _startRules.Players = new StartPlayerInfo[2]
+                {
+                    new StartPlayerInfo() { Name = "Player 1", Color = Color.red },
+                    new StartPlayerInfo() { Name = "Player 2", Color = Color.blue }
+                };
+            }
+        }
 
-    #endregion // Utilities
-    #endregion // Map
+        private void Start() => GameGraphics.Initialize(MapData);
 
-    #region Unity Events
+        private GameToken _highlightToken;
+        private Route _currentRoute = null;
+        private List<NodeId> _targetNodes = new List<NodeId>();
+        private void Update()
+        {
+            // ---------------------------
+            // Test of Graphics component
+            // Not production code
+            //
+            _highlightToken?.ResetColor();
+            var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
 
-    private void Awake() {
-      // set singleton reference on awake
-      _singleton = this;
-      _graphics = GetComponent<Rails.Rendering.Graphics>();
-      Deck.Initialize();
-      GameLoopSetup();
-    }
+            if (highlightToken != null)
+            {
+                highlightToken.SetColor(Color.yellow);
+                _highlightToken = highlightToken;
+            }
+
+            if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds && !_targetNodes.Contains(GameInput.MouseNodeId))
+            {
+                _targetNodes.Add(GameInput.MouseNodeId);
+                if (_targetNodes.Count > 1)
+                {
+                    GameGraphics.DestroyPotentialTrack(_currentRoute);
+                    _currentRoute = Pathfinding.CheapestBuild(Tracks, MapData, _targetNodes.ToArray());
+                    GameGraphics.GeneratePotentialTrack(_currentRoute);
+                }
+            }
+
+            if (GameInput.DeleteJustPressed)
+            {
+                GameGraphics.DestroyPotentialTrack(_currentRoute);
+                _targetNodes.Clear();
+            }
+            if (GameInput.EnterJustPressed)
+            {
+                GameGraphics.CommitPotentialTrack(_currentRoute, Color.red);
+
+                for (int i = 0; i < _currentRoute.Distance; ++i)
+                    Tracks[_currentRoute.Nodes[i], _currentRoute.Nodes[i + 1]] = 0;
+
+                _targetNodes.Clear();
+            }
+        }
 
 #if UNITY_EDITOR
 
-    private void OnDrawGizmos() {
-
-      if (Application.isPlaying)
-        return;
-
+            private void OnDrawGizmos() {
       List<Action> postDraws = new List<Action>();
       if (MapData == null || MapData.Nodes == null || MapData.Nodes.Length == 0)
         return;
@@ -181,95 +206,10 @@ namespace Rails {
         postDraw?.Invoke();
     }
 
-#endif
-
-    private GameToken _highlightToken;
-    private Route _currentRoute = null;
-    private List<NodeId> _targetNodes = new List<NodeId>();
-     
-    private void Update() {
-           
-      // ---------------------------
-      // Test of Graphics component
-      // Not production code
-      //
-      _highlightToken?.ResetColor();
-      var highlightToken = _graphics.GetMapToken(GameInput.MouseNodeId);
-
-      if (highlightToken != null)
-      {
-          highlightToken.SetColor(Color.yellow);
-          _highlightToken = highlightToken;
-      }
-
-      if(GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds && !_targetNodes.Contains(GameInput.MouseNodeId))
-      {
-          _targetNodes.Add(GameInput.MouseNodeId); 
-          if(_targetNodes.Count > 1)
-          {
-              _graphics.DestroyPotentialTrack(_currentRoute);
-              _currentRoute = Pathfinding.CheapestBuild(Tracks, MapData, _targetNodes.ToArray());
-              _graphics.GeneratePotentialTrack(_currentRoute);
-          }
-      }
-
-      if (GameInput.DeleteJustPressed)
-      {
-          _graphics.DestroyPotentialTrack(_currentRoute);
-          _targetNodes.Clear();
-      }
-      if(GameInput.EnterJustPressed)
-      {
-          _graphics.CommitPotentialTrack(_currentRoute, Color.red);
-          _targetNodes.Clear();
-      }
-
-      // ------------------------------------
-
-      InputUpdate();
-    }
-
-    #endregion
-
-    #region Input
-
-    void InputUpdate() {
-
-    }
-
-    #endregion
+#endif 
 
     #region Game Loop
-        
-    public struct PlayerInfo
-    {
-        public string name;
-        public Color color;
-        public int money;
-        public int trainStyle;
-        public int majorcities;
-        public NodeId train_position;
-        public Stack<NodeId> movepath;
-        public List<Stack<NodeId>> buildpaths;
-        public int currentPath;
-        public int movePathStyle;
-        public int buildPathStyle;
-
-        public PlayerInfo(string name, Color color, int money, int train)
-        {
-            this.name = name;
-            this.color = color;
-            this.money = money;
-            this.trainStyle = train;
-            majorcities = 0;
-            train_position = new NodeId(0, 0);
-            movepath = new Stack<NodeId>();
-            buildpaths = new List<Stack<NodeId>>();
-            currentPath = 0;
-            movePathStyle = 0;
-            buildPathStyle = 0;
-        }
-    }
+    
 
     #region Public Data
     
@@ -278,13 +218,14 @@ namespace Rails {
         new Dictionary<NodeType, int>
         {
             { NodeType.Clear,      1 },
-            { NodeType.Mountain,   4 },
+            { NodeType.Mountain,   2 },
             { NodeType.SmallCity,  3 },
             { NodeType.MediumCity, 3 },
             { NodeType.MajorCity,  5 },
             { NodeType.Water, 1000   },
         }
     );
+
 
     // The cost to build over a river
     public const int RiverCost = 2;
@@ -318,9 +259,9 @@ namespace Rails {
       phases = PhasePanels.Length;
 
       // Initiate all player info.
-      players = new PlayerInfo[Rules.Players.Length];
+      players = new PlayerInfo[_startRules.Players.Length];
       for (int p = 0; p < players.Length; p++)
-        players[p] = new PlayerInfo(Rules.Players[p].Name, Rules.Players[p].Color, Rules.MoneyStart, 0);
+        players[p] = new PlayerInfo(_startRules.Players[p].Name, _startRules.Players[p].Color, _rules.MoneyStart, 0);
 
       // Deactivate all panels just in case.
       for (int u = 0; u < phases; u++)
@@ -375,7 +316,6 @@ namespace Rails {
       player.train_position = position;
       return;
     }
-    #endregion // Player Actions
 
     #region Path Methods
     // Adds nodes to a path stack
@@ -465,13 +405,13 @@ namespace Rails {
     // Private method for upgrading.
     private void UpgradeTrain_(int choice) {
       // If player doesn't have enough money, don't upgrade
-      if (player.money < Rules.TrainUpgrade) {
+      if (player.money < _rules.TrainUpgrade) {
         // TODO: Activate failure UI message here.
         return;
       }
 
       // Deduct value from player's money stock and change train value.
-      player.money -= Rules.TrainUpgrade;
+      player.money -= _rules.TrainUpgrade;
       player.trainStyle = choice;
       Debug.Log(currentPlayer + " $" + player.money);
       return;
@@ -479,7 +419,7 @@ namespace Rails {
     // Changes the current player
     private int IncrementPlayer() {
       currentPlayer += 1;
-      if (currentPlayer >= Rules.Players.Length)
+      if (currentPlayer >= _startRules.Players.Length)
         currentPlayer = 0;
       UpdatePlayerInfo();
       return currentPlayer;
@@ -511,14 +451,16 @@ namespace Rails {
     }
     // Check if the current player has won.
     private bool CheckWin() {
-      if (player.majorcities >= Rules.WinMajorCities &&
-        player.money >= Rules.WinMoney) {
+      if (player.majorcities >= _rules.WinMajorCities &&
+        player.money >= _rules.WinMoney) {
         return true;
       }
       return false;
     }
     #endregion // Private
 
-    #endregion // Game Loop
   }
 }
+#endregion
+#endregion
+#endregion

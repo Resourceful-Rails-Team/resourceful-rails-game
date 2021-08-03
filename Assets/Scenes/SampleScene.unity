@@ -270,7 +270,6 @@ GameObject:
   - component: {fileID: 1668001701}
   - component: {fileID: 1668001699}
   - component: {fileID: 1668001700}
-  - component: {fileID: 1668001702}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -292,7 +291,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WSSize: 1
   MapData: {fileID: 11400000, guid: bd76bf9cd5b36414d923968c859357fc, type: 2}
-  Rules: {fileID: 1668001702}
+  Rules: {fileID: 0}
   trainData: []
   GameHUDObject: {fileID: 81101190209798169}
   PhasePanels:
@@ -486,36 +485,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bda9953e17d75874999765912debb7d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1668001702
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1668001696}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f394f4be3a472ca4c9ceb854018838f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MoneyStart: 100
-  MaxBuild: 15
-  TrainUpgrade: 15
-  WinMajorCities: 5
-  WinMoney: 1000
-  BaseTrainSpecs:
-    goodsTotal: 0
-    movePoints: 0
-  FastTrainSpecs:
-    goodsTotal: 0
-    movePoints: 0
-  HeavyTrainSpecs:
-    goodsTotal: 0
-    movePoints: 0
-  SuperTrainSpecs:
-    goodsTotal: 0
-    movePoints: 0
-  Players: []
 --- !u!1 &1687258581
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,6 +533,7 @@ MonoBehaviour:
   zoomMinDist: 10
   zoomMaxDist: 30
   lerpSpeed: 4
+  _markerTransform: {fileID: 0}
 --- !u!20 &1687258584
 Camera:
   m_ObjectHideFlags: 0

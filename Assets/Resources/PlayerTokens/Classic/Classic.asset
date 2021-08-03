@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 067e40db7b0d571b89a450239c4d6903, type: 3}
+  m_Name: Classic
+  m_EditorClassIdentifier: 
+  _trainName: Classic
+  _railToken: {fileID: 8218393934311937483, guid: 918c533c932e2f941abf54b7a42b901d, type: 3}
+  _trains:
+  - {fileID: 9032443432844103742, guid: f4728bd598724e5268f82267b14a8f11, type: 3}
