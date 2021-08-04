@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Rails.Collections
 {
@@ -14,23 +12,26 @@ namespace Rails.Collections
     public class TrackGraph<T>
     {
         private Dictionary<NodeId, T[]> _adjacencyList;
-        private Func<T[]> _defaultEdgesFactory;
-        
+        private T _defaultEdgeValue;
+
         /// <summary>
         /// Creates a new TrackGraph
         /// </summary>
         public TrackGraph()
-            => _adjacencyList = new Dictionary<NodeId, T[]>();        
+        {
+            _adjacencyList = new Dictionary<NodeId, T[]>();
+            _defaultEdgeValue = default(T);
+        }
         
         /// <summary>
         /// Creates a new TrackGraph, supplying a method which gives
         /// default values upon instantiating a new vertex.
         /// </summary>
         /// <param name="defaultEdgesFactory">The method which supplies edge default values.</param>
-        public TrackGraph(Func<T[]> defaultEdgesFactory)
+        public TrackGraph(T defaultEdgeValue)
         {
             _adjacencyList = new Dictionary<NodeId, T[]>();
-            _defaultEdgesFactory = defaultEdgesFactory;
+            _defaultEdgeValue = defaultEdgeValue;
         }
 
         /// <summary>
@@ -187,19 +188,18 @@ namespace Rails.Collections
         }
 
         /// <summary>
-        /// Clones the given TrackGraph. While the vertices do not need to be deep cloned,
-        /// the values may. `cloneEdgeFactory` supplies a method to clone the values.
+        /// Clones the given TrackGraph. Does not deep clone the edge values,
+        /// but it does deep clone the arrays holding the values.
         /// </summary>
-        /// <param name="cloneEdgeFactory">The method by which the edge `T` values are cloned.</param>
         /// <returns>The new, cloned TrackGraph</returns>
-        public TrackGraph<T> Clone(Func<KeyValuePair<NodeId, T[]>, T[]> cloneEdgeFactory) 
+        public TrackGraph<T> Clone() 
             => new TrackGraph<T>
             {
                 _adjacencyList = this._adjacencyList.ToDictionary(
                     entry => entry.Key,
-                    entry => cloneEdgeFactory(entry)
+                    entry => entry.Value.ToArray()
                 ),
-                _defaultEdgesFactory = this._defaultEdgesFactory,
+                _defaultEdgeValue = this._defaultEdgeValue,
             };        
             
         // Inserts a vertex (if one doesn't exist) and Cardinal edge value
@@ -207,9 +207,8 @@ namespace Rails.Collections
         private void InsertAt(NodeId id, Cardinal card, T value)
         {
             if (!_adjacencyList.ContainsKey(id))
-                _adjacencyList[id] = 
-                    _defaultEdgesFactory?.Invoke() ?? 
-                    Enumerable.Repeat(default(T), (int)Cardinal.MAX_CARDINAL).ToArray();
+                _adjacencyList[id] =
+                    Enumerable.Repeat(_defaultEdgeValue, (int)Cardinal.MAX_CARDINAL).ToArray();
 
             _adjacencyList[id][(int)card] = value;
         }

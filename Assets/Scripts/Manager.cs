@@ -7,9 +7,11 @@ using Rails.Rendering;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
-using Rails.Collections;
+using TMPro;
+using Rails.UI;
 using System.Linq;
 using Assets.Scripts.Data;
+using Rails.Collections;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -70,22 +72,36 @@ namespace Rails {
 
 
     #endregion // Properties
-    private GameRules _rules;
+    public GameRules _rules;
+        public GameStartRules _startRules;
 
     /// <summary>
     /// Stores the tracks on the map.
     /// </summary>
-    private static TrackGraph<int> Tracks 
-      => new TrackGraph<int>(() => Enumerable.Repeat(-1, (int)Cardinal.MAX_CARDINAL).ToArray());
+    private static TrackGraph<int> Tracks = new TrackGraph<int>(-1);
 
-    #endregion // Map
+        #endregion // Map
 
-    #region Unity Events
+        #region Unity Events
 
-    private void Awake() {
-      // set singleton reference on awake
-      _singleton = this;
-    }
+        private void Awake()
+        {
+            // set singleton reference on awake
+            _singleton = this;
+            _startRules = FindObjectOfType<GameStartRules>();
+
+            // generate start rules if empty
+            if (_startRules == null)
+            {
+                GameObject go = new GameObject("start rules");
+                _startRules = go.AddComponent<GameStartRules>();
+                _startRules.Players = new StartPlayerInfo[2]
+                {
+                    new StartPlayerInfo() { Name = "Player 1", Color = Color.red },
+                    new StartPlayerInfo() { Name = "Player 2", Color = Color.blue }
+                };
+            }
+        }
 
         private void Start() => GameGraphics.Initialize(MapData);
 
@@ -94,7 +110,6 @@ namespace Rails {
         private List<NodeId> _targetNodes = new List<NodeId>();
         private void Update()
         {
-
             // ---------------------------
             // Test of Graphics component
             // Not production code
@@ -127,8 +142,10 @@ namespace Rails {
             if (GameInput.EnterJustPressed)
             {
                 GameGraphics.CommitPotentialTrack(_currentRoute, Color.red);
+
                 for (int i = 0; i < _currentRoute.Distance; ++i)
                     Tracks[_currentRoute.Nodes[i], _currentRoute.Nodes[i + 1]] = 0;
+
                 _targetNodes.Clear();
             }
         }
@@ -220,7 +237,7 @@ namespace Rails {
     /// <summary>
     /// UI window that shows stats of the current player.
     /// </summary>
-    public GameObject PlayerInfoPanel;
+    public GameHUDManager GameHUDObject;
     /// <summary>
     /// UI windows that show the controls for each phase.
     /// </summary>
@@ -242,16 +259,17 @@ namespace Rails {
       phases = PhasePanels.Length;
 
       // Initiate all player info.
-      players = new PlayerInfo[_rules.maxPlayers];
-      for (int p = 0; p < _rules.maxPlayers; p++)
-        players[p] = new PlayerInfo("Player " + p, Color.white, _rules.moneyStart, 0);
+      players = new PlayerInfo[_startRules.Players.Length];
+      for (int p = 0; p < players.Length; p++)
+        players[p] = new PlayerInfo(_startRules.Players[p].Name, _startRules.Players[p].Color, _rules.MoneyStart, 0);
 
       // Deactivate all panels just in case.
       for (int u = 0; u < phases; u++)
         PhasePanels[u].SetActive(false);
 
       // Activate first turn panel.
-      PhasePanels[1].SetActive(true);
+      currentPhase = 1;
+      PhasePanels[currentPhase].SetActive(true);
       player = players[currentPlayer];
       UpdatePlayerInfo();
     }
@@ -387,13 +405,13 @@ namespace Rails {
     // Private method for upgrading.
     private void UpgradeTrain_(int choice) {
       // If player doesn't have enough money, don't upgrade
-      if (player.money < _rules.trainUpgrade) {
+      if (player.money < _rules.TrainUpgrade) {
         // TODO: Activate failure UI message here.
         return;
       }
 
       // Deduct value from player's money stock and change train value.
-      player.money -= _rules.trainUpgrade;
+      player.money -= _rules.TrainUpgrade;
       player.trainStyle = choice;
       Debug.Log(currentPlayer + " $" + player.money);
       return;
@@ -401,7 +419,7 @@ namespace Rails {
     // Changes the current player
     private int IncrementPlayer() {
       currentPlayer += 1;
-      if (currentPlayer >= _rules.maxPlayers)
+      if (currentPlayer >= _startRules.Players.Length)
         currentPlayer = 0;
       UpdatePlayerInfo();
       return currentPlayer;
@@ -416,11 +434,12 @@ namespace Rails {
     }
     // Updates name and money amount. Placeholder.
     private void UpdatePlayerInfo() {
-      //Transform playertext = PlayerInfoPanel.transform.Find("Player");
-      //playertext.GetComponent<TMP_Text>().text = "Player #" + (currentPlayer + 1);
-      //playertext = PlayerInfoPanel.transform.Find("Money");
-      //playertext.GetComponent<TMP_Text>().text = "$" + players[currentPlayer].money;
+      var player = players[currentPlayer];
+      GameHUDObject.PlayerNameText.text = $"Player #{currentPlayer + 1}";
+      GameHUDObject.PlayerMoneyText.text = $"{player.money:C}";
+      GameHUDObject.PlayerTrainText.text = $"{player.trainStyle}";
     }
+    
     // Cycles through UI screens
     private int UpdatePhase() {
       PhasePanels[currentPhase].SetActive(false);
@@ -432,8 +451,8 @@ namespace Rails {
     }
     // Check if the current player has won.
     private bool CheckWin() {
-      if (player.majorcities >= _rules.winMajorCities &&
-        player.money >= _rules.winMoney) {
+      if (player.majorcities >= _rules.WinMajorCities &&
+        player.money >= _rules.WinMoney) {
         return true;
       }
       return false;
