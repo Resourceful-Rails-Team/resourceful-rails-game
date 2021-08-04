@@ -16,9 +16,8 @@ namespace Assets.Scripts.Data
         public int trainStyle;
         public int majorcities;
         public NodeId train_position;
-        public Stack<NodeId> movepath;
-        public List<Stack<NodeId>> buildpaths;
-        public int currentPath;
+
+        public Queue<NodeId> movepath;
         public int movePathStyle;
         public int buildPathStyle;
 
@@ -30,9 +29,8 @@ namespace Assets.Scripts.Data
             this.trainStyle = train;
             majorcities = 0;
             train_position = new NodeId(0, 0);
-            movepath = new Stack<NodeId>();
-            buildpaths = new List<Stack<NodeId>>();
-            currentPath = 0;
+
+            movepath = new Queue<NodeId>();
             movePathStyle = 0;
             buildPathStyle = 0;
         }
