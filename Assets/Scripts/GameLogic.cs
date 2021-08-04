@@ -1,5 +1,6 @@
 using Rails.Collections;
 using Rails.Data;
+using Rails.Rendering;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,13 @@ namespace Rails {
       return;
     }
     // Builds the track.
-    public static void BuildTrack() {
-      // TODO: Build track between all nodes in stack.
+    public static void BuildTrack(TrackGraph<int> Tracks, List<Route> routes, Color playerColor) {
+      foreach (Route route in routes) {
+        GameGraphics.CommitPotentialTrack(route, playerColor);
 
+        for (int i = 0; i < route.Distance; ++i)
+          Tracks[route.Nodes[i], route.Nodes[i + 1]] = 0;
+      }
       return;
     }
     // Upgrades the train to new if possible.

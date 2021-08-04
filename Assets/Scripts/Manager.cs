@@ -40,44 +40,99 @@ namespace Rails {
 
     #endregion
 
-    #region Map
     #region Properties
     /// <summary>
     /// Map size.
     /// </summary>
     public const int Size = 64;
-
     /// <summary>
     /// Max number of cities.
     /// </summary>
     public const int MaxCities = 32;
-
     /// <summary>
     /// Max number of goods.
     /// </summary>
     public const int MaxGoods = 64;
-
     /// <summary>
     /// Controls the spacing between nodes in terms of Unity units.
     /// </summary>
     public float WSSize = 1f;
 
     /// <summary>
+    /// A collection of game rules.
+    /// </summary>
+    public GameRules _rules;
+    /// <summary>
     /// Stores the layout of the map, including nodes, cities, goods, etc.
     /// </summary>
     [SerializeField]
     public MapData MapData;
+    /// <summary>
+    /// The cost to build a track to a respective NodeType
+    /// </summary>
+    public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
+        new Dictionary<NodeType, int>
+        {
+            { NodeType.Clear,      1 },
+            { NodeType.Mountain,   2 },
+            { NodeType.SmallCity,  3 },
+            { NodeType.MediumCity, 3 },
+            { NodeType.MajorCity,  5 },
+            { NodeType.Water, 1000   },
+        }
+    );
+    /// <summary>
+    /// The cost to build over a river
+    /// </summary>
+    public const int RiverCost = 2;
+    /// <summary>
+    /// The trains that players can use.
+    /// </summary>
+    public TrainData[] trainData;
+    /// <summary>
+    /// UI windows that show the controls for each phase.
+    /// </summary>
+    public GameObject[] PhasePanels;
+    /// <summary>
+    /// UI window that shows stats of the current player.
+    /// </summary>
+    //public GameObject PlayerInfoPanel;
 
+		#endregion // Properties
 
-    #endregion // Properties
-    private GameRules _rules;
-
+		#region Private Fields
     /// <summary>
     /// Stores the tracks on the map.
     /// </summary>
     private static TrackGraph<int> Tracks = new TrackGraph<int>(-1);
-
-    #endregion // Map
+    /// <summary>
+    /// Stores info for all players.
+    /// </summary>
+    private PlayerInfo[] players;
+    /// <summary>
+    /// A reference to the current players info.
+    /// </summary>
+    private PlayerInfo player;
+    /// <summary>
+    /// Total number of phases in a turn.
+    /// </summary>
+    private int maxPhases;
+    /// <summary>
+    /// Player number whose turn it currently is.
+    /// </summary>
+    private int currentPlayer;
+    /// <summary>
+    /// Phase of the turn of current player.
+    /// </summary>
+    private int currentPhase;
+    /// <summary>
+    /// 
+    /// </summary>
+    private int currentPath;
+    private List<Queue<NodeId>> buildPaths;
+    private List<Route> routes;
+    private GameToken _highlightToken;
+    #endregion
 
     #region Unity Events
 
@@ -86,56 +141,33 @@ namespace Rails {
       _singleton = this;
     }
 
-        private void Start() => GameGraphics.Initialize(MapData);
+    private void Start() {
+      GameGraphics.Initialize(MapData);
+      GameLoopSetup();
+    }
 
-        private GameToken _highlightToken;
-        private Route _currentRoute = null;
-        private List<NodeId> _targetNodes = new List<NodeId>();
-        private void Update()
-        {
-            // ---------------------------
-            // Test of Graphics component
-            // Not production code
-            //
-            _highlightToken?.ResetColor();
-            var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
+    private void Update() {
+      _highlightToken?.ResetColor();
+      var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
 
-            if (highlightToken != null)
-            {
-                highlightToken.SetColor(Color.yellow);
-                _highlightToken = highlightToken;
-            }
-
-            if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds && !_targetNodes.Contains(GameInput.MouseNodeId))
-            {
-                _targetNodes.Add(GameInput.MouseNodeId);
-                if (_targetNodes.Count > 1)
-                {
-                    GameGraphics.DestroyPotentialTrack(_currentRoute);
-                    _currentRoute = Pathfinding.CheapestBuild(Tracks, MapData, _targetNodes.ToArray());
-                    GameGraphics.GeneratePotentialTrack(_currentRoute);
-                }
-            }
-
-            if (GameInput.DeleteJustPressed)
-            {
-                GameGraphics.DestroyPotentialTrack(_currentRoute);
-                _targetNodes.Clear();
-            }
-            if (GameInput.EnterJustPressed)
-            {
-                GameGraphics.CommitPotentialTrack(_currentRoute, Color.red);
-
-                for (int i = 0; i < _currentRoute.Distance; ++i)
-                    Tracks[_currentRoute.Nodes[i], _currentRoute.Nodes[i + 1]] = 0;
-
-                _targetNodes.Clear();
-            }
-        }
+      if (highlightToken != null) {
+        highlightToken.SetColor(Color.yellow);
+        _highlightToken = highlightToken;
+      }
+      if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds) {
+        EnqueueNode(GameInput.MouseNodeId);
+      }
+      if (GameInput.DeleteJustPressed) {
+        ClearQueue();
+      }
+      if (GameInput.EnterJustPressed) {
+        BuildTrack();
+      }
+    }
 
 #if UNITY_EDITOR
 
-            private void OnDrawGizmos() {
+    private void OnDrawGizmos() {
       List<Action> postDraws = new List<Action>();
       if (MapData == null || MapData.Nodes == null || MapData.Nodes.Length == 0)
         return;
@@ -189,76 +221,13 @@ namespace Rails {
         postDraw?.Invoke();
     }
 
-#endif 
+#endif
 
-#endregion
+		#endregion
 
-    #region Game Loop
-
-    #region Public Data
-    
-    // The cost to build a track to a respective NodeType
-    public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
-        new Dictionary<NodeType, int>
-        {
-            { NodeType.Clear,      1 },
-            { NodeType.Mountain,   2 },
-            { NodeType.SmallCity,  3 },
-            { NodeType.MediumCity, 3 },
-            { NodeType.MajorCity,  5 },
-            { NodeType.Water, 1000   },
-        }
-    );
-
-
-    // The cost to build over a river
-    public const int RiverCost = 2;
-
-    /// <summary>
-    /// The trains that players can use.
-    /// </summary>
-    public TrainData[] trainData;
-    /// <summary>
-    /// UI window that shows stats of the current player.
-    /// </summary>
-    public GameObject PlayerInfoPanel;
-    /// <summary>
-    /// UI windows that show the controls for each phase.
-    /// </summary>
-    public GameObject[] PhasePanels;
-    #endregion
-
-    #region Private Data
-    PlayerInfo[] players;
-    PlayerInfo player;
-    int maxPhases;
-    int currentPlayer = 0;
-    int currentPhase = -2;
-    #endregion
-
-    /// <summary>
-    /// Sets up the current game.
-    /// </summary>
-    private void GameLoopSetup() {
-      maxPhases = PhasePanels.Length;
-
-      // Initiate all player info.
-      players = new PlayerInfo[_rules.maxPlayers];
-      for (int p = 0; p < _rules.maxPlayers; p++)
-        players[p] = new PlayerInfo("Player " + p, Color.white, _rules.moneyStart, 0);
-
-      // Deactivate all panels just in case.
-      for (int u = 0; u < maxPhases; u++)
-        PhasePanels[u].SetActive(false);
-
-      // Activate first turn panel.
-      PhasePanels[1].SetActive(true);
-      player = players[currentPlayer];
-      UpdatePlayerInfo();
-    }
-
-    // Moves the train to final node in path.
-    public void MoveTrain() {
+		#region Public
+		// Moves the train to final node in path.
+		public void MoveTrain() {
       // TODO: Move train to last pushed node.
       // Moving only updates the phase.
       GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
@@ -274,7 +243,7 @@ namespace Rails {
 
     // Builds the track between the nodes in path.
     public void BuildTrack() {
-      GameLogic.BuildTrack();
+      GameLogic.BuildTrack(Tracks, routes, player.color);
       EndTurn();
       return;
     }
@@ -285,6 +254,68 @@ namespace Rails {
       return;
     }
 
+		// Places the current player's train at position.
+		public void PlaceTrain(NodeId position) {
+      player.train_position = position;
+      return;
+    }
+
+    // Add Node to Queue
+    public void EnqueueNode(NodeId node) {
+      // Add to move queue if in move phase.
+      if (currentPhase == 0)
+        player.movepath.Enqueue(node);
+			// Add to build queue if in build phase.
+			else {
+        buildPaths[currentPath].Enqueue(node);
+        PlannedTracks();
+			}
+		}
+    // Clear current Queue
+    public void ClearQueue() {
+      // Move Phase
+      if (currentPhase == 0)
+        player.movepath.Clear();
+			else {
+        GameGraphics.DestroyPotentialTrack(routes[currentPath]);
+        buildPaths[currentPath].Clear();
+        PlannedTracks();
+			}
+		}
+		#endregion
+
+		#region Private
+		/// <summary>
+		/// Sets up the current game.
+		/// </summary>
+		private void GameLoopSetup() {
+      // Assign integers
+      currentPlayer = 0;
+      currentPhase = -2;
+      currentPath = 0;
+      maxPhases = PhasePanels.Length;
+
+      //
+      buildPaths = new List<Queue<NodeId>>();
+      buildPaths.Add(new Queue<NodeId>());
+      routes = new List<Route>();
+      routes.Add(null);
+
+      // Initiate all player info.
+      players = new PlayerInfo[_rules.maxPlayers];
+      for (int p = 0; p < _rules.maxPlayers; p++)
+        players[p] = new PlayerInfo("Player " + p, Color.white, _rules.moneyStart, 0);
+      player = players[currentPlayer];
+
+      // Deactivate all panels just in case.
+      for (int u = 0; u < maxPhases; u++)
+        PhasePanels[u].SetActive(false);
+
+      // Activate first turn panel.
+      PhasePanels[1].SetActive(true);
+
+      return;
+    }
     // Ends the turn and changes phase.
     private void EndTurn() {
       if (maxPhases >= 0) {
@@ -294,60 +325,21 @@ namespace Rails {
       else {
         GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, _rules.maxPlayers);
       }
+      player = players[currentPlayer];
       return;
     }
-
-    // Places the current player's train at position.
-    public void PlaceTrain(NodeId position) {
-      player.train_position = position;
-      return;
-    }
-
-    // Path Management
-    // Adds nodes to a path stack
-    // Used for building and movement
-    public void PushNode(NodeId node) {
-      // Phase 0 is the movement phase.
-      if (currentPhase == 0 && !player.movepath.Contains(node)) {
-        player.movepath.Push(node);
-        return;
+    // Show the planned route on the map.
+    private void PlannedTracks() {
+      for (int p = 0; p < buildPaths.Count; p++) {
+        if (buildPaths[p].Count > 1) {
+          if (routes[p] != null)
+            GameGraphics.DestroyPotentialTrack(routes[p]);
+          routes[p] = Pathfinding.CheapestBuild(Tracks, MapData, buildPaths[p].ToArray());
+          GameGraphics.GeneratePotentialTrack(routes[p]);
+        }
       }
-      // Other phases involve building.
-      // Check every path for existing node.
-      foreach (Stack<NodeId> stack in player.buildpaths) {
-        if (stack.Contains(node))
-          return;
-      }
-      if (player.currentPath == -1) {
-        player.buildpaths.Add(new Stack<NodeId>());
-        player.currentPath++;
-      }
-      player.buildpaths[player.currentPath].Push(node);
-      return;
-    }
-    public NodeId PopNode() {
-      if (currentPhase == 0) {
-        return player.movepath.Pop();
-      }
-      return player.buildpaths[player.currentPath].Pop();
-    }
-    public void ClearPath(int path) {
-      // Clear the path specified.
-      if (currentPhase == 0) {
-        player.movepath.Clear();
-      }
-      player.buildpaths.RemoveAt(path);
-      if (player.buildpaths.Count == 0)
-        player.currentPath = -1;
-      return;
-    }
-    public void SwitchPath(int path) {
-      // Switch to a different building path.
-      player.currentPath = path;
       return;
     }
     #endregion
-
-
   }
 }
