@@ -16,25 +16,24 @@ MonoBehaviour:
   DefaultPlayerTemplate: {fileID: 11400000, guid: 143a27dbba0edcc438c8831165c586aa, type: 2}
   Board: {fileID: 8168019083947493543, guid: 2958ce6622ebf684cb14bed443b177d1, type: 3}
   DefaultRules:
-    maxPlayers: 6
-    moneyStart: 50
-    maxBuild: 20
-    trainUpgrade: 20
-    winMajorCities: 6
-    winMoney: 250
-    altTrackCost: 4
-    baseTrainSpecs:
-      goodsTotal: 9
-      movePoints: 2
-    fastTrainSpecs:
-      goodsTotal: 12
-      movePoints: 2
-    heavyTrainSpecs:
-      goodsTotal: 9
-      movePoints: 3
-    superTrainSpecs:
-      goodsTotal: 12
-      movePoints: 3
+    MoneyStart: 50
+    MaxBuild: 20
+    TrainUpgrade: 20
+    WinMajorCities: 6
+    WinMoney: 250
+    AltTrackCost: 4
+    BaseTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
+    FastTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
+    HeavyTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
+    SuperTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
   Nodes:
   - Type: 5
     Id:
@@ -2562,7 +2561,7 @@ MonoBehaviour:
       Y: 36
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 6
       Y: 37
@@ -2580,13 +2579,13 @@ MonoBehaviour:
       Y: 39
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 6
       Y: 40
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 6
       Y: 41
@@ -2940,7 +2939,7 @@ MonoBehaviour:
       Y: 35
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 7
       Y: 36
@@ -9432,18 +9431,18 @@ MonoBehaviour:
       Y: 29
     Rivers: 000000000000
     CityId: -1
-  - Type: 2
+  - Type: 0
     Id:
       X: 24
       Y: 30
     Rivers: 000000000000
-    CityId: 31
-  - Type: 0
+    CityId: 0
+  - Type: 2
     Id:
       X: 24
       Y: 31
     Rivers: 000000000000
-    CityId: -1
+    CityId: 31
   - Type: 0
     Id:
       X: 24
