@@ -13,27 +13,27 @@ namespace Rails.Data
         /// <summary>
         /// The amount of money each player starts with.
         /// </summary>
-        public int MoneyStart = 100;
+        public int MoneyStart = 50;
         /// <summary>
         /// The max amount of money that can be spent building.
         /// </summary>
-        public int MaxBuild = 15;
+        public int MaxBuild = 20;
         /// <summary>
         /// The cost to for players to upgrade their train.
         /// </summary>
-        public int TrainUpgrade = 15;
+        public int TrainUpgrade = 20;
         /// <summary>
         /// The number of major cities that must be connected to win.
         /// </summary>
-        public int WinMajorCities = 5;
+        public int WinMajorCities = 6;
         /// <summary>
         /// The amount of money needed to win.
         /// </summary>
-        public int WinMoney = 1000;
+        public int WinMoney = 250;
         /// <summary>
         /// The Cost for a player to use another player's track
         /// </summary>
-        public int AltTrackCost = 15;
+        public int AltTrackCost = 4;
 
         public TrainSpecs BaseTrainSpecs;
         public TrainSpecs FastTrainSpecs;
