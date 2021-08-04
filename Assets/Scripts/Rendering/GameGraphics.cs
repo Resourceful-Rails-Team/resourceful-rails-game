@@ -72,7 +72,7 @@ namespace Rails.Rendering
         /// </summary>
         /// <param name="route">The `Route` to build the track on</param>
         /// <returns>An index representing the ID of the track</returns>
-        public static void GeneratePotentialTrack(Route route, Color color)
+        public static void GeneratePotentialTrack(Route route)
         {
             var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
             for (int i = 0; i < route.Nodes.Count - 1; ++i)
@@ -88,7 +88,7 @@ namespace Rails.Rendering
                 trackToken.transform.rotation = rotation;
 
                 // Highlight the token and add it to the token list
-                trackToken.SetColor(color);
+                trackToken.SetColor(Color.yellow);
                 trackTokens.Add(trackToken);
             }
 
@@ -133,17 +133,17 @@ namespace Rails.Rendering
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);
-                MoveTrain(0, route.Nodes);
+                //MoveTrain(1, route);
             }
         }
 
         /// <summary>
         /// Highlights or dehighlights a given track `Route`
-        /// Skips any route index that is not on the track map.
+        /// Skips any route index that is not on the track map
         /// </summary>
         /// <param name="route">The `Route` to alter</param>
-        /// <param name="highlighted">The highlight color, or the GameToken's default if the value is null</param>
-        public static void HighlightRoute(Route route, Color ? highlightColor)
+        /// <param name="highlighted">Whether it should be highlighted, or color reset</param>
+        public static void SetHighlightRoute(Route route, bool highlighted)
         {
             // Check each Route node to see if it exists in the track token map.
             // If it does, (de)activate its highlight.
@@ -151,8 +151,8 @@ namespace Rails.Rendering
             {
                 if (_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var token))
                 {
-                    if (highlightColor.HasValue)
-                        token.SetColor(highlightColor.Value);
+                    if (highlighted)
+                        token.SetColor(Color.yellow);
                     else
                         token.ResetColor();
                 }
@@ -182,7 +182,7 @@ namespace Rails.Rendering
         /// </summary>
         /// <param name="player">The player index to move.</param>
         /// <param name="route">The nodes the player train will traverse on.</param>
-        public static void MoveTrain(int player, List<NodeId> route) => _singleton.StartCoroutine(MoveTrain(player, route, 5.0f));
+        public static void MoveTrain(int player, Route route) => _singleton.StartCoroutine(MoveTrain(player, route, 5.0f));
         
         #endregion
 
@@ -235,9 +235,6 @@ namespace Rails.Rendering
                             var token = Instantiate(modelToken, _singleton.transform);
                             token.transform.position = pos;
 
-                            if (node.Type == NodeType.Mountain)
-                                token.SetPrimaryColor(new Color(0.25f, 0.25f, 0.65f));
-
                             _mapTokens[nodeId] = token;
                         }
                     }
@@ -260,11 +257,11 @@ namespace Rails.Rendering
         }
 
         // Moves a player train through the given `Route`
-        private static IEnumerator MoveTrain(int player, List<NodeId> route, float speed)
+        private static IEnumerator MoveTrain(int player, Route route, float speed)
         {
             if (player < 0 || player >= _playerTrains.Length)
                 yield break;
-            if (route == null || route.Count - 1 == 0)
+            if (route == null || route.Distance == 0)
                 yield break;
 
             if (_currentlyRunningTrains.Contains(player))
@@ -278,23 +275,23 @@ namespace Rails.Rendering
             tr.gameObject.SetActive(true);
 
             Vector3 nextPoint;
-            var nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(route[0], route[1]));
+            var nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(route.Nodes[0], route.Nodes[1]));
 
-            tr.position = Utilities.GetPosition(route[0]);
+            tr.position = Utilities.GetPosition(route.Nodes[0]);
             tr.rotation = nextRotation;
 
-            for (int i = 0; i < route.Count - 1; ++i)
+            for (int i = 0; i < route.Distance; ++i)
             {
-                nextPoint = Utilities.GetPosition(route[i + 1]);
-                nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(route[i], route[i + 1]));
+                nextPoint = Utilities.GetPosition(route.Nodes[i + 1]);
+                nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1]));
 
                 while (tr.position != nextPoint)
                 {
                     if (!_currentlyRunningTrains.Contains(player))
                     {
-                        tr.position = Utilities.GetPosition(route.Last());
+                        tr.position = Utilities.GetPosition(route.Nodes.Last());
                         tr.rotation = Utilities.GetCardinalRotation(
-                            Utilities.CardinalBetween(route[route.Count - 2], route.Last())
+                            Utilities.CardinalBetween(route.Nodes[route.Nodes.Count - 2], route.Nodes.Last())
                         );
                         yield break;
                     }
