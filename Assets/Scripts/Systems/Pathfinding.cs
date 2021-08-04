@@ -435,7 +435,7 @@ namespace Rails.Systems
                 // add the cost.
                 if(!tracksPaid[tracks[current, previous[current]]])
                 {
-                    cost += rules.altTrackCost;
+                    cost += rules.AltTrackCost;
                     tracksPaid[tracks[current, previous[current]]] = true;
                 }
 
@@ -484,7 +484,7 @@ namespace Rails.Systems
                 // add the cost.
                 if(!tracksPaid[tracks[path[i], path[i+1]]])
                 {
-                    cost += rules.altTrackCost;
+                    cost += rules.AltTrackCost;
                     tracksPaid[tracks[path[i], path[i+1]]] = true;
                 }
             

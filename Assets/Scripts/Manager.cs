@@ -7,9 +7,11 @@ using Rails.Rendering;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
-using Rails.Collections;
+using TMPro;
+using Rails.UI;
 using System.Linq;
 using Assets.Scripts.Data;
+using Rails.Collections;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -97,9 +99,9 @@ namespace Rails {
     /// UI window that shows stats of the current player.
     /// </summary>
     //public GameObject PlayerInfoPanel;
-
+    public GameStartRules _startRules;
 		#endregion // Properties
-
+     
 		#region Private Fields
     /// <summary>
     /// Stores the tracks on the map.
@@ -134,12 +136,26 @@ namespace Rails {
     private GameToken _highlightToken;
     #endregion
 
-    #region Unity Events
+        #region Unity Events
 
-    private void Awake() {
-      // set singleton reference on awake
-      _singleton = this;
-    }
+        private void Awake()
+        {
+            // set singleton reference on awake
+            _singleton = this;
+            _startRules = FindObjectOfType<GameStartRules>();
+
+            // generate start rules if empty
+            if (_startRules == null)
+            {
+                GameObject go = new GameObject("start rules");
+                _startRules = go.AddComponent<GameStartRules>();
+                _startRules.Players = new StartPlayerInfo[2]
+                {
+                    new StartPlayerInfo() { Name = "Player 1", Color = Color.red },
+                    new StartPlayerInfo() { Name = "Player 2", Color = Color.blue }
+                };
+            }
+        }
 
     private void Start() {
       GameGraphics.Initialize(MapData);
@@ -221,9 +237,24 @@ namespace Rails {
         postDraw?.Invoke();
     }
 
-#endif
+    /// <summary>
+    /// Sets up the current game.
+    /// </summary>
+    private void GameLoopSetup() {
+      phases = PhasePanels.Length;
 
-		#endregion
+      // Initiate all player info.
+      players = new PlayerInfo[_startRules.Players.Length];
+      for (int p = 0; p < players.Length; p++)
+        players[p] = new PlayerInfo(_startRules.Players[p].Name, _startRules.Players[p].Color, _rules.MoneyStart, 0);
+
+      // Activate first turn panel.
+      currentPhase = 1;
+      PhasePanels[currentPhase].SetActive(true);
+      player = players[currentPlayer];
+      UpdatePlayerInfo();
+    }
+
 
 		#region Public
 		// Moves the train to final node in path.
@@ -316,6 +347,15 @@ namespace Rails {
 
       return;
     }
+
+    // Updates name and money amount. Placeholder.
+    private void UpdatePlayerInfo() {
+      var player = players[currentPlayer];
+      GameHUDObject.PlayerNameText.text = $"Player #{currentPlayer + 1}";
+      GameHUDObject.PlayerMoneyText.text = $"{player.money:C}";
+      GameHUDObject.PlayerTrainText.text = $"{player.trainStyle}";
+    }
+
     // Ends the turn and changes phase.
     private void EndTurn() {
       if (maxPhases >= 0) {
