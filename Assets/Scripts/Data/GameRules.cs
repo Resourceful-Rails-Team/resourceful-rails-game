@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Rails.Data
 {
@@ -6,40 +8,36 @@ namespace Rails.Data
     /// A collection of rules associated with a game of Resourceful Rails
     /// </summary>
     [Serializable]
-    public struct GameRules
+    public class GameRules
     {
-        /// <summary>
-        /// The number of players playing this game.
-        /// </summary>
-        public int maxPlayers;
         /// <summary>
         /// The amount of money each player starts with.
         /// </summary>
-        public int moneyStart;
+        public int MoneyStart = 50;
         /// <summary>
         /// The max amount of money that can be spent building.
         /// </summary>
-        public int maxBuild;
+        public int MaxBuild = 20;
         /// <summary>
         /// The cost to for players to upgrade their train.
         /// </summary>
-        public int trainUpgrade;
+        public int TrainUpgrade = 20;
         /// <summary>
         /// The number of major cities that must be connected to win.
         /// </summary>
-        public int winMajorCities;
+        public int WinMajorCities = 6;
         /// <summary>
         /// The amount of money needed to win.
         /// </summary>
-        public int winMoney;
+        public int WinMoney = 250;
         /// <summary>
         /// The Cost for a player to use another player's track
         /// </summary>
-        public int altTrackCost;
+        public int AltTrackCost = 4;
 
-        public TrainSpecs baseTrainSpecs;
-        public TrainSpecs fastTrainSpecs;
-        public TrainSpecs heavyTrainSpecs;
-        public TrainSpecs superTrainSpecs;
+        public TrainSpecs BaseTrainSpecs;
+        public TrainSpecs FastTrainSpecs;
+        public TrainSpecs HeavyTrainSpecs;
+        public TrainSpecs SuperTrainSpecs;
     }
 }
