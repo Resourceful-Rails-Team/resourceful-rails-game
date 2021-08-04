@@ -135,7 +135,7 @@ namespace Rails {
 
 #if UNITY_EDITOR
 
-            private void OnDrawGizmos() {
+        private void OnDrawGizmos() {
       List<Action> postDraws = new List<Action>();
       if (MapData == null || MapData.Nodes == null || MapData.Nodes.Length == 0)
         return;

@@ -235,6 +235,9 @@ namespace Rails.Rendering
                             var token = Instantiate(modelToken, _singleton.transform);
                             token.transform.position = pos;
 
+                            if (node.Type == NodeType.Mountain)
+                                token.SetPrimaryColor(new Color(0.5f, 0.5f, 0.65f));
+
                             _mapTokens[nodeId] = token;
                         }
                     }

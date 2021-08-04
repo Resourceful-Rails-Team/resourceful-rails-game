@@ -38,10 +38,8 @@ namespace Rails.Controls
             Rotate(GameInput.RotateInput);
             Zoom(GameInput.ZoomInput);
 
-            transform.position = Vector3.Lerp(transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
-            transform.rotation = targetTransform.rotation;
-
-            
+            transform.position = Vector3.Slerp(transform.position, targetTransform.position, lerpSpeed * Time.deltaTime);
+            transform.rotation = targetTransform.rotation; 
         }
         #region Methods
 
