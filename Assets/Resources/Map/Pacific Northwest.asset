@@ -16,26 +16,24 @@ MonoBehaviour:
   DefaultPlayerTemplate: {fileID: 11400000, guid: 143a27dbba0edcc438c8831165c586aa, type: 2}
   Board: {fileID: 8168019083947493543, guid: 2958ce6622ebf684cb14bed443b177d1, type: 3}
   DefaultRules:
-    maxPlayers: 6
-    moneyStart: 50
-    maxBuild: 20
-    trainUpgrade: 20
-    winMajorCities: 6
-    winMoney: 250
-    altTrackCost: 4
-    baseTrainSpecs:
-      goodsTotal: 9
-      movePoints: 2
-    fastTrainSpecs:
-      goodsTotal: 12
-      movePoints: 2
-    heavyTrainSpecs:
-      goodsTotal: 9
-      movePoints: 3
-    superTrainSpecs:
-      goodsTotal: 12
-      movePoints: 3
-  WSSize: 1
+    MoneyStart: 50
+    MaxBuild: 20
+    TrainUpgrade: 20
+    WinMajorCities: 6
+    WinMoney: 250
+    AltTrackCost: 4
+    BaseTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
+    FastTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
+    HeavyTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
+    SuperTrainSpecs:
+      goodsTotal: 0
+      movePoints: 0
   Nodes:
   - Type: 5
     Id:
@@ -1327,19 +1325,19 @@ MonoBehaviour:
       Y: 22
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 3
       Y: 23
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 3
       Y: 24
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 3
       Y: 25
@@ -1441,12 +1439,12 @@ MonoBehaviour:
       Y: 41
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 1
     Id:
       X: 3
       Y: 42
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 3
@@ -1741,24 +1739,24 @@ MonoBehaviour:
       Y: 27
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 2
     Id:
       X: 4
       Y: 28
     Rivers: 000000000000
-    CityId: 0
-  - Type: 1
+    CityId: 45
+  - Type: 5
     Id:
       X: 4
       Y: 29
     Rivers: 000000000000
     CityId: 0
-  - Type: 2
+  - Type: 5
     Id:
       X: 4
       Y: 30
     Rivers: 000000000000
-    CityId: 45
+    CityId: 0
   - Type: 5
     Id:
       X: 4
@@ -1831,7 +1829,7 @@ MonoBehaviour:
       Y: 42
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 4
       Y: 43
@@ -2209,7 +2207,7 @@ MonoBehaviour:
       Y: 41
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 5
       Y: 42
@@ -2557,13 +2555,13 @@ MonoBehaviour:
       Y: 35
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 6
       Y: 36
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 6
       Y: 37
@@ -2581,13 +2579,13 @@ MonoBehaviour:
       Y: 39
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 6
       Y: 40
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 6
       Y: 41
@@ -2599,7 +2597,7 @@ MonoBehaviour:
       Y: 42
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 6
       Y: 43
@@ -2935,13 +2933,13 @@ MonoBehaviour:
       Y: 34
     Rivers: 000000000000
     CityId: 6
-  - Type: 0
+  - Type: 5
     Id:
       X: 7
       Y: 35
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 7
       Y: 36
@@ -2959,7 +2957,7 @@ MonoBehaviour:
       Y: 38
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 7
       Y: 39
@@ -2971,18 +2969,18 @@ MonoBehaviour:
       Y: 40
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 7
       Y: 41
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 7
       Y: 42
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 7
@@ -3763,7 +3761,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 9
       Y: 45
@@ -4531,7 +4529,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 11
       Y: 45
@@ -5299,7 +5297,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 13
       Y: 45
@@ -6067,12 +6065,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 15
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 15
@@ -6835,12 +6833,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 17
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 17
@@ -7603,7 +7601,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 19
       Y: 45
@@ -8371,7 +8369,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 21
       Y: 45
@@ -9139,7 +9137,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 23
       Y: 45
@@ -9433,21 +9431,21 @@ MonoBehaviour:
       Y: 29
     Rivers: 000000000000
     CityId: -1
-  - Type: 2
+  - Type: 0
     Id:
       X: 24
       Y: 30
+    Rivers: 000000000000
+    CityId: 0
+  - Type: 2
+    Id:
+      X: 24
+      Y: 31
     Rivers: 000000000000
     CityId: 31
   - Type: 0
     Id:
       X: 24
-      Y: 31
-    Rivers: 000000000000
-    CityId: -1
-  - Type: 0
-    Id:
-      X: 24
       Y: 32
     Rivers: 000000000000
     CityId: -1
@@ -9907,7 +9905,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 25
       Y: 45
@@ -10675,7 +10673,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 27
       Y: 45
@@ -11443,7 +11441,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 29
       Y: 45
@@ -12211,7 +12209,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 31
       Y: 45
@@ -12979,7 +12977,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 1
+  - Type: 5
     Id:
       X: 33
       Y: 45
@@ -13747,7 +13745,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 35
       Y: 45
@@ -14515,12 +14513,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 37
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 37
@@ -15283,12 +15281,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 39
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 39
@@ -16051,12 +16049,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 41
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 41
@@ -16819,12 +16817,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 43
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 43
@@ -17587,7 +17585,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 45
       Y: 45
@@ -18355,7 +18353,7 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: 0
-  - Type: 0
+  - Type: 5
     Id:
       X: 47
       Y: 45
@@ -19123,12 +19121,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 49
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 49
@@ -19891,12 +19889,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 51
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 51
@@ -20659,12 +20657,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 53
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 53
@@ -21427,12 +21425,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 55
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 55
@@ -22195,12 +22193,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 57
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 57
@@ -22584,7 +22582,7 @@ MonoBehaviour:
       X: 58
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 58
@@ -22963,12 +22961,12 @@ MonoBehaviour:
       Y: 44
     Rivers: 000000000000
     CityId: -1
-  - Type: 0
+  - Type: 5
     Id:
       X: 59
       Y: 45
     Rivers: 000000000000
-    CityId: -1
+    CityId: 0
   - Type: 5
     Id:
       X: 59

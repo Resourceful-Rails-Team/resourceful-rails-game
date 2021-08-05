@@ -125,5 +125,36 @@ namespace Rails.ScriptableObjects
             .Where(i => Nodes[i].CityId == Cities.IndexOf(city))
             .Select(i => NodeId.FromSingleId(i))
             .ToArray(); 
+        
+        /// <summary>
+        /// Returns the Bounds of the map - pertaining to the min and max
+        /// non-water Node, rather than the actual min-max Node.
+        /// </summary>
+        public Bounds MapNodeBounds 
+        {
+            get
+            {
+                int minX = Manager.Size, minY = Manager.Size, maxX = 0, maxY = 0;
+
+                for(int i = 0; i < Manager.Size * Manager.Size; ++i)
+                {
+                    if(Nodes[i].Type != NodeType.Water)
+                    {
+                        var nodeId = NodeId.FromSingleId(i);
+
+                        if (nodeId.X < minX) minX = nodeId.X;
+                        if (nodeId.Y < minY) minY = nodeId.Y;
+
+                        if (nodeId.X > maxX) maxX = nodeId.X;
+                        if (nodeId.Y > maxY) maxY = nodeId.Y;
+                    }
+                }
+                return new Bounds
+                {
+                    min = Utilities.GetPosition(new NodeId(minX, minY)),
+                    max = Utilities.GetPosition(new NodeId(maxX, maxY))
+                };
+            }
+        }
     }
 }

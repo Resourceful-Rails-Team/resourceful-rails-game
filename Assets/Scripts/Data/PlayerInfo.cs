@@ -17,7 +17,7 @@ namespace Assets.Scripts.Data
         public int majorcities;
         public NodeId train_position;
 
-        public Queue<NodeId> movepath;
+        public List<NodeId> movepath;
         public int movePathStyle;
         public int buildPathStyle;
 
@@ -30,7 +30,7 @@ namespace Assets.Scripts.Data
             majorcities = 0;
             train_position = new NodeId(0, 0);
 
-            movepath = new Queue<NodeId>();
+            movepath = new List<NodeId>();
             movePathStyle = 0;
             buildPathStyle = 0;
         }
