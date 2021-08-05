@@ -149,7 +149,7 @@ namespace Rails.Systems
             int deckIndex = 0;
 
             // Sort demands by City
-            demands.Sort((first, second) => first.City.Name.CompareTo(second.City.Name));
+            SortRandom(demands);
 
             // Add each demand to the deckBuilder in turn. Add one per card, 
             // iterating through the whole deck before adding to the same card
@@ -166,27 +166,7 @@ namespace Rails.Systems
                 demands.RemoveAt(demands.Count - 1);
             }
 
-            _drawPile.AddRange(deckBuilder.Select(card => card.ToArray()));
-
-            // Ensure that each Demand on a card is shuffled with
-            // one another
-            for(int i = 0; i < DemandCardCount; ++i)
-            {
-                var indices = new int [] 
-                { 
-                    UnityEngine.Random.Range(0, 3), 
-                    UnityEngine.Random.Range(0, 3), 
-                    UnityEngine.Random.Range(0, 3) 
-                };
-                foreach(
-                    (int index1, int index2) in 
-                    indices.Zip(Enumerable.Range(0, 3), (one, two) => Tuple.Create(one, two))
-                ) {
-                    var temp = _drawPile[i][index1];
-                    _drawPile[i][index1] = _drawPile[i][index2];
-                    _drawPile[i][index2] = temp;
-                }
-            }
+            _drawPile.AddRange(deckBuilder.Select(card => card.ToArray())); 
 
             // Add all draw cards to the discard pile, to
             // ensure the deck is properly shuffled on start
@@ -195,6 +175,17 @@ namespace Rails.Systems
                 _discardPile.Add(_drawPile[i]);
                 _drawPile.RemoveAt(i);
             }
+        }
+
+        private static void SortRandom(List<Demand> demands)
+        {
+            var shuffleChar = (char)(97 + UnityEngine.Random.Range(0, 26));
+            demands.Sort(
+                (first, second) => 
+                    (shuffleChar + first.City.Name.Substring(1)).CompareTo(
+                        shuffleChar + second.City.Name.Substring(1).ToString()
+                    )
+            );
         }
 
         /// <summary>
