@@ -1,5 +1,6 @@
 using Rails.Collections;
 using Rails.Data;
+using Rails.Systems;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace Rails
         private NodeId nodeSW = new NodeId(0, 1);
         private NodeId nodeNW = new NodeId(0, 2);
 
-        private void Awake()
+        private void Start()
         {
             // PriorityQueue
             TestMethod(TestPriorityQueueOrder);
@@ -33,6 +34,9 @@ namespace Rails
             TestMethod(TestCardinalBetween);
             TestMethod(TestPointTowards);
             TestThrowsException(TestCardinalBetweenException, typeof(ArgumentException));
+
+            // Deck
+            TestMethod(TestNoCityRepeats);
         }
 
         #region PriorityQueueTests 
@@ -144,6 +148,23 @@ namespace Rails
             Assert(Utilities.PointTowards(nodeMid, Cardinal.S) == nodeS);
             Assert(Utilities.PointTowards(nodeMid, Cardinal.SW) == nodeSW);
             Assert(Utilities.PointTowards(nodeMid, Cardinal.NW) == nodeNW);
+        }
+        #endregion
+
+        #region DeckTests
+        private void TestNoCityRepeats()
+        {
+            List<Demand[]> demandCards = new List<Demand[]>();
+            for (int i = 0; i < Deck.DemandCardCount; ++i)
+                demandCards.Add(Deck.DrawOne());
+
+            foreach (var demandCard in demandCards)
+            {
+                foreach (var demand in demandCard)
+                    Assert(!demandCard.Any(d => d != demand && d.City == demand.City));
+
+                Deck.Discard(demandCard);
+            }
         }
         #endregion
     }

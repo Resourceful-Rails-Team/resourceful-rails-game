@@ -40,8 +40,8 @@ namespace Rails.Systems
                 _manager.MapData.AllCitiesOfType(NodeType.MediumCity),
                 _manager.MapData.AllCitiesOfType(NodeType.MajorCity)
             };
-            
-            
+
+
             // Grab all used Goods
             var goods = _manager.MapData.Goods.Where(g => _manager.MapData.LocationsOfGood(g).Length > 0).ToArray();
 
@@ -53,7 +53,7 @@ namespace Rails.Systems
                 var ids = _manager.MapData.LocationsOfGood(goods[i]);
                 goodsPositions.Add(ids[0]);
             }
-            
+
             // Ensures an even selection of the cities per Demand
             // by removing used ones
             var citySelectionLists = new List<City>[3]
@@ -62,17 +62,17 @@ namespace Rails.Systems
                 new List<City>(cities[1].Length),
                 new List<City>(cities[2].Length),
             };
-            
+
             // Generate 3x the amount of Demand cards
             // as each has three different Demands on them
-            while(demands.Count < DemandCardCount * 3)
+            while (demands.Count < DemandCardCount * 3)
             {
                 // Cycle through all cities per City type
                 for (int i = 0; i < cities.Length; ++i)
                 {
                     // And repeat Demand generation per City preference count
                     for (int j = 0; j < CityTypePreference[i]; ++j)
-                    {                        
+                    {
                         // If all cities have been recently chosen,
                         // readd them to the pool
                         if (citySelectionLists[i].Count == 0)
@@ -87,20 +87,21 @@ namespace Rails.Systems
                         int goodIndex = -1;
                         var distance = 0.0f; // Arbitrary small number,
                                              // to ensure the following while loop executes
-                        
+
                         // Create a way of detecting how many Good selection attempts
                         // have happened, to avoid infinite loops
                         float minDist = MinimumDistance;
                         int checkCounter = 0;
-                        
+
                         // Select a random City from the current group.
                         // While the distance between the city and the selected Good
                         // is less than the MinimumDistance, or if the City holds
                         // the Good being sought, reselect a City
                         while (
-                            distance < minDist || 
+                            distance < minDist ||
                             selectedCity.Goods.Any(g => g.x == goodIndex)
-                        ) {
+                        )
+                        {
                             goodIndex = Random.Range(0, goods.Length);
                             distance = NodeId.Distance(
                                 _manager.MapData.LocationsOfCity(selectedCity).First(),
@@ -111,16 +112,16 @@ namespace Rails.Systems
                             // that meets the parameters with the given City,
                             // detract from the minimum distance to expand possible Citys.
                             checkCounter += 1;
-                            if(checkCounter == cities.Sum(cs => cs.Length))
+                            if (checkCounter == cities.Sum(cs => cs.Length))
                             {
                                 minDist -= 5.0f;
                                 checkCounter = 0;
                             }
                         }
-                        
+
                         // Remove the selected City from the potential choices
                         citySelectionLists[i].Remove(selectedCity);
-                        
+
                         // Determine the reward by City NodeType, with distance considered
                         int reward = (((int)distance * 3) + (i * 5)) / 20 * 10;
                         demands.Add(new Demand(selectedCity, goods[goodIndex], reward));
@@ -130,35 +131,65 @@ namespace Rails.Systems
                     if (demands.Count >= DemandCardCount * 3) break;
                 }
             }
-            
+
+            GenerateDemandCards(demands);
+        }
+
+        /// <summary>
+        /// Creates a deck of Demand cards from a list of Demands.
+        /// Three Demands per card.
+        /// </summary>
+        private static void GenerateDemandCards(List<Demand> demands)
+        {
             var demandCard = new List<Demand>();
+
+            // Two collections that ensure no City is repeated
+            // on a single Demand card
+            HashSet<City> availableCities;
+            List<City> filteredCities = null;
 
             // Cycle through all demands, choosing one at random, and
             // adding it to demandCard. When 3 cards are inserted,
             // generate a new Demand card, and add it to the draw pile
-            while(demands.Count > 0)
+            while (demands.Count > 0)
             {
-                int demandIndex = Random.Range(0, demands.Count);
-                var demand = demands[demandIndex];
+                // If there are no more filtered Citys, determine which Citys
+                // are left in the collection of Demands, and consider them for choosing
+                if (filteredCities == null || filteredCities.Count == 0)
+                {
+                    availableCities = new HashSet<City>(demands.Select(d => d.City));
+                    filteredCities = availableCities.ToList();
+                }
+
+                // Select a random City, not yet in
+                // the Demand card
+                int cityIndex;
+
+                do cityIndex = Random.Range(0, filteredCities.Count);
+                while(demandCard.Any(d => d.City == filteredCities[cityIndex]));
+
+                // Select the first Demand to target the selected City
+                Demand demand = demands.First(d => d.City == filteredCities[cityIndex]);
 
                 demandCard.Add(demand);
-                if(demandCard.Count == 3)
+                if (demandCard.Count == 3)
                 {
                     _drawPile.Add(demandCard.ToArray());
                     demandCard.Clear();
                 }
-                demands.RemoveAt(demandIndex);
+                filteredCities.RemoveAt(cityIndex);
+                demands.Remove(demand);
             }
 
             // Add all draw cards to the discard pile, to
             // ensure the deck is properly shuffled on start
-            for(int i = _drawPile.Count - 1; i >= 0; --i)
+            for (int i = _drawPile.Count - 1; i >= 0; --i)
             {
                 _discardPile.Add(_drawPile[i]);
                 _drawPile.RemoveAt(i);
-            }    
+            }
         }
-    
+
         /// <summary>
         /// Draws a single Demand card
         /// </summary>
