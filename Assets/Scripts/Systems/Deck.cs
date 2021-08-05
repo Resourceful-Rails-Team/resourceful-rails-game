@@ -1,4 +1,5 @@
 using Rails.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -63,8 +64,8 @@ namespace Rails.Systems
                 new List<City>(cities[2].Length),
             };
 
-            // Generate 3x the amount of Demand cards
-            // as each has three different Demands on them
+            // Generate 3x the amount of Demands
+            // Each Demand card has three different Demands on them
             while (demands.Count < DemandCardCount * 3)
             {
                 // Cycle through all cities per City type
@@ -82,7 +83,7 @@ namespace Rails.Systems
                         }
 
                         // Select a random City
-                        var selectedCity = citySelectionLists[i][Random.Range(0, citySelectionLists[i].Count)];
+                        var selectedCity = citySelectionLists[i][UnityEngine.Random.Range(0, citySelectionLists[i].Count)];
 
                         int goodIndex = -1;
                         var distance = 0.0f; // Arbitrary small number,
@@ -102,7 +103,7 @@ namespace Rails.Systems
                             selectedCity.Goods.Any(g => g.x == goodIndex)
                         )
                         {
-                            goodIndex = Random.Range(0, goods.Length);
+                            goodIndex = UnityEngine.Random.Range(0, goods.Length);
                             distance = NodeId.Distance(
                                 _manager.MapData.LocationsOfCity(selectedCity).First(),
                                 _manager.MapData.LocationsOfGood(goods[goodIndex]).First()
@@ -141,44 +142,50 @@ namespace Rails.Systems
         /// </summary>
         private static void GenerateDemandCards(List<Demand> demands)
         {
-            var demandCard = new List<Demand>();
+            var deckBuilder = new List<List<Demand>>();
+            for(int i = 0; i < DemandCardCount; ++i)
+                deckBuilder.Add(new List<Demand>());
 
-            // Two collections that ensure no City is repeated
-            // on a single Demand card
-            HashSet<City> availableCities;
-            List<City> filteredCities = null;
+            int deckIndex = 0;
 
-            // Cycle through all demands, choosing one at random, and
-            // adding it to demandCard. When 3 cards are inserted,
-            // generate a new Demand card, and add it to the draw pile
-            while (demands.Count > 0)
+            // Sort demands by City
+            demands.Sort((first, second) => first.City.Name.CompareTo(second.City.Name));
+
+            // Add each demand to the deckBuilder in turn. Add one per card, 
+            // iterating through the whole deck before adding to the same card
+            // again, to avoid repeating cities on the same card.
+            for(int i = 0; i < DemandCardCount * 3; ++i)
+            { 
+                var demand = demands.Last();
+                deckBuilder[deckIndex].Add(demand);
+
+                deckIndex += 1;
+                if(deckIndex >= DemandCardCount)
+                    deckIndex = 0;
+
+                demands.RemoveAt(demands.Count - 1);
+            }
+
+            _drawPile.AddRange(deckBuilder.Select(card => card.ToArray()));
+
+            // Ensure that each Demand on a card is shuffled with
+            // one another
+            for(int i = 0; i < DemandCardCount; ++i)
             {
-                // If there are no more filtered Citys, determine which Citys
-                // are left in the collection of Demands, and consider them for choosing
-                if (filteredCities == null || filteredCities.Count == 0)
-                {
-                    availableCities = new HashSet<City>(demands.Select(d => d.City));
-                    filteredCities = availableCities.ToList();
+                var indices = new int [] 
+                { 
+                    UnityEngine.Random.Range(0, 3), 
+                    UnityEngine.Random.Range(0, 3), 
+                    UnityEngine.Random.Range(0, 3) 
+                };
+                foreach(
+                    (int index1, int index2) in 
+                    indices.Zip(Enumerable.Range(0, 3), (one, two) => Tuple.Create(one, two))
+                ) {
+                    var temp = _drawPile[i][index1];
+                    _drawPile[i][index1] = _drawPile[i][index2];
+                    _drawPile[i][index2] = temp;
                 }
-
-                // Select a random City, not yet in
-                // the Demand card
-                int cityIndex;
-
-                do cityIndex = Random.Range(0, filteredCities.Count);
-                while(demandCard.Any(d => d.City == filteredCities[cityIndex]));
-
-                // Select the first Demand to target the selected City
-                Demand demand = demands.First(d => d.City == filteredCities[cityIndex]);
-
-                demandCard.Add(demand);
-                if (demandCard.Count == 3)
-                {
-                    _drawPile.Add(demandCard.ToArray());
-                    demandCard.Clear();
-                }
-                filteredCities.RemoveAt(cityIndex);
-                demands.Remove(demand);
             }
 
             // Add all draw cards to the discard pile, to
@@ -221,7 +228,7 @@ namespace Rails.Systems
         {
             while(_discardPile.Count > 0)
             {
-                int cardIndex = Random.Range(0, _discardPile.Count);
+                int cardIndex = UnityEngine.Random.Range(0, _discardPile.Count);
                 _drawPile.Add(_discardPile[cardIndex]);
                 _discardPile.RemoveAt(cardIndex); 
             }
