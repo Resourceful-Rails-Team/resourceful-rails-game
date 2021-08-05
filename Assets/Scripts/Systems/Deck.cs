@@ -21,7 +21,9 @@ namespace Rails.Systems
         private static List<Demand[]> _drawPile;
         private static List<Demand[]> _discardPile;
         private static Manager _manager;
-        
+
+        #region Public Methods 
+
         /// <summary>
         /// Initializes the Deck, creating all cards
         /// associated with the `Manager`'s `MapData`
@@ -134,6 +136,47 @@ namespace Rails.Systems
             }
 
             GenerateDemandCards(demands);
+        } 
+
+        /// <summary>
+        /// Draws a single Demand card
+        /// </summary>
+        /// <returns>An array of 3 demands, 
+        /// representing the card contents</returns>
+        public static Demand[] DrawOne()
+        {
+            // If there are no cards in the draw pile,
+            // shuffle the discards and readd them to the draw pile.
+            if (_drawPile.Count == 0)
+                ShuffleDiscards();
+
+            var index = _drawPile.Count - 1;
+            var card = _drawPile[index];
+
+            _drawPile.RemoveAt(index);
+            return card;
+        }
+        
+        /// <summary>
+        /// Discard a single Demand card into the discard pile
+        /// </summary>
+        /// <param name="demandCard">The card to add to the discard pile</param>
+        public static void Discard(Demand[] demandCard) => _discardPile.Add(demandCard);
+
+        #endregion
+
+        #region Private Methods 
+
+        // Randomly reinserts all discard Demand cards
+        // into the draw pile
+        private static void ShuffleDiscards()
+        {
+            while(_discardPile.Count > 0)
+            {
+                int cardIndex = UnityEngine.Random.Range(0, _discardPile.Count);
+                _drawPile.Add(_discardPile[cardIndex]);
+                _discardPile.RemoveAt(cardIndex); 
+            }
         }
 
         /// <summary>
@@ -187,42 +230,7 @@ namespace Rails.Systems
                     )
             );
         }
-
-        /// <summary>
-        /// Draws a single Demand card
-        /// </summary>
-        /// <returns>An array of 3 demands, 
-        /// representing the card contents</returns>
-        public static Demand[] DrawOne()
-        {
-            // If there are no cards in the draw pile,
-            // shuffle the discards and readd them to the draw pile.
-            if (_drawPile.Count == 0)
-                ShuffleDiscards();
-
-            var index = _drawPile.Count - 1;
-            var card = _drawPile[index];
-
-            _drawPile.RemoveAt(index);
-            return card;
-        }
-        
-        /// <summary>
-        /// Discard a single Demand card into the discard pile
-        /// </summary>
-        /// <param name="demandCard">The card to add to the discard pile</param>
-        public static void Discard(Demand[] demandCard) => _discardPile.Add(demandCard);
-        
-        // Randomly reinserts all discard Demand cards
-        // into the draw pile
-        private static void ShuffleDiscards()
-        {
-            while(_discardPile.Count > 0)
-            {
-                int cardIndex = UnityEngine.Random.Range(0, _discardPile.Count);
-                _drawPile.Add(_discardPile[cardIndex]);
-                _discardPile.RemoveAt(cardIndex); 
-            }
-        }
     }
+
+    #endregion
 }
