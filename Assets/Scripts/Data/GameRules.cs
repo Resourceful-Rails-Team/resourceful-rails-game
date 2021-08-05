@@ -1,5 +1,7 @@
+using Assets.Scripts.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Rails.Data
@@ -34,10 +36,12 @@ namespace Rails.Data
         /// The Cost for a player to use another player's track
         /// </summary>
         public int AltTrackCost = 4;
+        public int RiverCrossCost;
 
-        public TrainSpecs BaseTrainSpecs;
-        public TrainSpecs FastTrainSpecs;
-        public TrainSpecs HeavyTrainSpecs;
-        public TrainSpecs SuperTrainSpecs;
+        public TrainSpecs[] TrainSpecs;
+        public NodeCost[] NodeCosts;
+
+        public int GetNodeCost(NodeType nodeType)
+            => NodeCosts.FirstOrDefault(nc => nc.NodeType == nodeType)?.Cost ?? 0;
     }
 }

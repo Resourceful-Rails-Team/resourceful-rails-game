@@ -54,9 +54,10 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route ShortestBuild(
+            GameRules rules,
             TrackGraph<int> tracks, MapData mapData,
             params NodeId[] segments
-        ) => FindTrackBetweenPoints(tracks, mapData, false, segments);
+        ) => FindTrackBetweenPoints(rules, tracks, mapData, false, segments);
 
         /// <summary>
         /// Finds the least-cost build route given a series of
@@ -71,9 +72,10 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route CheapestBuild(
+            GameRules rules,
             TrackGraph<int> tracks, MapData mapData,
             params NodeId[] segments
-        ) => FindTrackBetweenPoints(tracks, mapData, true, segments);
+        ) => FindTrackBetweenPoints(rules, tracks, mapData, true, segments);
 
         /// <summary>
         /// Finds the least-distance traversal on a track,
@@ -117,12 +119,13 @@ namespace Rails.Systems
         
         #endregion
 
-        #region Private Methods
-        
+        #region Private Methods 
+
         /// <summary>
-        /// Finds the best build path, either shortest or cheapest.
+        /// Finds the best move path, either shortest or cheapest.
         /// </summary>
         private static Route FindTrackBetweenPoints(
+            GameRules rules,
             TrackGraph<int> tracks, 
             MapData mapData,
             bool addWeight, 
@@ -142,6 +145,7 @@ namespace Rails.Systems
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostPath(
+                    rules,
                     newTracks, mapData, segments[i], 
                     segments[i + 1], addWeight
                 );
@@ -155,11 +159,11 @@ namespace Rails.Systems
                 if (i == segments.Length - 2) path.Add(segments.Last());
             }
 
-            return CreatePathRoute(mapData, path);
+            return CreatePathRoute(rules, mapData, path);
         }
 
         /// <summary>
-        /// Finds the best move path, either shortest or cheapest.
+        /// Finds the best build path, either shortest or cheapest.
         /// </summary>
         private static Route FindPathBetweenPoints(
             GameRules rules,
@@ -314,6 +318,7 @@ namespace Rails.Systems
         /// Finds the lowest cost path available from a start point to end point.
         /// </summary>
         private static Route LeastCostPath(
+            GameRules rules,
             TrackGraph<int> tracks, 
             MapData map, 
             NodeId start, 
@@ -356,7 +361,7 @@ namespace Rails.Systems
                 // it to the returned PathData
                 if(node.Position == end)
                 {
-                    path = CreatePathRoute(map, previous, start, end);
+                    path = CreatePathRoute(rules, map, previous, start, end);
                     break;
                 }
 
@@ -378,10 +383,10 @@ namespace Rails.Systems
                     if (addWeight)
                     {
                         // Add the node cost to newCost, as well as river cost if the edge is over a river
-                        newCost += Manager.NodeCosts[map.Nodes[newPoint.GetSingleId()].Type];
+                        newCost += rules.GetNodeCost(map.Nodes[newPoint.GetSingleId()].Type);
 
                         if (map.Segments[(newPoint.GetSingleId() * 6) + (int)c].Type == NodeSegmentType.River)
-                            newCost += Manager.RiverCost;
+                            newCost += rules.RiverCrossCost;
                     }
                     else newCost += 1;
 
@@ -511,6 +516,7 @@ namespace Rails.Systems
         /// nodes previous nodes for shortest path.
         /// </summary>
         private static Route CreatePathRoute(
+            GameRules rules,
             MapData map,
             Dictionary<NodeId, NodeId> previous,
             NodeId start, 
@@ -528,9 +534,9 @@ namespace Rails.Systems
 
                 // Add the cost of building the track, based on NodeType
                 // and NodeSegment 
-                cost += Manager.NodeCosts[map.Nodes[current.GetSingleId()].Type];
+                cost += rules.GetNodeCost(map.Nodes[current.GetSingleId()].Type);
                 if (map.Segments[current.GetSingleId() * 6 + (int)Utilities.CardinalBetween(current, previous[current])].Type == NodeSegmentType.River)
-                    cost += Manager.RiverCost;
+                    cost += rules.RiverCrossCost;
 
                 current = previous[current];
             }
@@ -544,6 +550,7 @@ namespace Rails.Systems
         /// Creates a new Route using the MapData and a list of NodeIds
         /// </summary>
         private static Route CreatePathRoute(
+            GameRules rules,
             MapData map,
             List<NodeId> path
         ) {
@@ -553,10 +560,10 @@ namespace Rails.Systems
             for (int i = 0; i < path.Count - 1; ++i)
             {
                 // Add the node cost to newCost, as well as river cost if the edge is over a river
-                cost += Manager.NodeCosts[map.Nodes[path[i+1].GetSingleId()].Type];
+                cost += rules.GetNodeCost(map.Nodes[path[i + 1].GetSingleId()].Type);
 
                 if (map.Segments[path[i].GetSingleId() * 6 + (int)Utilities.CardinalBetween(path[i], path[i + 1])].Type == NodeSegmentType.River)
-                    cost += Manager.RiverCost;
+                    cost += rules.RiverCrossCost;
             }
  
             return new Route(cost, path);

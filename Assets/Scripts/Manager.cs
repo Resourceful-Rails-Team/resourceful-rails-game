@@ -70,24 +70,6 @@ namespace Rails {
         [SerializeField]
         public MapData MapData;
         /// <summary>
-        /// The cost to build a track to a respective NodeType
-        /// </summary>
-        public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
-            new Dictionary<NodeType, int>
-            {
-            { NodeType.Clear,      1 },
-            { NodeType.Mountain,   2 },
-            { NodeType.SmallCity,  3 },
-            { NodeType.MediumCity, 3 },
-            { NodeType.MajorCity,  5 },
-            { NodeType.Water, 1000   },
-            }
-        );
-        /// <summary>
-        /// The cost to build over a river
-        /// </summary>
-        public const int RiverCost = 2;
-        /// <summary>
         /// The trains that players can use.
         /// </summary>
         public TrainData[] trainData;
@@ -160,6 +142,7 @@ namespace Rails {
             // set singleton reference on awake
             _singleton = this;
             _startRules = FindObjectOfType<GameStartRules>();
+            _rules = MapData.DefaultRules;
 
             // generate start rules if empty
             if (_startRules == null) {
@@ -406,7 +389,7 @@ namespace Rails {
                 if (buildPaths[p].Count > 1) {
                     if (routes[p] != null)
                         GameGraphics.DestroyPotentialTrack(routes[p]);
-                    routes[p] = Pathfinding.CheapestBuild(Tracks, MapData, buildPaths[p].ToArray());
+                    routes[p] = Pathfinding.CheapestBuild(_rules, Tracks, MapData, buildPaths[p].ToArray());
                     GameGraphics.GeneratePotentialTrack(routes[p]);
                 }
             }
