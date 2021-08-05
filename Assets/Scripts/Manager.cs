@@ -110,7 +110,17 @@ namespace Rails {
         /// <summary>
         /// Gets the index of the current player.
         /// </summary>
-        public int CurrentPlayer { get { return currentPlayer; } }
+        public int CurrentPlayer { 
+            get { return currentPlayer; } 
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public int CurrentPath { 
+            get { return currentPath; } 
+            set { SetPath(value); }
+        }
+
 
         #endregion // Properties
 
@@ -139,7 +149,7 @@ namespace Rails {
         /// 
         /// </summary>
         private int currentPath;
-        private List<Queue<NodeId>> buildPaths;
+        private List<List<NodeId>> buildPaths;
         private List<Route> routes;
         private GameToken _highlightToken;
         #endregion
@@ -177,10 +187,10 @@ namespace Rails {
                 _highlightToken = highlightToken;
             }
             if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds) {
-                EnqueueNode(GameInput.MouseNodeId);
+                AddNode(currentPath, GameInput.MouseNodeId);
             }
             if (GameInput.DeleteJustPressed) {
-                ClearQueue();
+                ClearPath(currentPath);
             }
             if (GameInput.EnterJustPressed) {
                 BuildTrack();
@@ -245,6 +255,8 @@ namespace Rails {
         #endregion
 
         #region Public
+        // General gameplay methods.
+
         // Moves the train to final node in path.
         public void MoveTrain() {
             // TODO: Move train to last pushed node.
@@ -272,34 +284,64 @@ namespace Rails {
             EndTurn();
             return;
         }
-
         // Places the current player's train at position.
         public void PlaceTrain(NodeId position) {
             player.train_position = position;
             return;
         }
 
-        // Add Node to Queue
-        public void EnqueueNode(NodeId node) {
+
+        // Path Methods
+
+        // Sets the index of the current build path.
+        public void SetPath(int path) {
+            if (path >= 0 && path < buildPaths.Count)
+                currentPath = path;
+            return;
+				}
+        // Returns the list of nodes of the specified path.
+        public List<NodeId> GetPath(int path) {
+            if (path >= 0 && path < buildPaths.Count)
+                return buildPaths[path];
+            return null;
+				}
+        // Returns the number of paths in the build paths list.
+        public int GetPathCount() {
+            return buildPaths.Count;
+				}
+        // Adds a node to the list.
+        public void AddNode(int path, NodeId node) {
             // Add to move queue if in move phase.
             if (currentPhase == 0)
-                player.movepath.Enqueue(node);
+                player.movepath.Add(node);
             // Add to build queue if in build phase.
             else {
-                buildPaths[currentPath].Enqueue(node);
+                buildPaths[path].Add(node);
                 PlannedTracks();
             }
+            return;
         }
+        // Removes a node from the list.
+        public bool RemoveNode(int path, NodeId node) {
+            bool success = false;
+            if (currentPhase == 0)
+                success = player.movepath.Remove(node);
+            else {
+                success = buildPaths[path].Remove(node);
+						}
+            return success;
+				}
         // Clear current Queue
-        public void ClearQueue() {
+        public void ClearPath(int path) {
             // Move Phase
             if (currentPhase == 0)
                 player.movepath.Clear();
             else {
-                GameGraphics.DestroyPotentialTrack(routes[currentPath]);
-                buildPaths[currentPath].Clear();
+                GameGraphics.DestroyPotentialTrack(routes[path]);
+                buildPaths[path].Clear();
                 PlannedTracks();
             }
+            return;
         }
         #endregion
 
@@ -314,9 +356,9 @@ namespace Rails {
             currentPath = 0;
             maxPhases = PhasePanels.Length;
 
-            //
-            buildPaths = new List<Queue<NodeId>>();
-            buildPaths.Add(new Queue<NodeId>());
+            // Create the path lists.
+            buildPaths = new List<List<NodeId>>();
+            buildPaths.Add(new List<NodeId>());
             routes = new List<Route>();
             routes.Add(null);
 
