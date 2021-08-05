@@ -17,6 +17,7 @@ namespace Rails.Controls
         public float lerpSpeed = 2.0f;
 
         private Vector3 focus;
+        private Bounds mapBounds;
 
         [SerializeField]
         private Transform _markerTransform;
@@ -26,6 +27,8 @@ namespace Rails.Controls
             focus = transform.position;
             focus.y = 0;
             focus.z += focusDistance;
+
+            mapBounds = Manager.Singleton.MapData.MapNodeBounds;
 
             transform.LookAt(focus);
 
@@ -54,8 +57,11 @@ namespace Rails.Controls
               Vector3.ProjectOnPlane(transform.forward, Vector3.up), Vector3.up);
 
             move = planarDirection * move * distance * Time.deltaTime;
-            focus += move;
-            targetTransform.position += move;
+
+            var lastFocus = focus;
+            focus = mapBounds.ClosestPoint(focus + move);
+
+            targetTransform.position += focus - lastFocus;
 
             return;
         }
