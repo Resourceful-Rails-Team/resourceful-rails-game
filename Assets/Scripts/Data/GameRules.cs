@@ -40,6 +40,7 @@ namespace Rails.Data
 
         public TrainSpecs[] TrainSpecs;
         public NodeCost[] NodeCosts;
+        public int MajorCityBuildsPerTurn;
 
         public int GetNodeCost(NodeType nodeType)
             => NodeCosts.FirstOrDefault(nc => nc.NodeType == nodeType)?.Cost ?? 0;
