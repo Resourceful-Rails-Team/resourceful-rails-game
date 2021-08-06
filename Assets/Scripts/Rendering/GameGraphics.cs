@@ -138,26 +138,38 @@ namespace Rails.Rendering
         }
 
         /// <summary>
-        /// Highlights or dehighlights a given track `Route`
+        /// Highlights or dehighlights a given list of NodeIds
         /// Skips any route index that is not on the track map
         /// </summary>
-        /// <param name="route">The `Route` to alter</param>
-        /// <param name="highlighted">Whether it should be highlighted, or color reset</param>
-        public static void SetHighlightRoute(Route route, bool highlighted)
+        /// <param name="route">The list of nodes to alter</param>
+        /// <param name="highlightColor">Highlights to the specified Color, or resets Color if null</param>
+        public static void HighlightRoute(List<NodeId> route, Color ? highlightColor)
         {
+            if (route == null) return;
+
             // Check each Route node to see if it exists in the track token map.
             // If it does, (de)activate its highlight.
-            for (int i = 0; i < route.Distance; ++i)
+            for (int i = 0; i < route.Count - 1; ++i)
             {
-                if (_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var token))
+                if (_trackTokens.TryGetEdgeValue(route[i], route[i + 1], out var token))
                 {
-                    if (highlighted)
-                        token.SetColor(Color.yellow);
+                    if (highlightColor.HasValue)
+                        token.SetColor(highlightColor.Value);
                     else
                         token.ResetColor();
                 }
             }
         }
+
+        /// <summary>
+        /// Highlights or dehighlights a given track Route
+        /// Skips any route index that is not on the track map
+        /// </summary>
+        /// <param name="route">The `Route` to alter</param>
+        /// <param name="highlightColor">Highlights to the specified Color, or resets Color if null</param>
+        public static void HighlightRoute(Route route, Color? highlightColor)
+            => HighlightRoute(route?.Nodes, highlightColor);
+
 
         /// <summary>
         /// Sets a given player's train's `GameToken` based on the `TrainType` provided.
