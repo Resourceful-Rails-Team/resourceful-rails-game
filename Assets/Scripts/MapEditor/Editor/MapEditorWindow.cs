@@ -21,6 +21,7 @@ namespace Rails.MapEditor.Editor
         // 
         bool paintingActive = false;
         float paintingRadius = 1f;
+        Vector2 scroll = Vector2.zero;
         int tab = 0;
         private MapEditorCursor _cursor;
         MapEditorPaintType paintType = MapEditorPaintType.Node;
@@ -85,6 +86,7 @@ namespace Rails.MapEditor.Editor
 
             // tabs
             tab = GUILayout.Toolbar(tab, new string[] { "Cities", "Goods", "Paint" });
+            scroll = GUILayout.BeginScrollView(scroll);
             switch (tab)
             {
                 case 0: // cities
@@ -122,6 +124,7 @@ namespace Rails.MapEditor.Editor
                         break;
                     }
             }
+            GUILayout.EndScrollView();
         }
 
         void MoveHeight(ref Rect rect, ref float height, float scale = 1f)
