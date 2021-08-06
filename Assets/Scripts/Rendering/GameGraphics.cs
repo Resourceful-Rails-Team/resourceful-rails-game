@@ -222,7 +222,7 @@ namespace Rails.Rendering
                             if (neighborNodes.All(nn => nn.Item2.CityId == node.CityId && nn.Item2.Type == NodeType.MajorCity))
                             {
                                 var token = Instantiate(modelToken, _singleton.transform);
-                                token.transform.position = pos;
+                                token.transform.position = pos + new Vector3(0, 0.1f, 0);
 
                                 foreach (var nId in neighborNodes.Select(nn => nn.Item1))
                                     _mapTokens[nId] = token;
@@ -233,7 +233,7 @@ namespace Rails.Rendering
                         else
                         {
                             var token = Instantiate(modelToken, _singleton.transform);
-                            token.transform.position = pos;
+                            token.transform.position = pos + new Vector3(0, 0.1f, 0);
 
                             _mapTokens[nodeId] = token;
                         }

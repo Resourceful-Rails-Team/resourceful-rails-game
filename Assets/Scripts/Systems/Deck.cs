@@ -53,7 +53,7 @@ namespace Rails.Systems
             var goodsPositions = new List<NodeId>();
             for (int i = 0; i < goods.Length; ++i)
             {
-                var ids = _manager.MapData.LocationsOfGood(goods[i]);
+                var ids = _manager.MapData.LocationsOfGood(goods[i]); 
                 goodsPositions.Add(ids[0]);
             }
 
