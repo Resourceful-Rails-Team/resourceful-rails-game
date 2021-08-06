@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Rails.Collections;
 using Rails.Data;
@@ -39,7 +40,24 @@ namespace Rails.Systems
     
     public static class Pathfinding
     {
+        private static GameRules _rules;
+        private static TrackGraph<int> _tracks;
+        private static MapData _mapData;
+
         #region Public Methods
+        
+        /// <summary>
+        /// Initializes the Pathfinder, supplying it with the unique game session data.
+        /// </summary>
+        /// <param name="rules">The current rules for the game session.</param>
+        /// <param name="tracks">The game's tracks.</param>
+        /// <param name="mapData">The MapData of the board.</param>
+        public static void Initialize(GameRules rules, TrackGraph<int> tracks, MapData mapData)
+        {
+            _rules = rules;
+            _tracks = tracks;
+            _mapData = mapData;
+        }
 
         /// <summary>
         /// Finds the least-distance build route given a series of
@@ -54,10 +72,8 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route ShortestBuild(
-            GameRules rules,
-            TrackGraph<int> tracks, MapData mapData,
             params NodeId[] segments
-        ) => FindTrackBetweenPoints(rules, tracks, mapData, false, segments);
+        ) => FindTrackBetweenPoints(false, segments);
 
         /// <summary>
         /// Finds the least-cost build route given a series of
@@ -72,10 +88,8 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route CheapestBuild(
-            GameRules rules,
-            TrackGraph<int> tracks, MapData mapData,
             params NodeId[] segments
-        ) => FindTrackBetweenPoints(rules, tracks, mapData, true, segments);
+        ) => FindTrackBetweenPoints(true, segments);
 
         /// <summary>
         /// Finds the least-distance traversal on a track,
@@ -92,10 +106,10 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route ShortestMove(
-            GameRules rules,
-            TrackGraph<int> tracks,
-            int player, int speed, params NodeId[] segments
-        ) => FindPathBetweenPoints(rules, tracks, player, speed, false, segments);
+            int player, 
+            int speed, 
+            params NodeId[] segments
+        ) => FindPathBetweenPoints(player, speed, false, segments);
 
         /// <summary>
         /// Finds the least-cost traversal on a track,
@@ -112,10 +126,10 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route CheapestMove(
-            GameRules rules,
-            TrackGraph<int> tracks,
-            int player, int speed, params NodeId[] segments
-        ) => FindPathBetweenPoints(rules, tracks, player, speed, true, segments);
+            int player, 
+            int speed, 
+            params NodeId[] segments
+        ) => FindPathBetweenPoints(player, speed, true, segments);
         
         #endregion
 
@@ -125,9 +139,6 @@ namespace Rails.Systems
         /// Finds the best move path, either shortest or cheapest.
         /// </summary>
         private static Route FindTrackBetweenPoints(
-            GameRules rules,
-            TrackGraph<int> tracks, 
-            MapData mapData,
             bool addWeight, 
             params NodeId[] segments
         ) {
@@ -139,14 +150,14 @@ namespace Rails.Systems
 
             // A duplicate of the current tracks - ensures that Pathfinder
             // doesn't reuse already commited paths in later traversals.
-            var newTracks = tracks.Clone();
+            var newTracks = _tracks.Clone();
 
             // For each segment, find the least-cost path between it and the next segment.
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostPath(
-                    rules,
-                    newTracks, mapData, segments[i], 
+                    _rules,
+                    newTracks, _mapData, segments[i], 
                     segments[i + 1], addWeight
                 );
                 if(route == null) break;
@@ -159,15 +170,13 @@ namespace Rails.Systems
                 if (i == segments.Length - 2) path.Add(segments.Last());
             }
 
-            return CreatePathRoute(rules, mapData, path);
+            return CreatePathRoute(_rules, _mapData, path);
         }
 
         /// <summary>
         /// Finds the best build path, either shortest or cheapest.
         /// </summary>
         private static Route FindPathBetweenPoints(
-            GameRules rules,
-            TrackGraph<int> tracks,
             int player, 
             int speed, 
             bool addAltTrackCost, 
@@ -185,8 +194,8 @@ namespace Rails.Systems
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostTrack(
-                    rules,
-                    tracks, player, speed, 
+                    _rules,
+                    _tracks, player, speed, 
                     segments[i], segments[i + 1], addAltTrackCost
                 );
                 if(route == null) break;
@@ -195,7 +204,7 @@ namespace Rails.Systems
                 path.AddRange(route.Nodes);
             }
 
-            return CreateTrackRoute(rules, tracks, player, speed, path); 
+            return CreateTrackRoute(_rules, _tracks, player, speed, path); 
 
         }
 

@@ -164,6 +164,7 @@ namespace Rails {
 
         private void Start() {
             GameGraphics.Initialize(MapData);
+            Pathfinding.Initialize(_rules, Tracks, MapData);
             GameLoopSetup();
         }
 
@@ -406,7 +407,7 @@ namespace Rails {
                 if (buildPaths[p].Count > 1) {
                     if (routes[p] != null)
                         GameGraphics.DestroyPotentialTrack(routes[p]);
-                    routes[p] = Pathfinding.CheapestBuild(_rules, Tracks, MapData, buildPaths[p].ToArray());
+                    routes[p] = Pathfinding.CheapestBuild(buildPaths[p].ToArray());
                     GameGraphics.GeneratePotentialTrack(routes[p]);
                 }
             }
