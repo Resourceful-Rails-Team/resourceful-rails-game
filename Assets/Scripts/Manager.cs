@@ -422,13 +422,18 @@ namespace Rails {
         }
         // Show the planned route on the map.
         private void PlannedTracks() {
-            for (int p = 0; p < buildPaths.Count; p++) {
-                if (buildPaths[p].Count > 1) {
-                    if (routes[p] != null)
-                        GameGraphics.DestroyPotentialTrack(routes[p]);
-                    routes[p] = Pathfinding.CheapestBuild(buildPaths[p].ToArray());
-                    GameGraphics.GeneratePotentialTrack(routes[p]);
+            if (buildPaths.Count > 1)
+            {
+                if (routes != null)
+                {
+                    foreach (var route in routes)
+                        GameGraphics.DestroyPotentialTrack(route);
+                    routes.Clear();
                 }
+                routes = Pathfinding.CheapestBuilds(buildPaths);
+
+                foreach (var route in routes)
+                    GameGraphics.GeneratePotentialTrack(route);
             }
             return;
         }

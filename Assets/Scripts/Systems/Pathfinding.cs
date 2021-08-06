@@ -63,24 +63,24 @@ namespace Rails.Systems
             _mapData = mapData;
         }
 
-        public static List<Route> ShortestBuilds(IEnumerable<NodeId[]> segmentGroups) {
+        public static List<Route> ShortestBuilds(IEnumerable<IEnumerable<NodeId>> segmentGroups) {
             var routes = new List<Route>();
             int majorCount = _rules.MajorCityBuildsPerTurn;
             foreach(var segments in segmentGroups)
             { 
-                var newRoute = ShortestBuild(ref majorCount, segments);
+                var newRoute = ShortestBuild(ref majorCount, segments.ToArray());
                 routes.Add(newRoute);
             }
 
             return routes;
         }
 
-        public static List<Route> CheapestBuilds(IEnumerable<NodeId[]> segmentGroups) {
+        public static List<Route> CheapestBuilds(IEnumerable<IEnumerable<NodeId>> segmentGroups) {
             var routes = new List<Route>();
             int majorCount = _rules.MajorCityBuildsPerTurn;
             foreach(var segments in segmentGroups)
             { 
-                var newRoute = CheapestBuild(ref majorCount, segments);
+                var newRoute = CheapestBuild(ref majorCount, segments.ToArray());
                 routes.Add(newRoute);
             }
 
