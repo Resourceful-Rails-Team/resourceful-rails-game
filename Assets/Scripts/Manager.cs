@@ -19,6 +19,9 @@ using UnityEditor;
 
 namespace Rails {
     public class Manager : MonoBehaviour {
+
+        public delegate void OnTurnEndEventHandler(Manager manager);
+
         #region Singleton
 
         private static Manager _singleton = null;
@@ -121,6 +124,8 @@ namespace Rails {
             set { SetPath(value); }
         }
 
+        public event OnTurnEndEventHandler OnTurnEnd;
+
 
         #endregion // Properties
 
@@ -149,6 +154,7 @@ namespace Rails {
         /// 
         /// </summary>
         private int currentPath;
+        private int currentNodeinPath;
         private List<List<NodeId>> buildPaths;
         private List<Route> routes;
         private GameToken _highlightToken;
@@ -274,7 +280,10 @@ namespace Rails {
 
         // Builds the track between the nodes in path.
         public void BuildTrack() {
-            GameLogic.BuildTrack(Tracks, routes, player.color);
+            if (buildPaths.Count != 0)
+                GameLogic.BuildTrack(Tracks, routes, player.color);
+            buildPaths.Clear();
+            buildPaths.Add(new List<NodeId>());
             EndTurn();
             return;
         }
@@ -293,10 +302,18 @@ namespace Rails {
 
         // Path Methods
 
+        // Adds a new path to the end of the list.
+        public int CreateNewPath() {
+            buildPaths.Add(new List<NodeId>());
+            return buildPaths.Count - 1;
+				}
         // Sets the index of the current build path.
         public void SetPath(int path) {
-            if (path >= 0 && path < buildPaths.Count)
-                currentPath = path;
+            while (path < 0)
+                path += buildPaths.Count;
+            while (path >= buildPaths.Count)
+                path -= buildPaths.Count;
+            currentPath = path;
             return;
 				}
         // Returns the list of nodes of the specified path.
@@ -310,6 +327,18 @@ namespace Rails {
             return buildPaths.Count;
 				}
         // Adds a node to the list.
+        // Clear current Queue
+        public void ClearPath(int path) {
+            // Move Phase
+            if (currentPhase == 0)
+                player.movepath.Clear();
+            else {
+                GameGraphics.DestroyPotentialTrack(routes[path]);
+                buildPaths[path].Clear();
+                PlannedTracks();
+            }
+            return;
+        }
         public void AddNode(int path, NodeId node) {
             // Add to move queue if in move phase.
             if (currentPhase == 0)
@@ -331,18 +360,14 @@ namespace Rails {
 						}
             return success;
 				}
-        // Clear current Queue
-        public void ClearPath(int path) {
-            // Move Phase
-            if (currentPhase == 0)
-                player.movepath.Clear();
-            else {
-                GameGraphics.DestroyPotentialTrack(routes[path]);
-                buildPaths[path].Clear();
-                PlannedTracks();
-            }
-            return;
-        }
+        // Sets the current node in the path.
+        public void SetNode(int path, int index) {
+            while (index < 0)
+                index += buildPaths[path].Count;
+            while (index >= buildPaths[path].Count)
+                index -= buildPaths[path].Count;
+            currentNodeinPath = index;
+				}
         #endregion
 
         #region Private
@@ -380,24 +405,19 @@ namespace Rails {
             return;
         }
 
-        // Updates name and money amount. Placeholder.
-        private void UpdatePlayerInfo() {
-            var player = Players[currentPlayer];
-            GameHUDObject.PlayerNameText.text = $"Player #{currentPlayer + 1}";
-            GameHUDObject.PlayerMoneyText.text = $"{player.money:C}";
-            GameHUDObject.PlayerTrainText.text = $"{player.trainStyle}";
-        }
-
         // Ends the turn and changes phase.
         private void EndTurn() {
-            if (maxPhases >= 0) {
-                GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
-                GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
-            }
-            else {
+            if (currentPhase < 0) {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
             }
+						else {
+                GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
+						}
+            if (currentPhase >= 0) {
+                GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
+            }
             player = Players[currentPlayer];
+            OnTurnEnd?.Invoke(this);
             return;
         }
         // Show the planned route on the map.
