@@ -138,6 +138,7 @@ namespace Rails {
         private int currentPath;
         private int currentNodeinPath;
         private List<List<NodeId>> buildPaths;
+        private Route currentMovePath = null;
         private List<Route> routes;
         private GameToken _highlightToken;
         #endregion
@@ -265,7 +266,7 @@ namespace Rails {
         // Builds the track between the nodes in path.
         public void BuildTrack() {
             if (buildPaths.Count != 0)
-                GameLogic.BuildTrack(Tracks, routes, player.color);
+                GameLogic.BuildTrack(Tracks, currentPlayer, routes, player.color);
             buildPaths.Clear();
             buildPaths.Add(new List<NodeId>());
             EndTurn();
@@ -315,8 +316,12 @@ namespace Rails {
         public void ClearPath(int path) {
             // Move Phase
             if (currentPhase == 0)
-                player.movepath.Clear();
-            else {
+            {
+                GameGraphics.HighlightRoute(currentMovePath, null);
+                player.movesegments.Clear();
+            }
+            else
+            {
                 GameGraphics.DestroyPotentialTrack(routes[path]);
                 buildPaths[path].Clear();
                 PlannedTracks();
@@ -324,11 +329,25 @@ namespace Rails {
             return;
         }
         public void AddNode(int path, NodeId node) {
-            // Add to move queue if in move phase.
+            // Add to player's movesegments if in move phase.
             if (currentPhase == 0)
-                player.movepath.Add(node);
+            {
+                // Remove the highlight if there is an already existing Route
+                GameGraphics.HighlightRoute(currentMovePath, null);
+
+                player.movesegments.Add(node);
+                
+                // Find the cheapest path between the segments
+                currentMovePath = Pathfinding.CheapestMove(
+                    currentPlayer,
+                    _rules.TrainSpecs[player.trainStyle].movePoints,
+                    player.movesegments.ToArray()
+                );
+                GameGraphics.HighlightRoute(currentMovePath, Color.yellow);
+            }
             // Add to build queue if in build phase.
-            else {
+            else
+            {
                 buildPaths[path].Add(node);
                 PlannedTracks();
             }
@@ -338,7 +357,7 @@ namespace Rails {
         public bool RemoveNode(int path, NodeId node) {
             bool success = false;
             if (currentPhase == 0)
-                success = player.movepath.Remove(node);
+                success = player.movesegments.Remove(node);
             else {
                 success = buildPaths[path].Remove(node);
 						}
@@ -391,9 +410,9 @@ namespace Rails {
             if (currentPhase < 0) {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
             }
-						else {
+			else {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
-						}
+			}
             if (currentPhase >= 0) {
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
             }
