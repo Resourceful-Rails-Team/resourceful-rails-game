@@ -400,9 +400,6 @@ namespace Rails {
 
             // Activate first turn panel.
             PhasePanels[1].SetActive(true);
-            UpdatePlayerInfo();
-
-            return;
         }
 
         // Ends the turn and changes phase.
