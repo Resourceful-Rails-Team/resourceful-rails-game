@@ -63,8 +63,12 @@ namespace Rails.Rendering
         /// <returns>The GameToken, if any are located at the NodeId position</returns>
         public static GameToken GetMapToken(NodeId nodeId)
         {
-            _mapTokens.TryGetValue(nodeId, out var token);
-            return token;
+            if (nodeId != null)
+            {
+                _mapTokens.TryGetValue(nodeId, out var token);
+                return token;
+            }
+            return null;
         }
 
         /// <summary>
@@ -74,6 +78,8 @@ namespace Rails.Rendering
         /// <returns>An index representing the ID of the track</returns>
         public static void GeneratePotentialTrack(Route route)
         {
+            if (route.Nodes.Count == 0) return;
+
             var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
             for (int i = 0; i < route.Nodes.Count - 1; ++i)
             {
