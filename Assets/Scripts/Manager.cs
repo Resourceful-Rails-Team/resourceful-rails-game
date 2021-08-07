@@ -62,6 +62,12 @@ namespace Rails {
         /// Controls the spacing between nodes in terms of Unity units.
         /// </summary>
         public float WSSize = 1f;
+        /// <summary>
+        /// The value representing a MajorCity NodeType.
+        /// Used when setting down initial MajorCity tracks,
+        /// Tracks values and ghost tracks.
+        /// </summary>
+        public const int MajorCityIndex = -2;
 
         /// <summary>
         /// A collection of game rules.
@@ -167,6 +173,27 @@ namespace Rails {
             GameGraphics.Initialize(MapData);
             Pathfinding.Initialize(_rules, Tracks, MapData);
             GameLoopSetup();
+
+            for (int i = 0; i < Size * Size; ++i)
+            {
+                if (MapData.Nodes[i].Type == NodeType.MajorCity)
+                {
+                    var nodeId = NodeId.FromSingleId(i);
+                    for (var c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
+                    {
+                        var adjNodeId = Utilities.PointTowards(nodeId, c);
+                        if (MapData.Nodes[adjNodeId.GetSingleId()].Type == NodeType.MajorCity &&
+                           !Tracks.TryGetEdgeValue(nodeId, c, out int _))
+                        {
+                            Tracks[nodeId, adjNodeId] = MajorCityIndex;
+                            var route = new Route(0, new List<NodeId> { nodeId, adjNodeId });
+
+                            GameGraphics.GeneratePotentialTrack(route, Color.white);
+                            GameGraphics.CommitPotentialTrack(route, Color.white);
+                        }
+                    }
+                }
+            }
         }
 
         private void Update() {
@@ -422,7 +449,7 @@ namespace Rails {
         }
         // Show the planned route on the map.
         private void PlannedTracks() {
-            if (buildPaths.Count > 1)
+            if (buildPaths.Count > 0)
             {
                 if (routes != null)
                 {
@@ -433,7 +460,7 @@ namespace Rails {
                 routes = Pathfinding.CheapestBuilds(buildPaths);
 
                 foreach (var route in routes)
-                    GameGraphics.GeneratePotentialTrack(route);
+                    GameGraphics.GeneratePotentialTrack(route, Color.yellow);
             }
             return;
         }

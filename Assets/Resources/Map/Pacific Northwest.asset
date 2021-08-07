@@ -45,7 +45,7 @@ MonoBehaviour:
       Cost: 5
     - NodeType: 5
       Cost: 1000
-    MajorCityBuildsPerTurn: 4
+    MajorCityBuildsPerTurn: 2
   Nodes:
   - Type: 5
     Id:

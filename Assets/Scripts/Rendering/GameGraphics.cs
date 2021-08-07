@@ -76,12 +76,12 @@ namespace Rails.Rendering
         /// </summary>
         /// <param name="route">The `Route` to build the track on</param>
         /// <returns>An index representing the ID of the track</returns>
-        public static void GeneratePotentialTrack(Route route)
+        public static void GeneratePotentialTrack(Route route, Color highlightColor)
         {
             if (route.Nodes.Count == 0) return;
 
-            var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
-            for (int i = 0; i < route.Nodes.Count - 1; ++i)
+            var trackTokens = new List<GameToken>(route.Nodes.Count);
+            for (int i = 0; i < route.Distance; ++i)
             {
                 // Determine the rotation between adjacent Route nodes
                 var rotation = Utilities.GetCardinalRotation(
@@ -94,7 +94,7 @@ namespace Rails.Rendering
                 trackToken.transform.rotation = rotation;
 
                 // Highlight the token and add it to the token list
-                trackToken.SetColor(Color.yellow);
+                trackToken.SetColor(highlightColor);
                 trackTokens.Add(trackToken);
             }
 
@@ -139,7 +139,6 @@ namespace Rails.Rendering
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);
-                //MoveTrain(1, route);
             }
         }
 
