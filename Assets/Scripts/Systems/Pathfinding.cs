@@ -230,8 +230,6 @@ namespace Rails.Systems
             // If no segments were given, return an empty Route
             if (segments.Length == 0) 
                 return new Route(0, path);
-            if (segments.Any(s => !_tracks.ContainsVertex(s)))
-                return new Route(0, path);
 
             path.Add(segments[0]);
     
@@ -324,7 +322,9 @@ namespace Rails.Systems
                 for(Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                 {
                     var newPoint = Utilities.PointTowards(node.Position, c);
-                    if(tracks[node.Position, c] == Manager.MajorCityIndex || tracks[node.Position, c] != -1)
+                    if((tracks[node.Position, c] != -1 && tracks.ContainsVertex(newPoint))
+                        || (_mapData.Nodes[node.Position.GetSingleId()].Type == NodeType.MajorCity &&
+                           _mapData.Nodes[newPoint.GetSingleId()].Type == NodeType.MajorCity))
                     {
                         var newNode = new WeightedNode
                         {
@@ -336,20 +336,16 @@ namespace Rails.Systems
                         var newCost = distMap[node.Position] + 1;
 
                         // Retrieve the track owner of the edge being considered
-                        if (tracks[node.Position, c] != Manager.MajorCityIndex)
-                        {
-                            int trackOwner = tracks[node.Position, c];
+                        int trackOwner = tracks[node.Position, newPoint];
 
-                            // If the current track is owned by a different player,
-                            // one whose track the current player currently is not on
-                            // add the Alternative Track Cost to the track's weight.
-                            if (addAltTrackCost && !newNode.AltTracksPaid[trackOwner])
-                            {
-                                newCost += 1000;
-                                newNode.AltTracksPaid[trackOwner] = true;
-                            }
+                        // If the current track is owned by a different player,
+                        // one whose track the current player currently is not on
+                        // add the Alternative Track Cost to the track's weight.
+                        if(addAltTrackCost && !newNode.AltTracksPaid[trackOwner])
+                        {
+                            newCost += 1000;
+                            newNode.AltTracksPaid[trackOwner] = true;
                         }
-                        else newCost += 1; 
 
                         // If a shorter path has already been found, continue
                         if(distMap.TryGetValue(newPoint, out int currentCost) && currentCost <= newCost)
@@ -428,7 +424,7 @@ namespace Rails.Systems
                     var newPoint = Utilities.PointTowards(node.Position, c);
 
                     // If there is a track already at the considered edge, continue
-                    if (tracks.TryGetEdgeValue(node.Position, c, out var edge) && edge != -1 && edge != Manager.MajorCityIndex)
+                    if (tracks.TryGetEdges(node.Position, out var cardinals) && cardinals[(int)c] != -1)
                         continue;
 
                     if (!newPoint.InBounds)
