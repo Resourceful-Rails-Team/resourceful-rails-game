@@ -63,21 +63,21 @@ namespace Rails.Systems
             _mapData = mapData;
         }
 
-        public static List<Route> ShortestBuilds(IEnumerable<IEnumerable<NodeId>> segmentGroups) {
+        public static List<Route> ShortestBuilds(List<List<NodeId>> segmentGroups) {
             var routes = new List<Route>();
             int majorCitiesLeft = _rules.MajorCityBuildsPerTurn;
             var newTracks = _tracks.Clone();
 
             foreach(var segments in segmentGroups)
             { 
-                var newRoute = ShortestBuild(newTracks, ref majorCitiesLeft, segments.ToArray());
+                var newRoute = FindPathBetweenPoints(newTracks, ref majorCitiesLeft, false, segments);
                 routes.Add(newRoute);
             }
 
             return routes;
         }
 
-        public static List<Route> CheapestBuilds(IEnumerable<IEnumerable<NodeId>> segmentGroups)
+        public static List<Route> CheapestBuilds(List<List<NodeId>> segmentGroups)
         { 
             var routes = new List<Route>();
             int majorCount = _rules.MajorCityBuildsPerTurn;
@@ -85,63 +85,12 @@ namespace Rails.Systems
 
             foreach(var segments in segmentGroups)
             { 
-                var newRoute = CheapestBuild(newTracks, ref majorCount, segments.ToArray());
+                var newRoute = FindPathBetweenPoints(newTracks, ref majorCount, true, segments);
                 routes.Add(newRoute);
             }
 
             return routes;
         }
-        
-        /// <summary>
-        /// Finds the least-distance build route given a series of
-        /// intermediate segment nodes.
-        /// </summary>
-        /// <param name="tracks">The map's current player tracks</param>
-        /// <param name="mapData">The map's node information</param>
-        /// <param name="segments">The NodeIds the route must pass through</param>'
-        /// <returns>
-        /// The shortest-distance Route that connects all segments.
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached. 
-        /// </returns>
-        private static Route ShortestBuild(
-            TrackGraph<int> tracks,
-            ref int majorCitiesLeft, 
-            params NodeId[] segments
-        ) => FindPathBetweenPoints(tracks, ref majorCitiesLeft, false, segments);
-
-        /// <summary>
-        /// Finds the least-cost build route given a series of
-        /// intermediate segment nodes.
-        /// </summary>
-        /// <param name="tracks">The map's current player tracks</param>
-        /// <param name="mapData">The map's node information</param>
-        /// <param name="segments">The NodeIds the route must pass through</param>
-        /// <returns>
-        /// The shortest-cost Route that connects all segments.
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached. 
-        /// </returns>
-        private static Route CheapestBuild(
-            TrackGraph<int> tracks,
-            ref int majorCount,
-            params NodeId[] segments
-        ) => FindPathBetweenPoints(tracks, ref majorCount, true, segments);
-
-        /// <summary>
-        /// Finds the least-distance traversal on a track,
-        /// given a `player`, the player's train's `speed`, and
-        /// a series of intermediate segments.
-        /// </summary>
-        /// <param name="tracks">The map's current player tracks</param>
-        /// <param name="player">The index of the player performing the traversal</param>
-        /// <param name="speed">The speed of the player's train</param>
-        /// <param name="segments">The NodeIds the route must pass through</param>
-        /// <returns>
-        /// The shortest-distance Route that connects all segments.
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached. 
-        /// </returns>
         public static Route ShortestMove(
             int player, 
             int speed, 
@@ -179,7 +128,7 @@ namespace Rails.Systems
             TrackGraph<int> tracks,
             ref int majorCitiesLeft,
             bool addWeight, 
-            params NodeId[] segments
+            List<NodeId> segments
         ) {
             var path = new List<NodeId>();
 
@@ -188,13 +137,13 @@ namespace Rails.Systems
             int majorCountDuplicate = majorCitiesLeft;
             
             // If no segments were given, return an empty Route
-            if (segments.Length == 0) 
+            if (segments.Count == 0) 
                 return new Route(0, path);
 
             var routes = new List<List<NodeId>>();
 
             // For each segment, find the least-cost path between it and the next segment.
-            for(int i = 0; i < segments.Length - 1; ++i)
+            for(int i = 0; i < segments.Count - 1; ++i)
             {
                 var route = LeastCostPath(
                     ref majorCountDuplicate,
@@ -210,7 +159,7 @@ namespace Rails.Systems
                     tracks[route[j], route[j+1]] = 6;
 
                 path.AddRange(route.Take(route.Count - 1));
-                if (i == segments.Length - 2) path.Add(segments.Last());
+                if (i == segments.Count - 2) path.Add(segments.Last());
             }
 
             return CreatePathRoute(ref majorCitiesLeft, path);
@@ -438,6 +387,7 @@ namespace Rails.Systems
 
                     if (addWeight)
                     {
+                        // Retrieve both NodeTypes for the two considered Nodes
                         var nodeType1 = _mapData.Nodes[node.Position.GetSingleId()].Type;
                         var nodeType2 = _mapData.Nodes[newPoint.GetSingleId()].Type;
 
@@ -455,8 +405,7 @@ namespace Rails.Systems
                             else
                                 newCost += _rules.GetNodeCost(NodeType.MajorCity);
                         }
-                        // If both nodes are not a major city, add the NodeType cost (major
-                        // cities do not require builds)
+                        // If both nodes are not a major city, add the NodeType cost to the new point.
                         else if((nodeType1 & nodeType2) != NodeType.MajorCity)
                             newCost += _rules.GetNodeCost(_mapData.Nodes[newPoint.GetSingleId()].Type);
 
@@ -482,8 +431,9 @@ namespace Rails.Systems
                     var newNode = new WeightedNode
                     {
                         Position = newPoint,
-                        Weight = newCost,
-                        MajorCitiesLeft = citiesLeft
+                        Weight = newCost + (int)NodeId.Distance(node.Position, newPoint),
+                        MajorCitiesLeft = citiesLeft // Add the calculated Major Cities left,
+                                                     // should the pathfinder choose that route.
                     };
                     queue.Insert(newNode);
                 }
