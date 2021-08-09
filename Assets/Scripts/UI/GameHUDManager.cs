@@ -1,66 +1,69 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Rails.UI
 {
-  public class GameHUDManager : MonoBehaviour
-  {
-    public TMPro.TMP_Text PlayerNameText;
-    public TMPro.TMP_Text PlayerMoneyText;
-    public TMPro.TMP_Text PlayerTrainText;
-
-    public NameValueItem GoodPrefab;
-    public GameObject GoodsRoot;
-
-    public NameCheckItem CityPrefab;
-    public GameObject CitiesRoot;
-
-    private List<NameValueItem> _goods = new List<NameValueItem>();
-    private List<NameCheckItem> _cities = new List<NameCheckItem>();
-
-    public void SetGoods(Dictionary<string, string> values)
+    public class GameHUDManager : MonoBehaviour
     {
-      // destroy existing goods
-      foreach (var good in _goods)
-        Destroy(good.gameObject);
-      _goods.Clear();
+        [Header("Basic")]
+        public TMPro.TMP_Text PlayerNameText;
+        public TMPro.TMP_Text PlayerMoneyText;
+        public TMPro.TMP_Text PlayerCitiesText;
 
-      foreach (var kvp in values)
-      {
-        // instantiate item
-        var good = Instantiate(GoodPrefab);
-        good.transform.SetParent(GoodsRoot.transform, false);
+        [Header("Train")]
+        public TMPro.TMP_Text TrainNameText;
+        public Image TrainIconImage;
+        public TMPro.TMP_Text TrainUpgradeText;
+        public Image[] TrainUpgradeImages;
 
-        // set name and value
-        good.Name = kvp.Key;
-        good.Value = kvp.Value;
+        [Header("Goods")]
+        public IconValueItem[] Goods;
 
-        // add to collection
-        _goods.Add(good);
-      }
+        [Header("Cards")]
+        public CardItem[] Cards;
+
+        private void Start()
+        {
+            var manager = Manager.Singleton;
+            if (!manager)
+                return;
+
+            manager.OnTurnEnd += Manager_OnTurnEnd;
+            Manager_OnTurnEnd(manager);
+        }
+
+        private void Manager_OnTurnEnd(Manager manager)
+        {
+            var currentPlayerIndex = manager.CurrentPlayer;
+            var currentPlayer = manager.Players[currentPlayerIndex];
+
+            // update basic info
+            this.PlayerNameText.text = currentPlayer.name;
+            this.PlayerMoneyText.text = $"${currentPlayer.money}";
+            this.PlayerCitiesText.text = $"{currentPlayer.majorcities}";
+
+            // update train
+            this.TrainNameText.text = currentPlayer.trainStyle.ToString();
+        }
+
+        public void SetGoods(IEnumerable<string> values)
+        {
+            var valuesArr = values.ToArray();
+            for (int i = 0; i < Goods.Length; ++i)
+            {
+                var good = Goods[i];
+
+                if (i < valuesArr.Length)
+                    good.Value = valuesArr[i];
+                else
+                {
+                    good.Sprite = null;
+                    good.Value = null;
+                    good.Disabled = true;
+                }
+            }
+        }
     }
-
-    public void SetCities(Dictionary<string, bool> values)
-    {
-      // destroy existing cities
-      foreach (var city in _cities)
-        Destroy(city.gameObject);
-      _cities.Clear();
-
-      foreach (var kvp in values)
-      {
-        // instantiate item
-        var city = Instantiate(CityPrefab);
-        city.transform.SetParent(CitiesRoot.transform, false);
-
-        // set name and value
-        city.Name = kvp.Key;
-        city.Checked = kvp.Value;
-
-        // add to collection
-        _cities.Add(city);
-      }
-    }
-  }
 }

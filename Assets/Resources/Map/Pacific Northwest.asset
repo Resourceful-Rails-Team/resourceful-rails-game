@@ -49352,27 +49352,52 @@ MonoBehaviour:
     - {x: 11, y: 0}
   Goods:
   - Name: Wheat
+    Icon: {fileID: 0}
   - Name: Beef
+    Icon: {fileID: 0}
   - Name: Potatoes
+    Icon: {fileID: 0}
   - Name: Aircraft Parts
+    Icon: {fileID: 0}
   - Name: Semiconductors
+    Icon: {fileID: 0}
   - Name: Integrated Circuits
+    Icon: {fileID: 0}
   - Name: Hazelnuts
+    Icon: {fileID: 0}
   - Name: Dairy
+    Icon: {fileID: 0}
   - Name: Wine
+    Icon: {fileID: 0}
   - Name: Heavy Machinery
+    Icon: {fileID: 0}
   - Name: Apples
+    Icon: {fileID: 0}
   - Name: Medical Supplies
+    Icon: {fileID: 0}
   - Name: Spacecraft Parts
+    Icon: {fileID: 0}
   - Name: Vehicle Parts
+    Icon: {fileID: 0}
   - Name: Cement
+    Icon: {fileID: 0}
   - Name: Seafood
+    Icon: {fileID: 0}
   - Name: Computer Hardware
+    Icon: {fileID: 0}
   - Name: Copper
+    Icon: {fileID: 0}
   - Name: Silver
+    Icon: {fileID: 0}
   - Name: Gold
+    Icon: {fileID: 0}
   - Name: Coal
+    Icon: {fileID: 0}
   - Name: Minerals
+    Icon: {fileID: 0}
   - Name: Propane
+    Icon: {fileID: 0}
   - Name: Cattle
+    Icon: {fileID: 0}
   - Name: Lentils
+    Icon: {fileID: 0}
