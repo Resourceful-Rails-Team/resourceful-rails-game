@@ -154,6 +154,8 @@ namespace Rails
         #region DeckTests
         private void TestNoCityRepeats()
         {
+            Deck.Initialize();
+
             List<Demand[]> demandCards = new List<Demand[]>();
             for (int i = 0; i < Deck.DemandCardCount; ++i)
                 demandCards.Add(Deck.DrawOne());

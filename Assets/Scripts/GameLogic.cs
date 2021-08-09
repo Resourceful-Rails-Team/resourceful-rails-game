@@ -33,12 +33,15 @@ namespace Rails {
             return;
         }
         // Builds the track.
-        public static void BuildTrack(TrackGraph<int> Tracks, List<Route> routes, Color playerColor) {
+        public static void BuildTrack(TrackGraph<int> Tracks, int player, List<Route> routes, Color playerColor) {
             foreach (Route route in routes) {
                 GameGraphics.CommitPotentialTrack(route, playerColor);
 
                 for (int i = 0; i < route.Distance; ++i)
-                    Tracks[route.Nodes[i], route.Nodes[i + 1]] = 0;
+                {
+                    if (!Tracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i+1], out var e) || e != Manager.MajorCityIndex)
+                        Tracks[route.Nodes[i], route.Nodes[i + 1]] = player;
+                }
             }
             return;
         }

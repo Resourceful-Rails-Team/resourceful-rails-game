@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Rails.Collections;
 using Rails.Data;
@@ -33,67 +34,68 @@ namespace Rails.Systems
         // start.
         public int SpacesLeft { get; set; }
         
+        // Represents the number of major Citys left the player
+        // can connect with at this instance.
+        public int MajorCitiesLeft { get; set; }
+        
         // Compared by Weight
         public int CompareTo(WeightedNode other) => Weight.CompareTo(other.Weight);
     } 
     
     public static class Pathfinding
     {
+        private static GameRules _rules;
+        private static TrackGraph<int> _tracks;
+        private static MapData _mapData;
+
         #region Public Methods
-
+        
         /// <summary>
-        /// Finds the least-distance build route given a series of
-        /// intermediate segment nodes.
+        /// Initializes the Pathfinder, supplying it with the unique game session data.
         /// </summary>
-        /// <param name="tracks">The map's current player tracks</param>
-        /// <param name="mapData">The map's node information</param>
-        /// <param name="segments">The NodeIds the route must pass through</param>'
-        /// <returns>
-        /// The shortest-distance Route that connects all segments.
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached. 
-        /// </returns>
-        public static Route ShortestBuild(
-            TrackGraph<int> tracks, MapData mapData,
-            params NodeId[] segments
-        ) => FindTrackBetweenPoints(tracks, mapData, false, segments);
+        /// <param name="rules">The current rules for the game session.</param>
+        /// <param name="tracks">The game's tracks.</param>
+        /// <param name="mapData">The MapData of the board.</param>
+        public static void Initialize(GameRules rules, TrackGraph<int> tracks, MapData mapData)
+        {
+            _rules = rules;
+            _tracks = tracks;
+            _mapData = mapData;
+        }
 
-        /// <summary>
-        /// Finds the least-cost build route given a series of
-        /// intermediate segment nodes.
-        /// </summary>
-        /// <param name="tracks">The map's current player tracks</param>
-        /// <param name="mapData">The map's node information</param>
-        /// <param name="segments">The NodeIds the route must pass through</param>
-        /// <returns>
-        /// The shortest-cost Route that connects all segments.
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached. 
-        /// </returns>
-        public static Route CheapestBuild(
-            TrackGraph<int> tracks, MapData mapData,
-            params NodeId[] segments
-        ) => FindTrackBetweenPoints(tracks, mapData, true, segments);
+        public static List<Route> ShortestBuilds(List<List<NodeId>> segmentGroups) {
+            var routes = new List<Route>();
+            int majorCitiesLeft = _rules.MajorCityBuildsPerTurn;
+            var newTracks = _tracks.Clone();
 
-        /// <summary>
-        /// Finds the least-distance traversal on a track,
-        /// given a `player`, the player's train's `speed`, and
-        /// a series of intermediate segments.
-        /// </summary>
-        /// <param name="tracks">The map's current player tracks</param>
-        /// <param name="player">The index of the player performing the traversal</param>
-        /// <param name="speed">The speed of the player's train</param>
-        /// <param name="segments">The NodeIds the route must pass through</param>
-        /// <returns>
-        /// The shortest-distance Route that connects all segments.
-        /// Returns the furthest path between segments possible
-        /// if a segment cannot be reached. 
-        /// </returns>
+            foreach(var segments in segmentGroups)
+            { 
+                var newRoute = FindPathBetweenPoints(newTracks, ref majorCitiesLeft, false, segments);
+                routes.Add(newRoute);
+            }
+
+            return routes;
+        }
+
+        public static List<Route> CheapestBuilds(List<List<NodeId>> segmentGroups)
+        { 
+            var routes = new List<Route>();
+            int majorCount = _rules.MajorCityBuildsPerTurn;
+            var newTracks = _tracks.Clone();
+
+            foreach(var segments in segmentGroups)
+            { 
+                var newRoute = FindPathBetweenPoints(newTracks, ref majorCount, true, segments);
+                routes.Add(newRoute);
+            }
+
+            return routes;
+        }
         public static Route ShortestMove(
-            GameRules rules,
-            TrackGraph<int> tracks,
-            int player, int speed, params NodeId[] segments
-        ) => FindPathBetweenPoints(rules, tracks, player, speed, false, segments);
+            int player, 
+            int speed, 
+            params NodeId[] segments
+        ) => FindTrackBetweenPoints(player, speed, false, segments);
 
         /// <summary>
         /// Finds the least-cost traversal on a track,
@@ -110,60 +112,63 @@ namespace Rails.Systems
         /// if a segment cannot be reached. 
         /// </returns>
         public static Route CheapestMove(
-            GameRules rules,
-            TrackGraph<int> tracks,
-            int player, int speed, params NodeId[] segments
-        ) => FindPathBetweenPoints(rules, tracks, player, speed, true, segments);
+            int player, 
+            int speed, 
+            params NodeId[] segments
+        ) => FindTrackBetweenPoints(player, speed, true, segments);
         
         #endregion
 
-        #region Private Methods
-        
+        #region Private Methods 
+
         /// <summary>
         /// Finds the best build path, either shortest or cheapest.
         /// </summary>
-        private static Route FindTrackBetweenPoints(
-            TrackGraph<int> tracks, 
-            MapData mapData,
+        private static Route FindPathBetweenPoints(
+            TrackGraph<int> tracks,
+            ref int majorCitiesLeft,
             bool addWeight, 
-            params NodeId[] segments
+            List<NodeId> segments
         ) {
             var path = new List<NodeId>();
+
+            // Create a copy of majorCount, to eventually pass into
+            // the build path method
+            int majorCountDuplicate = majorCitiesLeft;
             
             // If no segments were given, return an empty Route
-            if (segments.Length == 0) 
+            if (segments.Count == 0) 
                 return new Route(0, path);
 
-            // A duplicate of the current tracks - ensures that Pathfinder
-            // doesn't reuse already commited paths in later traversals.
-            var newTracks = tracks.Clone();
+            var routes = new List<List<NodeId>>();
 
             // For each segment, find the least-cost path between it and the next segment.
-            for(int i = 0; i < segments.Length - 1; ++i)
+            for(int i = 0; i < segments.Count - 1; ++i)
             {
                 var route = LeastCostPath(
-                    newTracks, mapData, segments[i], 
+                    ref majorCountDuplicate,
+                    tracks, segments[i],
                     segments[i + 1], addWeight
                 );
                 if(route == null) break;
+
+                routes.Add(route);
                 
                 // Add the new path to newTracks
-                for(int j = 0; j < route.Nodes.Count - 1; ++j)
-                    newTracks[route.Nodes[j], route.Nodes[j+1]] = 6;
+                for(int j = 0; j < route.Count - 1; ++j)
+                    tracks[route[j], route[j+1]] = 6;
 
-                path.AddRange(route.Nodes.Take(route.Distance));
-                if (i == segments.Length - 2) path.Add(segments.Last());
+                path.AddRange(route.Take(route.Count - 1));
+                if (i == segments.Count - 2) path.Add(segments.Last());
             }
 
-            return CreatePathRoute(mapData, path);
+            return CreatePathRoute(ref majorCitiesLeft, path);
         }
 
         /// <summary>
         /// Finds the best move path, either shortest or cheapest.
         /// </summary>
-        private static Route FindPathBetweenPoints(
-            GameRules rules,
-            TrackGraph<int> tracks,
+        private static Route FindTrackBetweenPoints(
             int player, 
             int speed, 
             bool addAltTrackCost, 
@@ -174,6 +179,8 @@ namespace Rails.Systems
             // If no segments were given, return an empty Route
             if (segments.Length == 0) 
                 return new Route(0, path);
+            if (segments.Any(s => !_tracks.ContainsVertex(s)))
+                return new Route(0, path);
 
             path.Add(segments[0]);
     
@@ -181,8 +188,7 @@ namespace Rails.Systems
             for(int i = 0; i < segments.Length - 1; ++i)
             {
                 var route = LeastCostTrack(
-                    rules,
-                    tracks, player, speed, 
+                    _tracks, player, speed, 
                     segments[i], segments[i + 1], addAltTrackCost
                 );
                 if(route == null) break;
@@ -191,7 +197,7 @@ namespace Rails.Systems
                 path.AddRange(route.Nodes);
             }
 
-            return CreateTrackRoute(rules, tracks, player, speed, path); 
+            return CreateTrackRoute(_tracks, player, speed, path); 
 
         }
 
@@ -200,7 +206,6 @@ namespace Rails.Systems
         /// from a start point to end point.
         /// </summary>
         private static Route LeastCostTrack(
-            GameRules rules,
             TrackGraph<int> tracks, 
             int player, 
             int speed, 
@@ -248,7 +253,7 @@ namespace Rails.Systems
                 // it to the returned PathData
                 if(node.Position == end)
                 {
-                    path = CreateTrackRoute(rules, tracks, previous, player, speed, start, end);
+                    path = CreateTrackRoute(_rules, tracks, previous, player, speed, start, end);
                     break;
                 }
                 
@@ -268,7 +273,7 @@ namespace Rails.Systems
                 for(Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                 {
                     var newPoint = Utilities.PointTowards(node.Position, c);
-                    if(tracks[node.Position, c] != -1 && tracks.ContainsVertex(newPoint))
+                    if(tracks[node.Position, c] == Manager.MajorCityIndex || tracks[node.Position, c] != -1)
                     {
                         var newNode = new WeightedNode
                         {
@@ -280,16 +285,20 @@ namespace Rails.Systems
                         var newCost = distMap[node.Position] + 1;
 
                         // Retrieve the track owner of the edge being considered
-                        int trackOwner = tracks[node.Position, newPoint];
-
-                        // If the current track is owned by a different player,
-                        // one whose track the current player currently is not on
-                        // add the Alternative Track Cost to the track's weight.
-                        if(addAltTrackCost && !newNode.AltTracksPaid[trackOwner])
+                        if (tracks[node.Position, c] != Manager.MajorCityIndex)
                         {
-                            newCost += 1000;
-                            newNode.AltTracksPaid[trackOwner] = true;
+                            int trackOwner = tracks[node.Position, c];
+
+                            // If the current track is owned by a different player,
+                            // one whose track the current player currently is not on
+                            // add the Alternative Track Cost to the track's weight.
+                            if (addAltTrackCost && !newNode.AltTracksPaid[trackOwner])
+                            {
+                                newCost += 1000;
+                                newNode.AltTracksPaid[trackOwner] = true;
+                            }
                         }
+                        else newCost += 1; 
 
                         // If a shorter path has already been found, continue
                         if(distMap.TryGetValue(newPoint, out int currentCost) && currentCost <= newCost)
@@ -313,9 +322,9 @@ namespace Rails.Systems
         /// <summary>
         /// Finds the lowest cost path available from a start point to end point.
         /// </summary>
-        private static Route LeastCostPath(
+        private static List<NodeId> LeastCostPath(
+            ref int majorCitiesLeft,
             TrackGraph<int> tracks, 
-            MapData map, 
             NodeId start, 
             NodeId end,            
             bool addWeight
@@ -328,7 +337,7 @@ namespace Rails.Systems
                 return null;
 
             // The list of nodes to return from method
-            Route path = null;
+            List<NodeId> path = null;
             // The true distances from start to considered point
             // (without A* algorithm consideration)
             var distMap = new Dictionary<NodeId, int>();
@@ -342,7 +351,7 @@ namespace Rails.Systems
             WeightedNode node;
 
             distMap[start] = 0;
-            var startNode = new WeightedNode { Position = start, Weight = 0 };
+            var startNode = new WeightedNode { Position = start, Weight = 0, MajorCitiesLeft = majorCitiesLeft };
 
             // To start things off, add the start node to the queue
             queue.Insert(startNode);
@@ -356,7 +365,7 @@ namespace Rails.Systems
                 // it to the returned PathData
                 if(node.Position == end)
                 {
-                    path = CreatePathRoute(map, previous, start, end);
+                    path = ConstructPath(ref majorCitiesLeft, previous, start, end);
                     break;
                 }
 
@@ -364,10 +373,11 @@ namespace Rails.Systems
                 // determining cost to traverse that direction.
                 for (Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                 {
+                    int citiesLeft = node.MajorCitiesLeft;
                     var newPoint = Utilities.PointTowards(node.Position, c);
 
                     // If there is a track already at the considered edge, continue
-                    if (tracks.TryGetEdges(node.Position, out var cardinals) && cardinals[(int)c] != -1)
+                    if (tracks.TryGetEdgeValue(node.Position, c, out var edge) && edge != -1 && edge != Manager.MajorCityIndex)
                         continue;
 
                     if (!newPoint.InBounds)
@@ -377,11 +387,33 @@ namespace Rails.Systems
 
                     if (addWeight)
                     {
-                        // Add the node cost to newCost, as well as river cost if the edge is over a river
-                        newCost += Manager.NodeCosts[map.Nodes[newPoint.GetSingleId()].Type];
+                        // Retrieve both NodeTypes for the two considered Nodes
+                        var nodeType1 = _mapData.Nodes[node.Position.GetSingleId()].Type;
+                        var nodeType2 = _mapData.Nodes[newPoint.GetSingleId()].Type;
 
-                        if (map.Segments[(newPoint.GetSingleId() * 6) + (int)c].Type == NodeSegmentType.River)
-                            newCost += Manager.RiverCost;
+                        // If the one of the considered nodes is a major city, while the other one isn't
+                        if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
+                        {
+                            // If the player can still build from major cities this turn, add the cost
+                            // of the current node instead of the major city node. Subtract from major city points left.
+                            if (citiesLeft > 0)
+                            {
+                                newCost += _rules.GetNodeCost(nodeType1 == NodeType.MajorCity ? nodeType2 : nodeType1);
+                                citiesLeft -= 1;
+                            }
+                            // Otherwise, charge the cost of inserting into a new major city
+                            else
+                                newCost += _rules.GetNodeCost(NodeType.MajorCity);
+                        }
+                        // If both nodes are not a major city, add the NodeType cost to the new point.
+                        else if((nodeType1 & nodeType2) != NodeType.MajorCity)
+                            newCost += _rules.GetNodeCost(_mapData.Nodes[newPoint.GetSingleId()].Type);
+
+                        // (A cost is not added if both NodeTypes are MajorCity)
+                        
+                        // Add the river cost if the node is over a river
+                        if (_mapData.Segments[(newPoint.GetSingleId() * 6) + (int)c].Type == NodeSegmentType.River)
+                            newCost += _rules.RiverCrossCost;
                     }
                     else newCost += 1;
 
@@ -396,7 +428,13 @@ namespace Rails.Systems
                     previous[newPoint] = node.Position;
 
                     // Add the new cost, with the A* heuristic, to the node's weight
-                    var newNode = new WeightedNode { Position = newPoint, Weight = newCost };
+                    var newNode = new WeightedNode
+                    {
+                        Position = newPoint,
+                        Weight = newCost + (int)NodeId.Distance(node.Position, newPoint),
+                        MajorCitiesLeft = citiesLeft // Add the calculated Major Cities left,
+                                                     // should the pathfinder choose that route.
+                    };
                     queue.Insert(newNode);
                 }
             } 
@@ -433,7 +471,7 @@ namespace Rails.Systems
 
                 // If the track has yet to be paid for this turn
                 // add the cost.
-                if(!tracksPaid[tracks[current, previous[current]]])
+                if(tracks[current, previous[current]] != Manager.MajorCityIndex && !tracksPaid[tracks[current, previous[current]]])
                 {
                     cost += rules.AltTrackCost;
                     tracksPaid[tracks[current, previous[current]]] = true;
@@ -465,7 +503,6 @@ namespace Rails.Systems
         /// tracks, nodes from start to end and player index
         /// </summary>
         private static Route CreateTrackRoute(
-            GameRules rules,
             TrackGraph<int> tracks,
             int player, 
             int speed,
@@ -482,9 +519,9 @@ namespace Rails.Systems
             {
                 // If the track has yet to be paid for this turn
                 // add the cost.
-                if(!tracksPaid[tracks[path[i], path[i+1]]])
+                if(tracks[path[i], path[i+1]] != Manager.MajorCityIndex && !tracksPaid[tracks[path[i], path[i+1]]])
                 {
-                    cost += rules.AltTrackCost;
+                    cost += _rules.AltTrackCost;
                     tracksPaid[tracks[path[i], path[i+1]]] = true;
                 }
             
@@ -510,13 +547,12 @@ namespace Rails.Systems
         /// Creates a new Route using the MapData and a map of all tracks' 
         /// nodes previous nodes for shortest path.
         /// </summary>
-        private static Route CreatePathRoute(
-            MapData map,
+        private static List<NodeId> ConstructPath(
+            ref int majorCitiesLeft,
             Dictionary<NodeId, NodeId> previous,
             NodeId start, 
             NodeId end
         ) {
-            var cost = 0;
             var nodes = new List<NodeId>();
             var current = end;
 
@@ -526,25 +562,25 @@ namespace Rails.Systems
             {
                 nodes.Add(current);
 
-                // Add the cost of building the track, based on NodeType
-                // and NodeSegment 
-                cost += Manager.NodeCosts[map.Nodes[current.GetSingleId()].Type];
-                if (map.Segments[current.GetSingleId() * 6 + (int)Utilities.CardinalBetween(current, previous[current])].Type == NodeSegmentType.River)
-                    cost += Manager.RiverCost;
+                var nodeType1 = _mapData.Nodes[current.GetSingleId()].Type;
+                var nodeType2 = _mapData.Nodes[previous[current].GetSingleId()].Type;
+
+                if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
+                    majorCitiesLeft -= 1;
 
                 current = previous[current];
             }
             nodes.Add(start);
 
             nodes.Reverse();
-            return new Route(cost, nodes);
+            return nodes;
         }
         
         /// <summary>
         /// Creates a new Route using the MapData and a list of NodeIds
         /// </summary>
         private static Route CreatePathRoute(
-            MapData map,
+            ref int majorCitiesLeft,
             List<NodeId> path
         ) {
             int cost = 0;
@@ -552,11 +588,24 @@ namespace Rails.Systems
             // Traverse the path, adding the cost of each edge while doing so
             for (int i = 0; i < path.Count - 1; ++i)
             {
-                // Add the node cost to newCost, as well as river cost if the edge is over a river
-                cost += Manager.NodeCosts[map.Nodes[path[i+1].GetSingleId()].Type];
+                var nodeType1 = _mapData.Nodes[path[i].GetSingleId()].Type;
+                var nodeType2 = _mapData.Nodes[path[i+1].GetSingleId()].Type;
 
-                if (map.Segments[path[i].GetSingleId() * 6 + (int)Utilities.CardinalBetween(path[i], path[i + 1])].Type == NodeSegmentType.River)
-                    cost += Manager.RiverCost;
+                if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
+                { 
+                    if (majorCitiesLeft > 0)
+                    {
+                        cost += _rules.GetNodeCost(nodeType1 == NodeType.MajorCity ? nodeType2 : nodeType1);
+                        majorCitiesLeft -= 1;
+                    }
+                    else
+                        cost += _rules.GetNodeCost(NodeType.MajorCity);
+                }
+                else if ((nodeType1 & nodeType2) != NodeType.MajorCity)
+                    cost += _rules.GetNodeCost(_mapData.Nodes[path[i + 1].GetSingleId()].Type);
+
+                if (_mapData.Segments[path[i].GetSingleId() * 6 + (int)Utilities.CardinalBetween(path[i], path[i + 1])].Type == NodeSegmentType.River)
+                    cost += _rules.RiverCrossCost;
             }
  
             return new Route(cost, path);

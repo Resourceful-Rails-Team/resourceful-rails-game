@@ -29,8 +29,12 @@ namespace Rails.Rendering
         public void SetColor(Color color)
         {
             if (_renderers != null)
-                foreach(var renderer in _renderers)
+                foreach (var renderer in _renderers)
+                {
                     renderer.material.color = color;
+                    if (color.a == 0.0f)
+                        renderer.enabled = false;
+                }
         }
 
         /// <summary>
@@ -43,16 +47,11 @@ namespace Rails.Rendering
             _primaryColor = color;
             ResetColor();
         }
-        
+
         /// <summary>
         /// Resets the `GameToken`'s color to its primary color
         /// </summary>
-        public void ResetColor()
-        {
-            if (_renderers != null)
-                foreach (var renderer in _renderers)
-                    renderer.material.color = _primaryColor;
-        }
+        public void ResetColor() => SetColor(_primaryColor);
 
         /// <summary>
         /// Plays a given animation on the token (if it has an animator).

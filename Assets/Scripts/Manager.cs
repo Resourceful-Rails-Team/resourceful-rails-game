@@ -62,6 +62,12 @@ namespace Rails {
         /// Controls the spacing between nodes in terms of Unity units.
         /// </summary>
         public float WSSize = 1f;
+        /// <summary>
+        /// The value representing a MajorCity NodeType.
+        /// Used when setting down initial MajorCity tracks,
+        /// Tracks values and ghost tracks.
+        /// </summary>
+        public const int MajorCityIndex = -2;
 
         /// <summary>
         /// A collection of game rules.
@@ -72,24 +78,6 @@ namespace Rails {
         /// </summary>
         [SerializeField]
         public MapData MapData;
-        /// <summary>
-        /// The cost to build a track to a respective NodeType
-        /// </summary>
-        public static readonly ReadOnlyDictionary<NodeType, int> NodeCosts = new ReadOnlyDictionary<NodeType, int>(
-            new Dictionary<NodeType, int>
-            {
-            { NodeType.Clear,      1 },
-            { NodeType.Mountain,   2 },
-            { NodeType.SmallCity,  3 },
-            { NodeType.MediumCity, 3 },
-            { NodeType.MajorCity,  5 },
-            { NodeType.Water, 1000   },
-            }
-        );
-        /// <summary>
-        /// The cost to build over a river
-        /// </summary>
-        public const int RiverCost = 2;
         /// <summary>
         /// The trains that players can use.
         /// </summary>
@@ -156,6 +144,7 @@ namespace Rails {
         private int currentPath;
         private int currentNodeinPath;
         private List<List<NodeId>> buildPaths;
+        private Route currentMovePath = null;
         private List<Route> routes;
         private GameToken _highlightToken;
         #endregion
@@ -166,6 +155,7 @@ namespace Rails {
             // set singleton reference on awake
             _singleton = this;
             _startRules = FindObjectOfType<GameStartRules>();
+            _rules = MapData.DefaultRules;
 
             // generate start rules if empty
             if (_startRules == null) {
@@ -179,11 +169,15 @@ namespace Rails {
             }
         }
 
-        private void Start() {
+        private void Start()
+        {
             GameGraphics.Initialize(MapData);
+            Pathfinding.Initialize(_rules, Tracks, MapData);
+            SetupMajorCityTracks();
+
             GameLoopSetup();
         }
-
+ 
         private void Update() {
             _highlightToken?.ResetColor();
             var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
@@ -281,7 +275,7 @@ namespace Rails {
         // Builds the track between the nodes in path.
         public void BuildTrack() {
             if (buildPaths.Count != 0)
-                GameLogic.BuildTrack(Tracks, routes, player.color);
+                GameLogic.BuildTrack(Tracks, currentPlayer, routes, player.color);
             buildPaths.Clear();
             buildPaths.Add(new List<NodeId>());
             EndTurn();
@@ -331,8 +325,12 @@ namespace Rails {
         public void ClearPath(int path) {
             // Move Phase
             if (currentPhase == 0)
-                player.movepath.Clear();
-            else {
+            {
+                GameGraphics.HighlightRoute(currentMovePath, null);
+                player.movesegments.Clear();
+            }
+            else
+            {
                 GameGraphics.DestroyPotentialTrack(routes[path]);
                 buildPaths[path].Clear();
                 PlannedTracks();
@@ -340,11 +338,25 @@ namespace Rails {
             return;
         }
         public void AddNode(int path, NodeId node) {
-            // Add to move queue if in move phase.
+            // Add to player's movesegments if in move phase.
             if (currentPhase == 0)
-                player.movepath.Add(node);
+            {
+                // Remove the highlight if there is an already existing Route
+                GameGraphics.HighlightRoute(currentMovePath, null);
+
+                player.movesegments.Add(node);
+                
+                // Find the cheapest path between the segments
+                currentMovePath = Pathfinding.CheapestMove(
+                    currentPlayer,
+                    _rules.TrainSpecs[player.trainStyle].movePoints,
+                    player.movesegments.ToArray()
+                );
+                GameGraphics.HighlightRoute(currentMovePath, Color.yellow);
+            }
             // Add to build queue if in build phase.
-            else {
+            else
+            {
                 buildPaths[path].Add(node);
                 PlannedTracks();
             }
@@ -354,7 +366,7 @@ namespace Rails {
         public bool RemoveNode(int path, NodeId node) {
             bool success = false;
             if (currentPhase == 0)
-                success = player.movepath.Remove(node);
+                success = player.movesegments.Remove(node);
             else {
                 success = buildPaths[path].Remove(node);
 						}
@@ -407,9 +419,9 @@ namespace Rails {
             if (currentPhase < 0) {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
             }
-						else {
+			else {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
-						}
+			}
             if (currentPhase >= 0) {
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
             }
@@ -419,16 +431,50 @@ namespace Rails {
         }
         // Show the planned route on the map.
         private void PlannedTracks() {
-            for (int p = 0; p < buildPaths.Count; p++) {
-                if (buildPaths[p].Count > 1) {
-                    if (routes[p] != null)
-                        GameGraphics.DestroyPotentialTrack(routes[p]);
-                    routes[p] = Pathfinding.CheapestBuild(Tracks, MapData, buildPaths[p].ToArray());
-                    GameGraphics.GeneratePotentialTrack(routes[p]);
+            if (buildPaths.Count > 0)
+            {
+                if (routes != null)
+                {
+                    foreach (var route in routes)
+                        GameGraphics.DestroyPotentialTrack(route);
+                    routes.Clear();
                 }
+                routes = Pathfinding.CheapestBuilds(buildPaths);
+
+                foreach (var route in routes)
+                    GameGraphics.GeneratePotentialTrack(route, Color.yellow);
             }
             return;
         }
+        
+        /// <summary>
+        /// Sets up the tracks that are automatically assigned to
+        /// a Major City
+        /// </summary>
+        private void SetupMajorCityTracks()
+        {
+            for (int i = 0; i < Size * Size; ++i)
+            {
+                if (MapData.Nodes[i].Type == NodeType.MajorCity)
+                {
+                    var nodeId = NodeId.FromSingleId(i);
+                    for (var c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
+                    {
+                        var adjNodeId = Utilities.PointTowards(nodeId, c);
+                        if (MapData.Nodes[adjNodeId.GetSingleId()].Type == NodeType.MajorCity &&
+                           (!Tracks.TryGetEdgeValue(nodeId, c, out int e) || e == -1))
+                        {
+                            Tracks[nodeId, adjNodeId] = MajorCityIndex;
+                            var route = new Route(0, new List<NodeId> { nodeId, adjNodeId });
+
+                            GameGraphics.GeneratePotentialTrack(route, Color.clear);
+                            GameGraphics.CommitPotentialTrack(route, Color.clear);
+                        }
+                    }
+                }
+            }
+        }
+
         #endregion
     }
 }
