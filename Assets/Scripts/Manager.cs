@@ -169,33 +169,15 @@ namespace Rails {
             }
         }
 
-        private void Start() {
+        private void Start()
+        {
             GameGraphics.Initialize(MapData);
             Pathfinding.Initialize(_rules, Tracks, MapData);
+            SetupMajorCityTracks();
+
             GameLoopSetup();
-
-            for (int i = 0; i < Size * Size; ++i)
-            {
-                if (MapData.Nodes[i].Type == NodeType.MajorCity)
-                {
-                    var nodeId = NodeId.FromSingleId(i);
-                    for (var c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
-                    {
-                        var adjNodeId = Utilities.PointTowards(nodeId, c);
-                        if (MapData.Nodes[adjNodeId.GetSingleId()].Type == NodeType.MajorCity &&
-                           !Tracks.TryGetEdgeValue(nodeId, c, out int _))
-                        {
-                            Tracks[nodeId, adjNodeId] = MajorCityIndex;
-                            var route = new Route(0, new List<NodeId> { nodeId, adjNodeId });
-
-                            GameGraphics.GeneratePotentialTrack(route, Color.white);
-                            GameGraphics.CommitPotentialTrack(route, Color.white);
-                        }
-                    }
-                }
-            }
         }
-
+ 
         private void Update() {
             _highlightToken?.ResetColor();
             var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
@@ -464,6 +446,35 @@ namespace Rails {
             }
             return;
         }
+        
+        /// <summary>
+        /// Sets up the tracks that are automatically assigned to
+        /// a Major City
+        /// </summary>
+        private void SetupMajorCityTracks()
+        {
+            for (int i = 0; i < Size * Size; ++i)
+            {
+                if (MapData.Nodes[i].Type == NodeType.MajorCity)
+                {
+                    var nodeId = NodeId.FromSingleId(i);
+                    for (var c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
+                    {
+                        var adjNodeId = Utilities.PointTowards(nodeId, c);
+                        if (MapData.Nodes[adjNodeId.GetSingleId()].Type == NodeType.MajorCity &&
+                           (!Tracks.TryGetEdgeValue(nodeId, c, out int e) || e == -1))
+                        {
+                            Tracks[nodeId, adjNodeId] = MajorCityIndex;
+                            var route = new Route(0, new List<NodeId> { nodeId, adjNodeId });
+
+                            GameGraphics.GeneratePotentialTrack(route, Color.clear);
+                            GameGraphics.CommitPotentialTrack(route, Color.clear);
+                        }
+                    }
+                }
+            }
+        }
+
         #endregion
     }
 }

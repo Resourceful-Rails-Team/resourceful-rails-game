@@ -471,7 +471,7 @@ namespace Rails.Systems
 
                 // If the track has yet to be paid for this turn
                 // add the cost.
-                if(!tracksPaid[tracks[current, previous[current]]])
+                if(tracks[current, previous[current]] != Manager.MajorCityIndex && !tracksPaid[tracks[current, previous[current]]])
                 {
                     cost += rules.AltTrackCost;
                     tracksPaid[tracks[current, previous[current]]] = true;
@@ -519,7 +519,7 @@ namespace Rails.Systems
             {
                 // If the track has yet to be paid for this turn
                 // add the cost.
-                if(!tracksPaid[tracks[path[i], path[i+1]]])
+                if(tracks[path[i], path[i+1]] != Manager.MajorCityIndex && !tracksPaid[tracks[path[i], path[i+1]]])
                 {
                     cost += _rules.AltTrackCost;
                     tracksPaid[tracks[path[i], path[i+1]]] = true;

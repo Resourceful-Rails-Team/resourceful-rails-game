@@ -38,7 +38,10 @@ namespace Rails {
                 GameGraphics.CommitPotentialTrack(route, playerColor);
 
                 for (int i = 0; i < route.Distance; ++i)
-                    Tracks[route.Nodes[i], route.Nodes[i + 1]] = player;
+                {
+                    if (!Tracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i+1], out var e) || e != Manager.MajorCityIndex)
+                        Tracks[route.Nodes[i], route.Nodes[i + 1]] = player;
+                }
             }
             return;
         }
