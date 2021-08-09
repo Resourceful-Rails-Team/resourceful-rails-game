@@ -16,7 +16,7 @@ namespace Rails.Systems
 
         // An integer array representing the number of Demands to generate per City type.
         // Medium cities have the most preference while major cities have the least.
-        private static readonly int [] CityTypePreference = new int[] { 3, 2, 5 };
+        private static readonly int [] CityTypePreference = new int[] { 3, 5, 2 };
  
         private static List<Demand[]> _drawPile;
         private static List<Demand[]> _discardPile;
@@ -53,7 +53,7 @@ namespace Rails.Systems
             var goodsPositions = new List<NodeId>();
             for (int i = 0; i < goods.Length; ++i)
             {
-                var ids = _manager.MapData.LocationsOfGood(goods[i]);
+                var ids = _manager.MapData.LocationsOfGood(goods[i]); 
                 goodsPositions.Add(ids[0]);
             }
 
@@ -103,8 +103,7 @@ namespace Rails.Systems
                         while (
                             distance < minDist ||
                             selectedCity.Goods.Any(g => g.x == goodIndex)
-                        )
-                        {
+                        ) {
                             goodIndex = UnityEngine.Random.Range(0, goods.Length);
                             distance = NodeId.Distance(
                                 _manager.MapData.LocationsOfCity(selectedCity).First(),

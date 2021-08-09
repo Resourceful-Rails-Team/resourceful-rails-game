@@ -22,18 +22,30 @@ MonoBehaviour:
     WinMajorCities: 6
     WinMoney: 250
     AltTrackCost: 4
-    BaseTrainSpecs:
-      goodsTotal: 0
-      movePoints: 0
-    FastTrainSpecs:
-      goodsTotal: 0
-      movePoints: 0
-    HeavyTrainSpecs:
-      goodsTotal: 0
-      movePoints: 0
-    SuperTrainSpecs:
-      goodsTotal: 0
-      movePoints: 0
+    RiverCrossCost: 2
+    TrainSpecs:
+    - goodsTotal: 2
+      movePoints: 9
+    - goodsTotal: 2
+      movePoints: 12
+    - goodsTotal: 3
+      movePoints: 9
+    - goodsTotal: 3
+      movePoints: 12
+    NodeCosts:
+    - NodeType: 0
+      Cost: 1
+    - NodeType: 1
+      Cost: 2
+    - NodeType: 2
+      Cost: 3
+    - NodeType: 3
+      Cost: 3
+    - NodeType: 4
+      Cost: 5
+    - NodeType: 5
+      Cost: 1000
+    MajorCityBuildsPerTurn: 2
   Nodes:
   - Type: 5
     Id:

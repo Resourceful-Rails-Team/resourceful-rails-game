@@ -63,8 +63,12 @@ namespace Rails.Rendering
         /// <returns>The GameToken, if any are located at the NodeId position</returns>
         public static GameToken GetMapToken(NodeId nodeId)
         {
-            _mapTokens.TryGetValue(nodeId, out var token);
-            return token;
+            if (nodeId != null)
+            {
+                _mapTokens.TryGetValue(nodeId, out var token);
+                return token;
+            }
+            return null;
         }
 
         /// <summary>
@@ -72,10 +76,12 @@ namespace Rails.Rendering
         /// </summary>
         /// <param name="route">The `Route` to build the track on</param>
         /// <returns>An index representing the ID of the track</returns>
-        public static void GeneratePotentialTrack(Route route)
+        public static void GeneratePotentialTrack(Route route, Color highlightColor)
         {
-            var trackTokens = new List<GameToken>(route.Nodes.Count - 1);
-            for (int i = 0; i < route.Nodes.Count - 1; ++i)
+            if (route.Nodes.Count == 0) return;
+
+            var trackTokens = new List<GameToken>(route.Nodes.Count);
+            for (int i = 0; i < route.Distance; ++i)
             {
                 // Determine the rotation between adjacent Route nodes
                 var rotation = Utilities.GetCardinalRotation(
@@ -88,7 +94,7 @@ namespace Rails.Rendering
                 trackToken.transform.rotation = rotation;
 
                 // Highlight the token and add it to the token list
-                trackToken.SetColor(Color.yellow);
+                trackToken.SetColor(highlightColor);
                 trackTokens.Add(trackToken);
             }
 
@@ -133,31 +139,42 @@ namespace Rails.Rendering
                     tokens[i].SetPrimaryColor(color);
                 }
                 _potentialTracks.Remove(route);
-                //MoveTrain(1, route);
             }
         }
 
         /// <summary>
-        /// Highlights or dehighlights a given track `Route`
+        /// Highlights or dehighlights a given list of NodeIds
         /// Skips any route index that is not on the track map
         /// </summary>
-        /// <param name="route">The `Route` to alter</param>
-        /// <param name="highlighted">Whether it should be highlighted, or color reset</param>
-        public static void SetHighlightRoute(Route route, bool highlighted)
+        /// <param name="route">The list of nodes to alter</param>
+        /// <param name="highlightColor">Highlights to the specified Color, or resets Color if null</param>
+        public static void HighlightRoute(List<NodeId> route, Color ? highlightColor)
         {
+            if (route == null) return;
+
             // Check each Route node to see if it exists in the track token map.
             // If it does, (de)activate its highlight.
-            for (int i = 0; i < route.Distance; ++i)
+            for (int i = 0; i < route.Count - 1; ++i)
             {
-                if (_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var token))
+                if (_trackTokens.TryGetEdgeValue(route[i], route[i + 1], out var token))
                 {
-                    if (highlighted)
-                        token.SetColor(Color.yellow);
+                    if (highlightColor.HasValue)
+                        token.SetColor(highlightColor.Value);
                     else
                         token.ResetColor();
                 }
             }
         }
+
+        /// <summary>
+        /// Highlights or dehighlights a given track Route
+        /// Skips any route index that is not on the track map
+        /// </summary>
+        /// <param name="route">The `Route` to alter</param>
+        /// <param name="highlightColor">Highlights to the specified Color, or resets Color if null</param>
+        public static void HighlightRoute(Route route, Color? highlightColor)
+            => HighlightRoute(route?.Nodes, highlightColor);
+
 
         /// <summary>
         /// Sets a given player's train's `GameToken` based on the `TrainType` provided.
@@ -222,7 +239,7 @@ namespace Rails.Rendering
                             if (neighborNodes.All(nn => nn.Item2.CityId == node.CityId && nn.Item2.Type == NodeType.MajorCity))
                             {
                                 var token = Instantiate(modelToken, _singleton.transform);
-                                token.transform.position = pos;
+                                token.transform.position = pos + new Vector3(0, 0.1f, 0);
 
                                 foreach (var nId in neighborNodes.Select(nn => nn.Item1))
                                     _mapTokens[nId] = token;
@@ -233,7 +250,7 @@ namespace Rails.Rendering
                         else
                         {
                             var token = Instantiate(modelToken, _singleton.transform);
-                            token.transform.position = pos;
+                            token.transform.position = pos + new Vector3(0, 0.1f, 0);
 
                             _mapTokens[nodeId] = token;
                         }
