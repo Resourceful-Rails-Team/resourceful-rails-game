@@ -21,6 +21,7 @@ namespace Rails {
     public class Manager : MonoBehaviour {
 
         public delegate void OnTurnEndEventHandler(Manager manager);
+        public delegate void OnPlayerInfoUpdateEventHandler(Manager manager);
 
         #region Singleton
 
@@ -113,6 +114,7 @@ namespace Rails {
         }
 
         public event OnTurnEndEventHandler OnTurnEnd;
+        public event OnPlayerInfoUpdateEventHandler OnPlayerInfoUpdate;
 
 
         #endregion // Properties
@@ -144,8 +146,8 @@ namespace Rails {
         private int currentPath;
         private int currentNodeinPath;
         private List<List<NodeId>> buildPaths;
-        private Route currentMovePath = null;
-        private List<Route> routes;
+        private Route moveRoute = null;
+        private List<Route> buildRoutes;
         private GameToken _highlightToken;
         #endregion
 
@@ -173,8 +175,8 @@ namespace Rails {
         {
             GameGraphics.Initialize(MapData);
             Pathfinding.Initialize(_rules, Tracks, MapData);
+            Deck.Initialize();
             SetupMajorCityTracks();
-
             GameLoopSetup();
         }
  
@@ -187,7 +189,11 @@ namespace Rails {
                 _highlightToken = highlightToken;
             }
             if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds) {
-                AddNode(currentPath, GameInput.MouseNodeId);
+                if (currentPhase == 0 && player.trainPosition == null) {
+                    PlaceTrain(GameInput.MouseNodeId);
+								}
+                else
+                    AddNode(currentPath, GameInput.MouseNodeId);
             }
             if (GameInput.DeleteJustPressed) {
                 ClearPath(currentPath);
@@ -259,25 +265,39 @@ namespace Rails {
 
         // Moves the train to final node in path.
         public void MoveTrain() {
-            // TODO: Move train to last pushed node.
+            // Apply the Route
+            GameGraphics.MoveTrain(currentPlayer, moveRoute);
+
             // Moving only updates the phase.
             GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
             return;
         }
         // Discards the player's hand.
         public void DiscardHand() {
-            // TODO: removing and refilling player's hand
+            // Remove and refill players' hand
+            foreach (Demand[] card in player.demandCards) {
+                Deck.Discard(card);
+						}
+            for (int c = 0; c < _rules.HandSize; c++) {
+                player.demandCards.Add(Deck.DrawOne());
+						}
             // Ends the turn.
             GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
+            OnPlayerInfoUpdate?.Invoke(this);
             return;
         }
 
         // Builds the track between the nodes in path.
         public void BuildTrack() {
+            // Build the tracks
             if (buildPaths.Count != 0)
-                GameLogic.BuildTrack(Tracks, currentPlayer, routes, player.color);
+                player.money -= GameLogic.BuildTrack(Tracks, buildRoutes, currentPlayer, player.color, _rules.MaxBuild);
+
+            // Clear the lists
             buildPaths.Clear();
             buildPaths.Add(new List<NodeId>());
+
+            // End the turn
             EndTurn();
             return;
         }
@@ -289,15 +309,28 @@ namespace Rails {
         }
         // Places the current player's train at position.
         public void PlaceTrain(NodeId position) {
-            player.train_position = position;
+            NodeType type = MapData.GetNodeAt(position).Type;
+            bool city = false;
+            switch (type) {
+                case NodeType.SmallCity:
+                case NodeType.MediumCity:
+                case NodeType.MajorCity:
+                    city = true;
+                    break;
+            }
+            if (city) {
+                player.trainPosition = position;
+                player.moveSegments[0] = player.trainPosition;
+						}
             return;
         }
+				#endregion
 
+				#region Public Path Methods
+				// Path Methods
 
-        // Path Methods
-
-        // Adds a new path to the end of the list.
-        public int CreateNewPath() {
+				// Adds a new path to the end of the list.
+				public int CreateNewPath() {
             buildPaths.Add(new List<NodeId>());
             return buildPaths.Count - 1;
 				}
@@ -326,13 +359,15 @@ namespace Rails {
             // Move Phase
             if (currentPhase == 0)
             {
-                GameGraphics.HighlightRoute(currentMovePath, null);
-                player.movesegments.Clear();
+                GameGraphics.HighlightRoute(moveRoute, null);
+                player.moveSegments.Clear();
             }
             else
             {
-                GameGraphics.DestroyPotentialTrack(routes[path]);
+                GameGraphics.DestroyPotentialTrack(buildRoutes[path]);
                 buildPaths[path].Clear();
+                if (buildPaths.Count == 0)
+                    buildPaths.Add(new List<NodeId>());
                 PlannedTracks();
             }
             return;
@@ -341,18 +376,8 @@ namespace Rails {
             // Add to player's movesegments if in move phase.
             if (currentPhase == 0)
             {
-                // Remove the highlight if there is an already existing Route
-                GameGraphics.HighlightRoute(currentMovePath, null);
-
-                player.movesegments.Add(node);
-                
-                // Find the cheapest path between the segments
-                currentMovePath = Pathfinding.CheapestMove(
-                    currentPlayer,
-                    _rules.TrainSpecs[player.trainStyle].movePoints,
-                    player.movesegments.ToArray()
-                );
-                GameGraphics.HighlightRoute(currentMovePath, Color.yellow);
+                player.moveSegments.Add(node);
+                PlannedRoute();
             }
             // Add to build queue if in build phase.
             else
@@ -366,7 +391,7 @@ namespace Rails {
         public bool RemoveNode(int path, NodeId node) {
             bool success = false;
             if (currentPhase == 0)
-                success = player.movesegments.Remove(node);
+                success = player.moveSegments.Remove(node);
             else {
                 success = buildPaths[path].Remove(node);
 						}
@@ -396,8 +421,8 @@ namespace Rails {
             // Create the path lists.
             buildPaths = new List<List<NodeId>>();
             buildPaths.Add(new List<NodeId>());
-            routes = new List<Route>();
-            routes.Add(null);
+            buildRoutes = new List<Route>();
+            buildRoutes.Add(null);
 
             // Initiate all player info.
             Players = new PlayerInfo[_startRules.Players.Length];
@@ -405,6 +430,13 @@ namespace Rails {
                 Players[p] = new PlayerInfo(_startRules.Players[p].Name,
                   _startRules.Players[p].Color, _rules.MoneyStart, 0);
             player = Players[currentPlayer];
+
+            // Draw all players' cards.
+            for (int c = 0; c < _rules.HandSize; c++) {
+                for (int p = 0; p < Players.Length; p++) {
+                    Players[p].demandCards.Add(Deck.DrawOne());
+								}
+						}
 
             // Deactivate all panels just in case.
             for (int u = 0; u < maxPhases; u++)
@@ -426,26 +458,43 @@ namespace Rails {
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
             }
             player = Players[currentPlayer];
+            OnPlayerInfoUpdate?.Invoke(this);
             OnTurnEnd?.Invoke(this);
             return;
         }
-        // Show the planned route on the map.
+        // Show the planned tracks on the map.
         private void PlannedTracks() {
             if (buildPaths.Count > 0)
             {
-                if (routes != null)
+                if (buildRoutes != null)
                 {
-                    foreach (var route in routes)
+                    foreach (var route in buildRoutes)
                         GameGraphics.DestroyPotentialTrack(route);
-                    routes.Clear();
+                    buildRoutes.Clear();
                 }
-                routes = Pathfinding.CheapestBuilds(buildPaths);
+                buildRoutes = Pathfinding.CheapestBuilds(buildPaths);
 
-                foreach (var route in routes)
+                foreach (var route in buildRoutes)
                     GameGraphics.GeneratePotentialTrack(route, Color.yellow);
             }
             return;
         }
+        // Show the planned route on the map.
+        private void PlannedRoute() {
+            if (player.moveSegments.Count > 0) {
+                if (moveRoute != null) {
+                    GameGraphics.HighlightRoute(moveRoute, null);
+								}
+                // Calculate the Route
+                moveRoute = Pathfinding.CheapestMove(
+                    currentPlayer,
+                    _rules.TrainSpecs[player.trainStyle].movePoints,
+                    player.moveSegments.ToArray());
+                // Highlight the Route
+                GameGraphics.HighlightRoute(moveRoute, player.color);
+						}
+            return;
+				}
         
         /// <summary>
         /// Sets up the tracks that are automatically assigned to
