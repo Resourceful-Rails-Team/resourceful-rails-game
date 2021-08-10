@@ -198,5 +198,13 @@ namespace Rails
             EventSystem.current.RaycastAll(eventData, raycastResults);
             return raycastResults.Any(x => x.gameObject.layer == uiLayer);
         }
+
+        /// <summary>
+        /// Given a track/path index, returns the name of the track/path.
+        /// </summary>
+        public static string GetTrackNameByIndex(int index)
+        {
+            return $"{(char)('A' + index)}";
+        }
     }
 }
