@@ -20,8 +20,24 @@ using UnityEditor;
 namespace Rails {
     public class Manager : MonoBehaviour {
 
-        public delegate void OnTurnEndEventHandler(Manager manager);
+				#region Events
+        // Turn End
+				public delegate void OnTurnEndEventHandler(Manager manager);
+        public event OnTurnEndEventHandler OnTurnEnd;
+
+        // Player Info Update
         public delegate void OnPlayerInfoUpdateEventHandler(Manager manager);
+        public event OnPlayerInfoUpdateEventHandler OnPlayerInfoUpdate;
+
+        // Phase Change
+        public delegate void OnPhaseChangeHandler(Manager manager);
+        public event OnTurnEndEventHandler OnPhaseChange;
+
+        // Build Track
+        public delegate void OnBuildTrackHandler(Manager manager);
+        public event OnTurnEndEventHandler OnBuildTrack;
+
+        #endregion
 
         #region Singleton
 
@@ -112,11 +128,6 @@ namespace Rails {
             get { return currentPath; } 
             set { SetPath(value); }
         }
-
-        public event OnTurnEndEventHandler OnTurnEnd;
-        public event OnPlayerInfoUpdateEventHandler OnPlayerInfoUpdate;
-
-
         #endregion // Properties
 
         #region Private Fields
@@ -190,10 +201,13 @@ namespace Rails {
             }
             if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds) {
                 if (currentPhase == 0 && player.trainPosition == null) {
+                    Debug.Log("Place Train");
                     PlaceTrain(GameInput.MouseNodeId);
 								}
-                else
+								else {
+                    Debug.Log("Add Node");
                     AddNode(currentPath, GameInput.MouseNodeId);
+								}
             }
             if (GameInput.DeleteJustPressed) {
                 ClearPath(currentPath);
@@ -270,6 +284,7 @@ namespace Rails {
 
             // Moving only updates the phase.
             GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
+            OnPhaseChange?.Invoke(this);
             return;
         }
         // Discards the player's hand.
@@ -290,8 +305,10 @@ namespace Rails {
         // Builds the track between the nodes in path.
         public void BuildTrack() {
             // Build the tracks
-            if (buildPaths.Count != 0)
+            if (buildPaths.Count != 0) {
                 player.money -= GameLogic.BuildTrack(Tracks, buildRoutes, currentPlayer, player.color, _rules.MaxBuild);
+                OnBuildTrack?.Invoke(this);
+            }
 
             // Clear the lists
             buildPaths.Clear();
@@ -321,6 +338,7 @@ namespace Rails {
             if (city) {
                 player.trainPosition = position;
                 player.moveSegments[0] = player.trainPosition;
+                Debug.Log("Train position = " + player.trainPosition.ToString());
 						}
             return;
         }
@@ -372,6 +390,11 @@ namespace Rails {
             }
             return;
         }
+        public void RemovePath(int path) {
+            // Removes a path from the build paths.
+            buildPaths[path].RemoveAt(path);
+            return;
+				}
         public void AddNode(int path, NodeId node) {
             // Add to player's movesegments if in move phase.
             if (currentPhase == 0)
@@ -414,7 +437,8 @@ namespace Rails {
         private void GameLoopSetup() {
             // Assign integers
             currentPlayer = 0;
-            currentPhase = -2;
+            //currentPhase = -2;
+            currentPhase = 0;
             currentPath = 0;
             maxPhases = PhasePanels.Length;
 
@@ -443,7 +467,7 @@ namespace Rails {
                 PhasePanels[u].SetActive(false);
 
             // Activate first turn panel.
-            PhasePanels[1].SetActive(true);
+            PhasePanels[0].SetActive(true);
         }
 
         // Ends the turn and changes phase.
@@ -451,11 +475,12 @@ namespace Rails {
             if (currentPhase < 0) {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
             }
-			else {
+			      else {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
-			}
+			      }
             if (currentPhase >= 0) {
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
+                OnPhaseChange?.Invoke(this);
             }
             player = Players[currentPlayer];
             OnPlayerInfoUpdate?.Invoke(this);
