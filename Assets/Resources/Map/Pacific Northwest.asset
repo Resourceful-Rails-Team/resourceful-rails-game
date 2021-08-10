@@ -49387,7 +49387,7 @@ MonoBehaviour:
   - Name: Apples
     Icon: {fileID: -5985611593946857603, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Medical Supplies
-    Icon: {fileID: 0}
+    Icon: {fileID: -3436114223341521174, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Spacecraft Parts
     Icon: {fileID: 0}
   - Name: Vehicle Parts
@@ -49403,7 +49403,7 @@ MonoBehaviour:
   - Name: Silver
     Icon: {fileID: 0}
   - Name: Gold
-    Icon: {fileID: -7771894121425860209, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
+    Icon: {fileID: 2114065817021276819, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Coal
     Icon: {fileID: 0}
   - Name: Minerals
