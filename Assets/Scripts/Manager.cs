@@ -200,7 +200,8 @@ namespace Rails {
                 _highlightToken = highlightToken;
             }
             if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds) {
-                if (currentPhase == 0 && player.trainPosition == null) {
+                Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
+                if (currentPhase == 0 && !player.trainPlaced) {
                     Debug.Log("Place Train");
                     PlaceTrain(GameInput.MouseNodeId);
 								}
@@ -281,6 +282,8 @@ namespace Rails {
         public void MoveTrain() {
             // Apply the Route
             GameGraphics.MoveTrain(currentPlayer, moveRoute);
+            player.trainPosition = moveRoute.Nodes.Last();
+            player.moveSegments.Insert(0, player.trainPosition);
 
             // Moving only updates the phase.
             GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
@@ -306,6 +309,13 @@ namespace Rails {
         public void BuildTrack() {
             // Build the tracks
             if (buildPaths.Count != 0) {
+                int cost = 0;
+                foreach (Route route in buildRoutes) {
+                    cost += route.Cost;
+                    if (cost > _rules.MaxBuild)
+                        return;
+								}
+
                 player.money -= GameLogic.BuildTrack(Tracks, buildRoutes, currentPlayer, player.color, _rules.MaxBuild);
                 OnBuildTrack?.Invoke(this);
             }
@@ -325,7 +335,7 @@ namespace Rails {
             return;
         }
         // Places the current player's train at position.
-        public void PlaceTrain(NodeId position) {
+        public bool PlaceTrain(NodeId position) {
             NodeType type = MapData.GetNodeAt(position).Type;
             bool city = false;
             switch (type) {
@@ -337,10 +347,11 @@ namespace Rails {
             }
             if (city) {
                 player.trainPosition = position;
-                player.moveSegments[0] = player.trainPosition;
+                player.trainPlaced = true;
+                player.moveSegments.Insert(0, player.trainPosition);
                 Debug.Log("Train position = " + player.trainPosition.ToString());
 						}
-            return;
+            return city;
         }
 				#endregion
 
@@ -411,14 +422,14 @@ namespace Rails {
             return;
         }
         // Removes a node from the list.
-        public bool RemoveNode(int path, NodeId node) {
-            bool success = false;
-            if (currentPhase == 0)
-                success = player.moveSegments.Remove(node);
-            else {
-                success = buildPaths[path].Remove(node);
+        public void RemoveNode(int path, int index) {
+            if (currentPhase == 0) {
+                player.moveSegments.RemoveAt(index);
 						}
-            return success;
+            else {
+                buildPaths[path].RemoveAt(index);
+						}
+            return;
 				}
         // Sets the current node in the path.
         public void SetNode(int path, int index) {
@@ -436,8 +447,8 @@ namespace Rails {
         /// </summary>
         private void GameLoopSetup() {
             // Assign integers
-            currentPlayer = 0;
-            //currentPhase = -2;
+            //currentPlayer = 0;
+            currentPhase = -2;
             currentPhase = 0;
             currentPath = 0;
             maxPhases = PhasePanels.Length;
@@ -467,7 +478,7 @@ namespace Rails {
                 PhasePanels[u].SetActive(false);
 
             // Activate first turn panel.
-            PhasePanels[0].SetActive(true);
+            PhasePanels[1].SetActive(true);
         }
 
         // Ends the turn and changes phase.

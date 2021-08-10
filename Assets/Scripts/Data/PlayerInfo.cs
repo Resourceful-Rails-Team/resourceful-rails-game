@@ -16,6 +16,7 @@ namespace Assets.Scripts.Data
         public int trainStyle;
         public int majorCities;
         public NodeId trainPosition;
+        public bool trainPlaced;
 
         public List<NodeId> moveSegments;
         public int movePathStyle;
@@ -32,6 +33,7 @@ namespace Assets.Scripts.Data
             this.trainStyle = train;
             majorCities = 0;
             trainPosition = new NodeId(0, 0);
+            trainPlaced = false;
 
             moveSegments = new List<NodeId>();
             movePathStyle = 0;
