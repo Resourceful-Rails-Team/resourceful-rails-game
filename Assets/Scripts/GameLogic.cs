@@ -33,8 +33,16 @@ namespace Rails {
             return;
         }
         // Builds the track.
-        public static void BuildTrack(TrackGraph<int> Tracks, int player, List<Route> routes, Color playerColor) {
+        public static int BuildTrack(TrackGraph<int> Tracks, List<Route> routes, 
+            int player, Color playerColor, int spendLimit)
+        {
+            int totalCost = 0;
             foreach (Route route in routes) {
+                // Check to make sure we're not over the spending limit.
+                totalCost += route.Cost;
+                if (totalCost > spendLimit)
+                    break;
+
                 GameGraphics.CommitPotentialTrack(route, playerColor);
 
                 for (int i = 0; i < route.Distance; ++i)
@@ -43,7 +51,7 @@ namespace Rails {
                         Tracks[route.Nodes[i], route.Nodes[i + 1]] = player;
                 }
             }
-            return;
+            return totalCost;
         }
         // Upgrades the train to new if possible.
         public static bool UpgradeTrain(ref int trainStyle, ref int money, int trainNew, int trainUpgrade) {
@@ -90,5 +98,11 @@ namespace Rails {
             return false;
         }
 
+        // 
+        public static void CheckMovePath(List<NodeId> path, Route route) {
+            foreach (NodeId node in route.Nodes) {
+                path.Remove(node);
+						}
+				}
     }
 }
