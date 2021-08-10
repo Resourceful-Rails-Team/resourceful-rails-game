@@ -21,7 +21,7 @@ namespace Rails.UI
                 return;
 
             CityNameTexts[index].text = demand.City.Name;
-            PriceTexts[index].text = demand.Reward.ToString("C");
+            PriceTexts[index].text = $"${demand.Reward}";
             IconImages[index].overrideSprite = demand.Good.Icon;
         }
     }

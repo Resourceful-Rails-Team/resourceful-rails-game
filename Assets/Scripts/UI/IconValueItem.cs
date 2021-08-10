@@ -12,7 +12,7 @@ namespace Rails.UI
 
         public Sprite Sprite { get => IconImage.overrideSprite; set => IconImage.overrideSprite = value; }
         public string Value { get => ValueText.text; set => ValueText.text = value; }
-        public bool Disabled { get => IconImage.enabled; set { IconImage.enabled = value; ValueText.color = value ? Color.grey : _startColor; } }
+        public bool Disabled { get => !IconImage.enabled; set { IconImage.enabled = !value; ValueText.color = value ? Color.grey : _startColor; } }
 
         private Color _startColor;
 

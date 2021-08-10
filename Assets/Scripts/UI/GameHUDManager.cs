@@ -1,3 +1,4 @@
+using Rails.Data;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -30,25 +31,43 @@ namespace Rails.UI
             if (!manager)
                 return;
 
-            manager.OnTurnEnd += Manager_OnTurnEnd;
-            Manager_OnTurnEnd(manager);
+            manager.OnPlayerInfoUpdate += Manager_OnPlayerInfoUpdate;
+            Manager_OnPlayerInfoUpdate(manager);
         }
 
-        private void Manager_OnTurnEnd(Manager manager)
+        private void Manager_OnPlayerInfoUpdate(Manager manager)
         {
             var currentPlayerIndex = manager.CurrentPlayer;
             var currentPlayer = manager.Players[currentPlayerIndex];
 
             // update basic info
             this.PlayerNameText.text = currentPlayer.name;
-            this.PlayerMoneyText.text = $"${currentPlayer.money}";
-            this.PlayerCitiesText.text = $"{currentPlayer.majorcities}";
+            this.PlayerMoneyText.text = $"{currentPlayer.money}";
+            this.PlayerCitiesText.text = $"{currentPlayer.majorCities}";
 
             // update train
             this.TrainNameText.text = currentPlayer.trainStyle.ToString();
+
+            // update demand cards
+            for (int i = 0; i < Cards.Length; ++i)
+            {
+                if (i < currentPlayer.demandCards.Count)
+                {
+                    Cards[i].gameObject.SetActive(true);
+                    for (int d = 0; d < currentPlayer.demandCards[i].Length; ++d)
+                        Cards[i].SetDemand(d, currentPlayer.demandCards[i][d]);
+                }
+                else
+                {
+                    Cards[i].gameObject.SetActive(false);
+                }
+            }
+
+            // update goods
+            SetGoods(currentPlayer.goodsCarried);
         }
 
-        public void SetGoods(IEnumerable<string> values)
+        public void SetGoods(IEnumerable<Good> values)
         {
             var valuesArr = values.ToArray();
             for (int i = 0; i < Goods.Length; ++i)
@@ -56,7 +75,10 @@ namespace Rails.UI
                 var good = Goods[i];
 
                 if (i < valuesArr.Length)
-                    good.Value = valuesArr[i];
+                {
+                    good.Value = valuesArr[i].Name;
+                    good.Sprite = valuesArr[i].Icon;
+                }
                 else
                 {
                     good.Sprite = null;
