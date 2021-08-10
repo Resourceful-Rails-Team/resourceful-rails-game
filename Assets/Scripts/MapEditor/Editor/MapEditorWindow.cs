@@ -236,13 +236,28 @@ namespace Rails.MapEditor.Editor
             // draw name text box
             var nameProperty = element.FindPropertyRelative("Name");
             var nameValue = EditorGUI.TextField(
-                new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight),
+                new Rect(rect.x, rect.y, rect.width/2, EditorGUIUtility.singleLineHeight),
                 nameProperty.stringValue);
 
             // update on change
             if (nameValue != nameProperty.stringValue)
             {
                 nameProperty.stringValue = nameValue;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            // 
+            var iconProperty = element.FindPropertyRelative("Icon");
+            var iconValue = EditorGUI.ObjectField(
+                new Rect(2 + rect.x + rect.width / 2, rect.y, rect.width / 2 - 2, EditorGUIUtility.singleLineHeight),
+                iconProperty.objectReferenceValue, typeof(Sprite), false
+                );
+
+
+            // update on change
+            if (iconValue != iconProperty.objectReferenceValue)
+            {
+                iconProperty.objectReferenceValue = iconValue;
                 serializedObject.ApplyModifiedProperties();
             }
 
