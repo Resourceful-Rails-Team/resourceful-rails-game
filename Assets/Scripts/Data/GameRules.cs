@@ -33,14 +33,29 @@ namespace Rails.Data
         /// </summary>
         public int WinMoney = 250;
         /// <summary>
-        /// The Cost for a player to use another player's track
+        /// The Cost for a player to use another player's track.
         /// </summary>
         public int AltTrackCost = 4;
-        public int RiverCrossCost;
-
+        /// <summary>
+        /// The cost for a player to build across a river.
+        /// </summary>
+        public int RiverCrossCost = 2;
+        /// <summary>
+        /// The number of major cities a player can build from in a turn.
+        /// </summary>
+        public int MajorCityBuildsPerTurn = 2;
+        /// <summary>
+        /// The stats of the various trains used in the game.
+        /// </summary>
         public TrainSpecs[] TrainSpecs;
+        /// <summary>
+        /// The cost to build to nodes.
+        /// </summary>
         public NodeCost[] NodeCosts;
-        public int MajorCityBuildsPerTurn;
+        /// <summary>
+        /// The number of cards a player can hold at once.
+        /// </summary>
+        public int HandSize = 3;
 
         public int GetNodeCost(NodeType nodeType)
             => NodeCosts.FirstOrDefault(nc => nc.NodeType == nodeType)?.Cost ?? 0;
