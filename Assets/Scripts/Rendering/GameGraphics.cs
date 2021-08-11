@@ -195,6 +195,17 @@ namespace Rails.Rendering
         }
 
         /// <summary>
+        /// Positions a player instantly to the specified NodeId position.
+        /// </summary>
+        /// <param name="player">The index of the player who wishes to be positioned</param>
+        /// <param name="node">The position to place the player</param>
+        public static void PositionTrain(int player, NodeId node)
+        {
+            _playerTrains[player].gameObject.SetActive(true);
+            _playerTrains[player].transform.position = Utilities.GetPosition(node);
+        }
+
+        /// <summary>
         /// Moves a player train along the given `Route`.
         /// </summary>
         /// <param name="player">The player index to move.</param>
