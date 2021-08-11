@@ -22,8 +22,8 @@ namespace Rails.Controls
         private static bool _rotateTriggered = false;
         private static Camera _mainCamera;
 
-        #region Input Global Fields
-
+        #region Input Global Fields 
+        public static bool IsEnabled { get; set; }
         public static Vector2 MoveInput { get; private set; }
         public static Vector2 RotateInput { get; private set; }
         public static float ZoomInput { get; private set; }
@@ -37,9 +37,21 @@ namespace Rails.Controls
 
         #region Input Events
 
-        private void OnMove(InputValue value) => MoveInput = value.Get<Vector2>();
-        private void OnZoom(InputValue value) => ZoomInput = Mathf.Clamp(value.Get<float>(), -1, 1);
-        private void OnRotateTriggered(InputValue value) => _rotateTriggered = value.isPressed;
+        private void OnMove(InputValue value)
+        {
+            if (IsEnabled)
+                MoveInput = value.Get<Vector2>();
+        }
+        private void OnZoom(InputValue value)
+        {
+            if (IsEnabled)
+                ZoomInput = Mathf.Clamp(value.Get<float>(), -1, 1);
+        }
+        private void OnRotateTriggered(InputValue value)
+        {
+            if (IsEnabled)
+                _rotateTriggered = value.isPressed;
+        }
         private void OnRotate(InputValue value)
         {
             if (_rotateTriggered || UsingGamepad)
@@ -47,7 +59,7 @@ namespace Rails.Controls
         }
         private void OnSelect(InputValue value)
         {
-            if (!IsPointerOverUI())
+            if (IsEnabled && !IsPointerOverUI())
             {
                 SelectPressed = value.isPressed;
                 SelectJustPressed = SelectPressed;
@@ -55,11 +67,13 @@ namespace Rails.Controls
         }
         private void OnDelete(InputValue value)
         {
-            DeleteJustPressed = value.isPressed;
+            if(IsEnabled)
+                DeleteJustPressed = value.isPressed;
         }            
         private void OnEnter(InputValue value)
         {
-            EnterJustPressed = value.isPressed;
+            if(IsEnabled)
+                EnterJustPressed = value.isPressed;
         }
         
         #endregion
@@ -71,7 +85,7 @@ namespace Rails.Controls
                 _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f)) :
                 _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-            if (IsPointerOverUI())
+            if (IsPointerOverUI() || IsEnabled)
                 MouseNodeId = new NodeId(-1, -1);
             else if (plane.Raycast(ray, out float enter))
                 MouseNodeId = Utilities.GetNodeId(ray.GetPoint(enter));
