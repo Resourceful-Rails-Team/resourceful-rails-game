@@ -40,7 +40,7 @@ namespace Rails.Rendering
         // more than once at a time.
         private static HashSet<int> _currentlyRunningTrains;
 
-        public static void Initialize(MapData mapData)
+        public static void Initialize(MapData mapData, int playerCount, Color [] playerColors)
         {
             _mapTokens = new Dictionary<NodeId, GameToken>();
             _trackTokens = new TrackGraph<GameToken>();
@@ -51,7 +51,7 @@ namespace Rails.Rendering
 
             GenerateBoard(mapData);
             GenerateNodes(mapData);
-            GenerateTrains(mapData, 2, new Color[] { Color.blue, Color.green });
+            GenerateTrains(mapData, playerCount, playerColors);
         }
 
         #region Public Methods
