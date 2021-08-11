@@ -40,7 +40,7 @@ namespace Rails.Rendering
         // more than once at a time.
         private static HashSet<int> _currentlyRunningTrains;
 
-        public static void Initialize(MapData mapData)
+        public static void Initialize(MapData mapData, int playerCount, Color [] playerColors)
         {
             _mapTokens = new Dictionary<NodeId, GameToken>();
             _trackTokens = new TrackGraph<GameToken>();
@@ -51,7 +51,7 @@ namespace Rails.Rendering
 
             GenerateBoard(mapData);
             GenerateNodes(mapData);
-            GenerateTrains(mapData, 2, new Color[] { Color.blue, Color.green });
+            GenerateTrains(mapData, playerCount, playerColors);
         }
 
         #region Public Methods
@@ -192,6 +192,17 @@ namespace Rails.Rendering
             _playerTrains[player] = newToken;
 
             Destroy(oldToken.gameObject);
+        }
+
+        /// <summary>
+        /// Positions a player instantly to the specified NodeId position.
+        /// </summary>
+        /// <param name="player">The index of the player who wishes to be positioned</param>
+        /// <param name="node">The position to place the player</param>
+        public static void PositionTrain(int player, NodeId node)
+        {
+            _playerTrains[player].gameObject.SetActive(true);
+            _playerTrains[player].transform.position = Utilities.GetPosition(node);
         }
 
         /// <summary>

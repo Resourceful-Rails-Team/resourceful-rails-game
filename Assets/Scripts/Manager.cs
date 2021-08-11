@@ -184,7 +184,7 @@ namespace Rails {
 
         private void Start()
         {
-            GameGraphics.Initialize(MapData);
+            GameGraphics.Initialize(MapData, _startRules.Players.Length, _startRules.Players.Select(p => p.Color).ToArray());
             Pathfinding.Initialize(_rules, Tracks, MapData);
             Deck.Initialize();
             SetupMajorCityTracks();
