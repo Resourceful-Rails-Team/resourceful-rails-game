@@ -8,18 +8,22 @@ using UnityEngine;
 
 namespace Assets.Scripts.Data
 {
-    public struct PlayerInfo
+    public class PlayerInfo
     {
         public string name;
         public Color color;
         public int money;
         public int trainStyle;
-        public int majorcities;
-        public NodeId train_position;
+        public int majorCities;
+        public NodeId trainPosition;
+        public bool trainPlaced;
 
-        public List<NodeId> movesegments;
+        public List<NodeId> moveSegments;
         public int movePathStyle;
         public int buildPathStyle;
+
+        public List<Demand[]> demandCards;
+        public List<Good> goodsCarried;
 
         public PlayerInfo(string name, Color color, int money, int train)
         {
@@ -27,12 +31,16 @@ namespace Assets.Scripts.Data
             this.color = color;
             this.money = money;
             this.trainStyle = train;
-            majorcities = 0;
-            train_position = new NodeId(0, 0);
+            majorCities = 0;
+            trainPosition = new NodeId(0, 0);
+            trainPlaced = false;
 
-            movesegments = new List<NodeId>();
+            moveSegments = new List<NodeId>();
             movePathStyle = 0;
             buildPathStyle = 0;
+
+            demandCards = new List<Demand[]>();
+            goodsCarried = new List<Good>();
         }
     }
 }

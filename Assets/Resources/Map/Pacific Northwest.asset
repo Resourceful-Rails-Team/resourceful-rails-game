@@ -23,6 +23,7 @@ MonoBehaviour:
     WinMoney: 250
     AltTrackCost: 4
     RiverCrossCost: 2
+    MajorCityBuildsPerTurn: 2
     TrainSpecs:
     - goodsTotal: 2
       movePoints: 9
@@ -45,7 +46,7 @@ MonoBehaviour:
       Cost: 5
     - NodeType: 5
       Cost: 1000
-    MajorCityBuildsPerTurn: 2
+    HandSize: 3
   Nodes:
   - Type: 5
     Id:
@@ -49364,27 +49365,52 @@ MonoBehaviour:
     - {x: 11, y: 0}
   Goods:
   - Name: Wheat
+    Icon: {fileID: -2646918724407688065, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Beef
+    Icon: {fileID: 3936163295280790396, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Potatoes
+    Icon: {fileID: -8931788997735164614, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Aircraft Parts
+    Icon: {fileID: 0}
   - Name: Semiconductors
+    Icon: {fileID: 0}
   - Name: Integrated Circuits
+    Icon: {fileID: 0}
   - Name: Hazelnuts
+    Icon: {fileID: 0}
   - Name: Dairy
+    Icon: {fileID: 7460217477363075135, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Wine
+    Icon: {fileID: 6092267633249337297, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Heavy Machinery
+    Icon: {fileID: 0}
   - Name: Apples
+    Icon: {fileID: -5985611593946857603, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Medical Supplies
+    Icon: {fileID: -3436114223341521174, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Spacecraft Parts
+    Icon: {fileID: 0}
   - Name: Vehicle Parts
+    Icon: {fileID: -4286908992239541480, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Cement
+    Icon: {fileID: 0}
   - Name: Seafood
+    Icon: {fileID: 0}
   - Name: Computer Hardware
+    Icon: {fileID: 8230071770988129016, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Copper
+    Icon: {fileID: 0}
   - Name: Silver
+    Icon: {fileID: 0}
   - Name: Gold
+    Icon: {fileID: 2114065817021276819, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Coal
+    Icon: {fileID: 0}
   - Name: Minerals
+    Icon: {fileID: 0}
   - Name: Propane
+    Icon: {fileID: 0}
   - Name: Cattle
+    Icon: {fileID: 3779132599249091181, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
   - Name: Lentils
+    Icon: {fileID: 0}

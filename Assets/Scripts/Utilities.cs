@@ -1,7 +1,9 @@
 using Rails.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Rails
 {
@@ -182,5 +184,27 @@ namespace Rails
 
         public static Quaternion GetCardinalRotation(Cardinal c)
             => Quaternion.Euler(0.0f, (int)c * 60.0f, 0.0f);
+
+        /// <summary>
+        /// Returns true when the mouse is hovering over a UI gameobject.
+        /// Credit to Noctys on http://answers.unity.com/answers/1771115/view.html 
+        /// </summary>
+        public static bool IsPointerOverGameObject(Vector2 pixelPosition)
+        {
+            PointerEventData eventData = new PointerEventData(EventSystem.current);
+            eventData.position = pixelPosition;
+            var raycastResults = new List<RaycastResult>();
+            var uiLayer = LayerMask.NameToLayer("UI");
+            EventSystem.current.RaycastAll(eventData, raycastResults);
+            return raycastResults.Any(x => x.gameObject.layer == uiLayer);
+        }
+
+        /// <summary>
+        /// Given a track/path index, returns the name of the track/path.
+        /// </summary>
+        public static string GetTrackNameByIndex(int index)
+        {
+            return $"{(char)('A' + index)}";
+        }
     }
 }

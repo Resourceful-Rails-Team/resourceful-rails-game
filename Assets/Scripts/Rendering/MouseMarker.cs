@@ -11,18 +11,28 @@ namespace Rails.Rendering
         [SerializeField]
         private float _speed = 15.0f;
         private Manager _manager;
+        private MeshRenderer _meshRenderer;
 
-        private void Start() => _manager = Manager.Singleton;
+        void Start()
+        {
+            _manager = Manager.Singleton;
+            _meshRenderer = GetComponent<MeshRenderer>();
+        }
 
         void Update()
         {
             if (GameInput.MouseNodeId.InBounds && _manager.MapData.Nodes[GameInput.MouseNodeId.GetSingleId()].Type != NodeType.Water)
             {
+                _meshRenderer.enabled = true;
                 transform.position = Vector3.Slerp(
                     transform.position,
                     Utilities.GetPosition(GameInput.MouseNodeId),
                     _speed * Time.deltaTime
                 );
+            }
+            else
+            {
+                _meshRenderer.enabled = false;
             }
         }
     }

@@ -1,5 +1,6 @@
 using Rails.Data;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Rails.Controls
@@ -46,8 +47,11 @@ namespace Rails.Controls
         }
         private void OnSelect(InputValue value)
         {
-            SelectPressed = value.isPressed;
-            SelectJustPressed = SelectPressed;
+            if (!IsPointerOverUI())
+            {
+                SelectPressed = value.isPressed;
+                SelectJustPressed = SelectPressed;
+            }
         }
         private void OnDelete(InputValue value)
         {
@@ -67,9 +71,12 @@ namespace Rails.Controls
                 _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f)) :
                 _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-            if (plane.Raycast(ray, out float enter))
+            if (IsPointerOverUI())
+                MouseNodeId = new NodeId(-1, -1);
+            else if (plane.Raycast(ray, out float enter))
                 MouseNodeId = Utilities.GetNodeId(ray.GetPoint(enter));
         }
+
         private void LateUpdate()
         {
             SelectJustPressed = false;
@@ -77,6 +84,15 @@ namespace Rails.Controls
             EnterJustPressed = false;
             if(!UsingGamepad) 
                 RotateInput = Vector2.zero;
+        }
+
+        private bool IsPointerOverUI()
+        {
+            var pixelPos = UsingGamepad ?
+                (Vector2)_mainCamera.ViewportToScreenPoint(new Vector3(0.5f, 0.5f)) :
+                Mouse.current.position.ReadValue();
+
+            return Utilities.IsPointerOverGameObject(pixelPos);
         }
     }
 }

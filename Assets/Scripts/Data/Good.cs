@@ -10,5 +10,7 @@ namespace Rails.Data
     {
         [SerializeField]
         public string Name;
+        [SerializeField]
+        public Sprite Icon;
     }
 }
