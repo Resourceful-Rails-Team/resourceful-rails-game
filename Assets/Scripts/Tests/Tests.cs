@@ -156,7 +156,7 @@ namespace Rails
         {
             Deck.Initialize();
 
-            List<Demand[]> demandCards = new List<Demand[]>();
+            List<DemandCard> demandCards = new List<DemandCard>();
             for (int i = 0; i < Deck.DemandCardCount; ++i)
                 demandCards.Add(Deck.DrawOne());
 

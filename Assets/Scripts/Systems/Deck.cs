@@ -18,8 +18,8 @@ namespace Rails.Systems
         // Medium cities have the most preference while major cities have the least.
         private static readonly int [] CityTypePreference = new int[] { 3, 5, 2 };
  
-        private static List<Demand[]> _drawPile;
-        private static List<Demand[]> _discardPile;
+        private static List<DemandCard> _drawPile;
+        private static List<DemandCard> _discardPile;
         private static Manager _manager;
 
         #region Public Methods 
@@ -30,8 +30,8 @@ namespace Rails.Systems
         /// </summary>
         public static void Initialize()
         {
-            _drawPile = new List<Demand[]>();
-            _discardPile = new List<Demand[]>();
+            _drawPile = new List<DemandCard>();
+            _discardPile = new List<DemandCard>();
             _manager = Manager.Singleton;
 
             var demands = new List<Demand>();
@@ -142,7 +142,7 @@ namespace Rails.Systems
         /// </summary>
         /// <returns>An array of 3 demands, 
         /// representing the card contents</returns>
-        public static Demand[] DrawOne()
+        public static DemandCard DrawOne()
         {
             // If there are no cards in the draw pile,
             // shuffle the discards and readd them to the draw pile.
@@ -160,7 +160,7 @@ namespace Rails.Systems
         /// Discard a single Demand card into the discard pile
         /// </summary>
         /// <param name="demandCard">The card to add to the discard pile</param>
-        public static void Discard(Demand[] demandCard) => _discardPile.Add(demandCard);
+        public static void Discard(DemandCard demandCard) => _discardPile.Add(demandCard);
 
         #endregion
 
@@ -208,7 +208,8 @@ namespace Rails.Systems
                 demands.RemoveAt(demands.Count - 1);
             }
 
-            _drawPile.AddRange(deckBuilder.Select(card => card.ToArray())); 
+            foreach (var card in deckBuilder)
+                _drawPile.Add(new DemandCard(card));
 
             // Add all draw cards to the discard pile, to
             // ensure the deck is properly shuffled on start

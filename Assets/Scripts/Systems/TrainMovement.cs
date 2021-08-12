@@ -77,6 +77,7 @@ public class TrainMovement : MonoBehaviour
                 // interaction arguments
                 OnMeetsCity?.Invoke(this, new TrainCityInteraction
                 {
+                    Cards = Manager.Singleton.Players[Manager.Singleton.CurrentPlayer].demandCards.ToArray(),
                     PlayerIndex = playerIndex,
                     TrainPosition = path[i],
                     City = _mapData.Cities[node.CityId]
