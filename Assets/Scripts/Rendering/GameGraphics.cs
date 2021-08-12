@@ -308,7 +308,6 @@ namespace Rails.Rendering
             var nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(path[0], path[1]));
 
             tr.position = Utilities.GetPosition(path[0]);
-            tr.rotation = nextRotation;
 
             for (int i = 0; i < path.Count - 1; ++i)
             {

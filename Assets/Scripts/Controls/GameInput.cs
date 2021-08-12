@@ -23,7 +23,7 @@ namespace Rails.Controls
         private static Camera _mainCamera;
 
         #region Input Global Fields 
-        public static bool IsEnabled { get; set; }
+        public static bool IsEnabled { get; set; } = true;
         public static Vector2 MoveInput { get; private set; }
         public static Vector2 RotateInput { get; private set; }
         public static float ZoomInput { get; private set; }
@@ -85,7 +85,7 @@ namespace Rails.Controls
                 _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f)) :
                 _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-            if (IsPointerOverUI() || IsEnabled)
+            if (IsPointerOverUI() || !IsEnabled)
                 MouseNodeId = new NodeId(-1, -1);
             else if (plane.Raycast(ray, out float enter))
                 MouseNodeId = Utilities.GetNodeId(ray.GetPoint(enter));
