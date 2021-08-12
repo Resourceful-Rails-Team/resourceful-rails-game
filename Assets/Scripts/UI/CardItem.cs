@@ -7,7 +7,7 @@ namespace Rails.UI
 {
     public class CardItem : MonoBehaviour
     {
-        public Button Button;
+        public TMPro.TMP_Text[] IconTooltipTexts;
         public TMPro.TMP_Text[] CityNameTexts;
         public TMPro.TMP_Text[] PriceTexts;
         public Image[] IconImages;
@@ -23,6 +23,7 @@ namespace Rails.UI
             CityNameTexts[index].text = demand.City.Name;
             PriceTexts[index].text = $"${demand.Reward}";
             IconImages[index].overrideSprite = demand.Good.Icon;
+            IconTooltipTexts[index].text = demand.Good.Name;
         }
     }
 }

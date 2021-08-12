@@ -7,6 +7,13 @@ namespace Rails.Controls
 {
     public class GameInput : MonoBehaviour
     {
+        public enum Context
+        {
+            Game,
+            Popup,
+            AllPlayers,
+        }
+
         #region Singleton
         private static GameInput _singleton;
         private void Awake()
@@ -23,7 +30,7 @@ namespace Rails.Controls
         private static Camera _mainCamera;
 
         #region Input Global Fields 
-        public static bool IsEnabled { get; set; } = true;
+        public static Context CurrentContext { get; set; } = GameInput.Context.Game;
         public static Vector2 MoveInput { get; private set; }
         public static Vector2 RotateInput { get; private set; }
         public static float ZoomInput { get; private set; }
@@ -32,6 +39,7 @@ namespace Rails.Controls
         public static NodeId MouseNodeId { get; private set; }
         public static bool DeleteJustPressed { get; private set; }
         public static bool EnterJustPressed { get; private set; }
+        public static bool ToggleAllPlayersJustPressed { get; private set; }
 
         #endregion
 
@@ -39,17 +47,17 @@ namespace Rails.Controls
 
         private void OnMove(InputValue value)
         {
-            if (IsEnabled)
+            if (CurrentContext == Context.Game)
                 MoveInput = value.Get<Vector2>();
         }
         private void OnZoom(InputValue value)
         {
-            if (IsEnabled)
+            if (CurrentContext == Context.Game)
                 ZoomInput = Mathf.Clamp(value.Get<float>(), -1, 1);
         }
         private void OnRotateTriggered(InputValue value)
         {
-            if (IsEnabled)
+            if (CurrentContext == Context.Game)
                 _rotateTriggered = value.isPressed;
         }
         private void OnRotate(InputValue value)
@@ -59,7 +67,7 @@ namespace Rails.Controls
         }
         private void OnSelect(InputValue value)
         {
-            if (IsEnabled && !IsPointerOverUI())
+            if (CurrentContext == Context.Game && !IsPointerOverUI())
             {
                 SelectPressed = value.isPressed;
                 SelectJustPressed = SelectPressed;
@@ -67,13 +75,19 @@ namespace Rails.Controls
         }
         private void OnDelete(InputValue value)
         {
-            if(IsEnabled)
+            if(CurrentContext == Context.Game)
                 DeleteJustPressed = value.isPressed;
         }            
         private void OnEnter(InputValue value)
         {
-            if(IsEnabled)
+            if(CurrentContext == Context.Game)
                 EnterJustPressed = value.isPressed;
+        }
+
+        private void OnToggleAllPlayersPanel(InputValue value)
+        {
+            if (CurrentContext == Context.Game || CurrentContext == Context.AllPlayers)
+                ToggleAllPlayersJustPressed = value.isPressed;
         }
         
         #endregion
@@ -85,7 +99,7 @@ namespace Rails.Controls
                 _mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f)) :
                 _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-            if (IsPointerOverUI() || !IsEnabled)
+            if (IsPointerOverUI() || CurrentContext != Context.Game)
                 MouseNodeId = new NodeId(-1, -1);
             else if (plane.Raycast(ray, out float enter))
                 MouseNodeId = Utilities.GetNodeId(ray.GetPoint(enter));
@@ -96,7 +110,8 @@ namespace Rails.Controls
             SelectJustPressed = false;
             DeleteJustPressed = false;
             EnterJustPressed = false;
-            if(!UsingGamepad) 
+            ToggleAllPlayersJustPressed = false;
+            if (!UsingGamepad) 
                 RotateInput = Vector2.zero;
         }
 
