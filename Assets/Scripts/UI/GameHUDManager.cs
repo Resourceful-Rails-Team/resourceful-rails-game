@@ -1,5 +1,6 @@
 using Rails.Controls;
 using Rails.Data;
+using Rails.Systems;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -124,7 +125,7 @@ namespace Rails.UI
         {
             var players = manager.Players;
             var currentPlayer = players[manager.CurrentPlayer];
-            var pathCount = manager.GetPathCount();
+            var pathCount = PathPlanner.Paths;
 
             // clear markers
             foreach (var marker in _buildMarkers)
@@ -144,7 +145,7 @@ namespace Rails.UI
             // populate markers
             for (int i = 0; i < pathCount; ++i)
             {
-                var path = manager.GetPath(i);
+                var path = PathPlanner.GetPath(i);
 
                 // update markers
                 UpdateBuildMarkers(i, path);
@@ -185,7 +186,7 @@ namespace Rails.UI
                 trackItem.OnTrackDeleted += OnUITrackDelete;
             }
 
-            trackItem.Name = $"{(Manager.Singleton.CurrentPath == index ? "<color=#FFFF00>" : "")}Track {Utilities.GetTrackNameByIndex(index)}";
+            trackItem.Name = $"{(PathPlanner.CurrentPath == index ? "<color=#FFFF00>" : "")}Track {Utilities.GetTrackNameByIndex(index)}";
             trackItem.Cost = $"{path.Count}"; // todo
         }
 
@@ -207,15 +208,13 @@ namespace Rails.UI
 
         public void OnUITrackAddNew()
         {
-            var manager = Manager.Singleton;
-            var index = manager.CreateNewPath();
-            manager.SetPath(index);
+            var index = PathPlanner.CreatePath();
+            PathPlanner.SetPath(index);
         }
 
         public void OnUITrackSelectDeletePath()
         {
-            var manager = Manager.Singleton;
-            manager.RemovePath(_uiTrackSelectPathIndex);
+            PathPlanner.RemovePath(_uiTrackSelectPathIndex);
 
             // close
             OnUITrackSelectClose();
@@ -223,10 +222,8 @@ namespace Rails.UI
 
         public void OnUITrackSelectStart()
         {
-            var manager = Manager.Singleton;
-
             // set selected node to
-            manager.SetNode(_uiTrackSelectPathIndex, 0);
+            PathPlanner.SetNode(_uiTrackSelectPathIndex, 0);
 
             // close
             OnUITrackSelectClose();
@@ -270,7 +267,7 @@ namespace Rails.UI
 
             // add items
             var manager = Manager.Singleton;
-            var path = manager.GetPath(pathIndex);
+            var path = PathPlanner.GetPath(pathIndex);
             var pathName = Utilities.GetTrackNameByIndex(pathIndex);
             int i = select ? 1 : 0;
             foreach (var nodeId in path)
@@ -285,11 +282,8 @@ namespace Rails.UI
 
                 item.OnTrackSelected += (track) =>
                 {
-                    // set current path to
-                    manager.SetPath(pathIndex);
-
                     // set selected node to
-                    manager.SetNode(pathIndex, iRef);
+                    PathPlanner.SetNode(pathIndex, iRef);
 
                     // close
                     OnUITrackSelectClose();
@@ -297,7 +291,7 @@ namespace Rails.UI
                 item.OnTrackDeleted += (track) =>
                 {
                     // remove
-                    manager.RemoveNode(pathIndex, iRef);
+                    PathPlanner.RemoveNode(pathIndex, iRef);
 
                     // close
                     OnUITrackSelectClose();
@@ -316,7 +310,7 @@ namespace Rails.UI
         private void UpdateBuildMarkers(int index, List<NodeId> path)
         {
             var trackName = Utilities.GetTrackNameByIndex(index);
-            var isTrackSelected = Manager.Singleton.CurrentPath == index;
+            var isTrackSelected = PathPlanner.CurrentPath == index;
             for (int i = 0; i < path.Count; ++i)
             {
                 var nodeId = path[i];
@@ -338,7 +332,7 @@ namespace Rails.UI
 
                 // add name
                 var name = $"{trackName}{i + 1}";
-                if (isTrackSelected && i == 0)
+                if (isTrackSelected && i == PathPlanner.CurrentNode)
                     marker.AddName($"<color=#FFFF00>{name}</color>");
                 else
                     marker.AddName($"{name}");
