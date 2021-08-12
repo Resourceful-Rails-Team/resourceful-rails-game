@@ -5,18 +5,18 @@ using Rails.ScriptableObjects;
 using Rails.Data;
 
 namespace Rails.Systems {
-		public static class GoodsBank {
-				#region Properties
-				private static Manager manager = Manager.Singleton;
+    public static class GoodsBank {
+        #region Properties
+        private static Manager manager = Manager.Singleton;
         private static MapData mapData = manager.MapData;
         private static int goodsCount = manager.MapData.Goods.Count;
-				private static int[] tokens = new int[goodsCount];
+        private static int[] tokens = new int[goodsCount];
 
-				#endregion
+        #endregion
 
-				#region Public
-				// Initializer
-				public static void Initialize() {
+        #region Public
+        // Initializer
+        public static void Initialize() {
             tokens = new int[mapData.Goods.Count];
             for (int i = 0; i < mapData.Goods.Count; i++) {
                 tokens[i] = 3;
@@ -46,7 +46,8 @@ namespace Rails.Systems {
             bool success = false;
             // Make sure train has goods to drop off and that index is in range.
             if (goodsCarried.Count > 0 &&
-                index >= 0 && index < goodsCarried.Count) {
+                index >= 0 && index < goodsCarried.Count)
+            {
                 // TODO: Find the index of the good for the Bank.
                 int i = 0;
                 ++tokens[i];
