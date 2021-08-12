@@ -205,6 +205,7 @@ namespace Rails
         {
             GameGraphics.Initialize(MapData, _startRules.Players.Length, _startRules.Players.Select(p => p.Color).ToArray());
             Pathfinding.Initialize(_rules, Tracks, MapData);
+            PathPlanner.Initialize();
             Deck.Initialize();
             GoodsBank.Initialize();
             SetupMajorCityTracks();
