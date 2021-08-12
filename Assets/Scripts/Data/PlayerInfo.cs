@@ -13,29 +13,29 @@ namespace Assets.Scripts.Data
         public string name;
         public Color color;
         public int money;
-        public int trainStyle;
+        public int trainType;
         public int majorCities;
         public NodeId trainPosition;
         public bool trainPlaced;
 
-        public List<NodeId> movePath;
         public int movePathStyle;
         public int buildPathStyle;
 
+        public List<NodeId> movePath;
         public List<DemandCard> demandCards;
         public List<Good> goodsCarried;
 
-        public PlayerInfo(string name, Color color, int money, int train)
+        public PlayerInfo(string name, Color color, int money, int trainType)
         {
             this.name = name;
             this.color = color;
             this.money = money;
-            this.trainStyle = train;
+            this.trainType = trainType;
+
             majorCities = 0;
             trainPosition = new NodeId(0, 0);
             trainPlaced = false;
 
-            movePath = new List<NodeId>();
             movePathStyle = 0;
             buildPathStyle = 0;
 
