@@ -113,8 +113,15 @@ namespace Rails.UI
                 if (i < currentPlayer.demandCards.Count)
                 {
                     Cards[i].gameObject.SetActive(true);
-                    for (int d = 0; d < currentPlayer.demandCards[i].Length; ++d)
-                        Cards[i].SetDemand(d, currentPlayer.demandCards[i][d]);
+                    foreach (var demandCard in currentPlayer.demandCards)
+                    {
+                        int d = 0;
+                        foreach (var demand in demandCard)
+                        {
+                            Cards[i].SetDemand(d, demand);
+                            ++d;
+                        }
+                    }
                 }
                 else
                 {
@@ -261,13 +268,16 @@ namespace Rails.UI
                 item.transform.SetSiblingIndex(i);
                 item.IsSelect = select;
                 item.Name = $"{pathName}{i + 1}";
+
+                var iRef = i;
+
                 item.OnTrackSelected += (track) =>
                 {
                     // set current path to
                     manager.SetPath(pathIndex);
 
                     // set selected node to
-                    manager.SetNode(pathIndex, i);
+                    manager.SetNode(pathIndex, iRef);
 
                     // close
                     OnUITrackSelectClose();
@@ -275,7 +285,7 @@ namespace Rails.UI
                 item.OnTrackDeleted += (track) =>
                 {
                     // remove
-                    manager.RemoveNode(pathIndex, nodeId);
+                    manager.RemoveNode(pathIndex, iRef);
 
                     // close
                     OnUITrackSelectClose();

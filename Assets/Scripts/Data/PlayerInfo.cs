@@ -22,7 +22,7 @@ namespace Assets.Scripts.Data
         public int movePathStyle;
         public int buildPathStyle;
 
-        public List<Demand[]> demandCards;
+        public List<DemandCard> demandCards;
         public List<Good> goodsCarried;
 
         public PlayerInfo(string name, Color color, int money, int train)
@@ -39,7 +39,7 @@ namespace Assets.Scripts.Data
             movePathStyle = 0;
             buildPathStyle = 0;
 
-            demandCards = new List<Demand[]>();
+            demandCards = new List<DemandCard>();
             goodsCarried = new List<Good>();
         }
     }
