@@ -4,8 +4,10 @@ using UnityEngine;
 using Rails.ScriptableObjects;
 using Rails.Data;
 
-namespace Rails.Systems {
-    public static class GoodsBank {
+namespace Rails.Systems
+{
+    public static class GoodsBank
+    {
         #region Properties
         private static Manager manager = Manager.Singleton;
         private static MapData mapData = manager.MapData;
@@ -16,15 +18,24 @@ namespace Rails.Systems {
 
         #region Public
         // Initializer
-        public static void Initialize() {
+        public static void Initialize()
+        {
             tokens = new int[mapData.Goods.Count];
-            for (int i = 0; i < mapData.Goods.Count; i++) {
+            for (int i = 0; i < mapData.Goods.Count; i++)
+            {
                 tokens[i] = 3;
             }
         }
 
+        // Returns the number of goods left of that type in the bank.
+        public static int GetGoodQuantity(Good good)
+        {
+            int index = mapData.Goods.IndexOf(good);
+            return tokens[index];
+        }
         // Picks up a good from a city.
-        public static bool GoodPickup(Good good, List<Good> goodsCarried, int trainType) {
+        public static bool GoodPickup(Good good, List<Good> goodsCarried, int trainType)
+        {
             bool success = false;
             // Check to make sure that good is in that city.
 
@@ -42,7 +53,8 @@ namespace Rails.Systems {
             return success;
         }
         // Drops off a good in any city.
-        public static bool GoodDropoff(int index, List<Good> goodsCarried) {
+        public static bool GoodDropoff(int index, List<Good> goodsCarried)
+        {
             bool success = false;
             // Make sure train has goods to drop off and that index is in range.
             if (goodsCarried.Count > 0 &&
