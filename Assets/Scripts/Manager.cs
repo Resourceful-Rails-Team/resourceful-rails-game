@@ -39,7 +39,7 @@ namespace Rails {
         public event OnTurnEndEventHandler OnBuildTrack;
 
         public EventHandler<TrainCityInteraction> OnTrainMeetsCityHandler;
-        public EventHandler OnTrainMeetsCityCompletion;
+        public EventHandler OnTrainMeetsCityComplete;
 
         #endregion
 
@@ -190,7 +190,11 @@ namespace Rails {
             }
 
             _trainMovement.OnMovementFinished += (_, __) => _movingTrain = false;
-            _trainMovement.OnMeetsCity += (_, interaction) => Debug.Log($"Train {interaction.PlayerIndex} meets with City {interaction.City.Name}");
+            _trainMovement.OnMeetsCity += (_, interaction) =>
+            {
+                Debug.Log($"Train {interaction.PlayerIndex} meets with City {interaction.City.Name}");
+                OnTrainMeetsCityComplete?.Invoke(this, null);
+            };
         }
 
         private void Start()
