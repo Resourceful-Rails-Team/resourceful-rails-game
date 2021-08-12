@@ -9,25 +9,15 @@ namespace Rails.UI
 {
     public class GameHUDManager : MonoBehaviour
     {
+        public static GameHUDManager Singleton { get; private set; }
+
         [Header("Other References")]
         public Transform WorldCanvas;
 
-        [Header("Basic")]
-        public TMPro.TMP_Text PlayerNameText;
-        public TMPro.TMP_Text PlayerMoneyText;
-        public TMPro.TMP_Text PlayerCitiesText;
-
-        [Header("Train")]
-        public TMPro.TMP_Text TrainNameText;
-        public Image TrainIconImage;
-        public TMPro.TMP_Text TrainUpgradeTextUpper;
-        public TMPro.TMP_Text TrainUpgradeTextLower;
-
-        [Header("Goods")]
-        public IconValueItem[] Goods;
-
-        [Header("Cards")]
-        public CardItem[] Cards;
+        [Header("Player")]
+        public PlayerInfoItem CurrentPlayerInfo;
+        public PlayerInfoItem[] AllPlayerInfos;
+        public Transform AllPlayerInfosRoot;
 
         [Header("Build")]
         public GameObject BuildMarkerPrefab;
@@ -86,6 +76,11 @@ namespace Rails.UI
             }
         }
 
+        private void Awake()
+        {
+            Singleton = this;
+        }
+
         private void Start()
         {
             var manager = Manager.Singleton;
@@ -101,6 +96,15 @@ namespace Rails.UI
         private void Update()
         {
             Manager_OnBuildTrack(Manager.Singleton);
+
+            // handle toggling of all players panel
+            if (GameInput.ToggleAllPlayersJustPressed)
+            {
+                if (AllPlayerInfosRoot.gameObject.activeSelf)
+                    OnHideAllPlayerInfos();
+                else
+                    OnShowAllPlayerInfos();
+            }
         }
 
         private void Manager_OnPhaseChange(Manager manager)
@@ -113,41 +117,7 @@ namespace Rails.UI
             var currentPlayerIndex = manager.CurrentPlayer;
             var currentPlayer = manager.Players[currentPlayerIndex];
 
-            // update basic info
-            this.PlayerNameText.text = currentPlayer.name;
-            this.PlayerMoneyText.text = $"{currentPlayer.money}";
-            this.PlayerCitiesText.text = $"{currentPlayer.majorCities}";
-
-            // update train
-            var trainSpecs = manager._rules.TrainSpecs[currentPlayer.trainStyle];
-            this.TrainNameText.text = currentPlayer.trainStyle.ToString();
-            this.TrainUpgradeTextUpper.text = $"{0}";
-            this.TrainUpgradeTextLower.text = $"{trainSpecs.movePoints}";
-
-            // update demand cards
-            for (int i = 0; i < Cards.Length; ++i)
-            {
-                if (i < currentPlayer.demandCards.Count)
-                {
-                    Cards[i].gameObject.SetActive(true);
-                    foreach (var demandCard in currentPlayer.demandCards)
-                    {
-                        int d = 0;
-                        foreach (var demand in demandCard)
-                        {
-                            Cards[i].SetDemand(d, demand);
-                            ++d;
-                        }
-                    }
-                }
-                else
-                {
-                    Cards[i].gameObject.SetActive(false);
-                }
-            }
-
-            // update goods
-            SetGoods(currentPlayer.goodsCarried);
+            CurrentPlayerInfo.UpdateInfo(currentPlayer);
         }
 
         private void Manager_OnBuildTrack(Manager manager)
@@ -277,7 +247,7 @@ namespace Rails.UI
             TrackSelectPanel.gameObject.SetActive(false);
 
             // enable game interactions
-            GameInput.IsEnabled = true;
+            GameInput.CurrentContext = GameInput.Context.Game;
         }
 
         private void OpenUITrackSelect(int pathIndex, bool select)
@@ -286,7 +256,7 @@ namespace Rails.UI
             OnUITrackSelectClose();
 
             // prevent game interactions
-            GameInput.IsEnabled = false;
+            GameInput.CurrentContext = GameInput.Context.Popup;
 
             // set path index
             _uiTrackSelectPathIndex = pathIndex;
@@ -378,25 +348,42 @@ namespace Rails.UI
             }
         }
 
-        public void SetGoods(IEnumerable<Good> values)
+        public void OnShowAllPlayerInfos()
         {
-            var valuesArr = values.ToArray();
-            for (int i = 0; i < Goods.Length; ++i)
-            {
-                var good = Goods[i];
+            var manager = Manager.Singleton;
+            var players = manager.Players;
 
-                if (i < valuesArr.Length)
+            // show root
+            AllPlayerInfosRoot.gameObject.SetActive(true);
+
+            for (int i = 0; i < AllPlayerInfos.Length; ++i)
+            {
+                // try and get player at index
+                // if the player doesn't exist, then hide the card
+                // otherwise update and show the card with the player info
+                var player = players.ElementAtOrDefault(i);
+                if (player == null)
                 {
-                    good.Value = valuesArr[i].Name;
-                    good.Sprite = valuesArr[i].Icon;
+                    AllPlayerInfos[i].gameObject.SetActive(false);
                 }
                 else
                 {
-                    good.Sprite = null;
-                    good.Value = null;
-                    good.Disabled = true;
+                    AllPlayerInfos[i].UpdateInfo(player);
+                    AllPlayerInfos[i].gameObject.SetActive(true);
                 }
             }
+
+            // disable game interaction
+            GameInput.CurrentContext = GameInput.Context.AllPlayers;
+        }
+
+        public void OnHideAllPlayerInfos()
+        {
+            // hide root
+            AllPlayerInfosRoot.gameObject.SetActive(false);
+
+            // enable game interaction
+            GameInput.CurrentContext = GameInput.Context.Game;
         }
     }
 }
