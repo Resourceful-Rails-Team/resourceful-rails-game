@@ -22,7 +22,7 @@ namespace Assets.Scripts.Data
         public int buildPathStyle;
 
         public List<NodeId> movePath;
-        public List<Demand[]> demandCards;
+        public List<DemandCard> demandCards;
         public List<Good> goodsCarried;
 
         public PlayerInfo(string name, Color color, int money, int trainType)
@@ -39,8 +39,7 @@ namespace Assets.Scripts.Data
             movePathStyle = 0;
             buildPathStyle = 0;
 
-            movePath = new List<NodeId>();
-            demandCards = new List<Demand[]>();
+            demandCards = new List<DemandCard>();
             goodsCarried = new List<Good>();
         }
     }

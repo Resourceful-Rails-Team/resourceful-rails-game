@@ -39,9 +39,12 @@ namespace Rails
         // Build Track
         public delegate void OnBuildTrackHandler(Manager manager);
         public event OnTurnEndEventHandler OnBuildTrack;
+        
+        // Invoked when a moving train meets a City
+        public EventHandler<TrainCityInteraction> OnTrainMeetsCityHandler;
 
-        public EventHandler<TrainCityInteraction> OnTrainMeetsCity;
-        public EventHandler OnTrainMeetsCityComplete;
+        // Invoked when the UI has finished loading a train at a given City
+        public EventHandler<TrainCityInteractionResult> OnTrainMeetsCityComplete;
 
         #endregion
 
@@ -343,8 +346,7 @@ namespace Rails
         public void DiscardHand()
         {
             // Remove and refill players' hand
-            foreach (Demand[] card in player.demandCards)
-            {
+            foreach (DemandCard card in player.demandCards) {
                 Deck.Discard(card);
             }
             for (int c = 0; c < _rules.HandSize; c++)
