@@ -135,6 +135,7 @@ namespace Rails {
         /// Stores the tracks on the map.
         /// </summary>
         private static TrackGraph<int> Tracks = new TrackGraph<int>(-1);
+
         /// <summary>
         /// A reference to the current players info.
         /// </summary>
@@ -151,9 +152,8 @@ namespace Rails {
         /// Phase of the turn of current player.
         /// </summary>
         private int currentPhase;
-        /// <summary>
-        /// 
-        /// </summary>
+
+        // Path Properties
         private int currentPath;
         private int currentNodeinPath;
         private List<List<NodeId>> buildPaths;
@@ -187,6 +187,7 @@ namespace Rails {
             GameGraphics.Initialize(MapData, _startRules.Players.Length, _startRules.Players.Select(p => p.Color).ToArray());
             Pathfinding.Initialize(_rules, Tracks, MapData);
             Deck.Initialize();
+            GoodsBank.Initialize();
             SetupMajorCityTracks();
             GameLoopSetup();
         }
@@ -439,17 +440,16 @@ namespace Rails {
                 index -= buildPaths[path].Count;
             currentNodeinPath = index;
 				}
-        #endregion
+				#endregion
 
-        #region Private
-        /// <summary>
-        /// Sets up the current game.
-        /// </summary>
-        private void GameLoopSetup() {
+				#region Private
+				/// <summary>
+				/// Sets up the current game.
+				/// </summary>
+				private void GameLoopSetup() {
             // Assign integers
-            //currentPlayer = 0;
+            currentPlayer = 0;
             currentPhase = -2;
-            currentPhase = 0;
             currentPath = 0;
             maxPhases = PhasePanels.Length;
 
@@ -480,7 +480,6 @@ namespace Rails {
             // Activate first turn panel.
             PhasePanels[1].SetActive(true);
         }
-
         // Ends the turn and changes phase.
         private void EndTurn() {
             if (currentPhase < 0) {
