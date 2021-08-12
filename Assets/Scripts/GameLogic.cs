@@ -8,21 +8,22 @@ using UnityEngine;
 
 namespace Rails {
     public static class GameLogic {
+
         // Updates current player through the intial build turns.
-        public static void BuildTurn(ref int currentPlayer, ref int currentPhase, int maxPlayers) {
+        public static void BuildTurn(ref int currentPlayer, ref Phase currentPhase, int maxPlayers) {
             // Phase -2, build turns, normal player order.
             // Phase -1, build turns, reverse player order.
             // Phase 0, normal turns, place trains.
-            if (currentPhase == -2) {
+            if (currentPhase == Phase.InitBuild) {
                 if (currentPlayer == maxPlayers - 1) {
                     currentPhase += 1;
 								}
                 else
                     IncrementPlayer(ref currentPlayer, maxPlayers);
             }
-            else if (currentPhase == -1) {
+            else if (currentPhase == Phase.InitBuildRev) {
                 if (currentPlayer == 0) {
-                    currentPhase = 1;
+                    currentPhase = Phase.Build;
 								}
                 else
                     DecrementPlayer(ref currentPlayer, maxPlayers);
@@ -81,12 +82,12 @@ namespace Rails {
         }
 
         // Cycles through UI screens
-        public static int UpdatePhase(GameObject[] PhasePanels, ref int currentPhase, int phases) {
-            PhasePanels[currentPhase].SetActive(false);
+        public static Phase UpdatePhase(GameObject[] PhasePanels, ref Phase currentPhase) {
+            PhasePanels[(int)currentPhase].SetActive(false);
             currentPhase += 1;
-            if (currentPhase >= phases)
+            if (currentPhase >= Phase.MAX)
                 currentPhase = 0;
-            PhasePanels[currentPhase].SetActive(true);
+            PhasePanels[(int)currentPhase].SetActive(true);
             return currentPhase;
         }
         // Check if the current player has won.

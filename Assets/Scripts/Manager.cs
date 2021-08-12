@@ -21,9 +21,9 @@ using UnityEditor;
 namespace Rails {
     public class Manager : MonoBehaviour {
 
-				#region Events
+        #region Events
         // Turn End
-	    public delegate void OnTurnEndEventHandler(Manager manager);
+        public delegate void OnTurnEndEventHandler(Manager manager);
         public event OnTurnEndEventHandler OnTurnEnd;
 
         // Player Info Update
@@ -125,14 +125,14 @@ namespace Rails {
         /// <summary>
         /// Gets the index of the current player.
         /// </summary>
-        public int CurrentPlayer { 
-            get { return currentPlayer; } 
+        public int CurrentPlayer {
+            get { return currentPlayer; }
         }
         /// <summary>
         /// 
         /// </summary>
-        public int CurrentPath { 
-            get { return currentPath; } 
+        public int CurrentPath {
+            get { return currentPath; }
             set { SetPath(value); }
         }
         #endregion // Properties
@@ -148,17 +148,13 @@ namespace Rails {
         /// </summary>
         private PlayerInfo player;
         /// <summary>
-        /// Total number of phases in a turn.
-        /// </summary>
-        private int maxPhases;
-        /// <summary>
         /// Player number whose turn it currently is.
         /// </summary>
         private int currentPlayer;
         /// <summary>
         /// Phase of the turn of current player.
         /// </summary>
-        private int currentPhase;
+        private Phase currentPhase;
 
         // Path Properties
         private int currentPath;
@@ -193,15 +189,13 @@ namespace Rails {
             }
 
             _trainMovement.OnMovementFinished += (_, __) => _movingTrain = false;
-            _trainMovement.OnMeetsCity += (_, interaction) =>
-            {
+            _trainMovement.OnMeetsCity += (_, interaction) => {
                 Debug.Log($"Train {interaction.PlayerIndex} meets with City {interaction.City.Name}");
                 OnTrainMeetsCityComplete?.Invoke(this, null);
             };
         }
 
-        private void Start()
-        {
+        private void Start() {
             GameGraphics.Initialize(MapData, _startRules.Players.Length, _startRules.Players.Select(p => p.Color).ToArray());
             Pathfinding.Initialize(_rules, Tracks, MapData);
             Deck.Initialize();
@@ -209,7 +203,7 @@ namespace Rails {
             SetupMajorCityTracks();
             GameLoopSetup();
         }
- 
+
         private void Update() {
             _highlightToken?.ResetColor();
             var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
@@ -223,11 +217,11 @@ namespace Rails {
                 if (currentPhase == 0 && !player.trainPlaced) {
                     Debug.Log("Place Train");
                     PlaceTrain(GameInput.MouseNodeId);
-				}
-				else {
+                }
+                else {
                     Debug.Log("Add Node");
                     AddNode(currentPath, GameInput.MouseNodeId);
-				}
+                }
             }
             if (GameInput.DeleteJustPressed) {
                 ClearPath(currentPath);
@@ -261,8 +255,7 @@ namespace Rails {
                         var city = MapData.Cities[node.CityId];
                         if (node.Type == NodeType.MajorCity || node.Type == NodeType.MediumCity || node.Type == NodeType.SmallCity) {
 
-                            postDraws.Add(() =>
-                            {
+                            postDraws.Add(() => {
                                 Handles.Label(pos + Vector3.up, city.Name, labelStyle);
                             });
 
@@ -333,7 +326,7 @@ namespace Rails {
             GameGraphics.HighlightRoute(moveRoute, null);
 
             // Moving only updates the phase.
-            GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
+            GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
             OnPhaseChange?.Invoke(this);
         }
 
@@ -342,10 +335,10 @@ namespace Rails {
             // Remove and refill players' hand
             foreach (DemandCard card in player.demandCards) {
                 Deck.Discard(card);
-						}
+            }
             for (int c = 0; c < _rules.HandSize; c++) {
                 player.demandCards.Add(Deck.DrawOne());
-						}
+            }
             // Ends the turn.
             GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             OnPlayerInfoUpdate?.Invoke(this);
@@ -361,7 +354,7 @@ namespace Rails {
                     cost += route.Cost;
                     if (cost > _rules.MaxBuild)
                         return;
-								}
+                }
 
                 player.money -= GameLogic.BuildTrack(Tracks, buildRoutes, currentPlayer, player.color, _rules.MaxBuild);
                 OnBuildTrack?.Invoke(this);
@@ -398,22 +391,22 @@ namespace Rails {
                 player.trainPlaced = true;
                 player.movePath.Insert(0, player.trainPosition);
                 Debug.Log("Train position = " + player.trainPosition.ToString());
-		    }
+            }
 
             GameGraphics.PositionTrain(currentPlayer, position);
             return city;
         }
-				#endregion
+        #endregion
 
-				#region Public Path Methods
-				// Path Methods
+        #region Public Path Methods
+        // Path Methods
 
-				// Adds a new path to the end of the list.
-				public int CreateNewPath() {
+        // Adds a new path to the end of the list.
+        public int CreateNewPath() {
             buildPaths.Add(new List<NodeId>());
             currentNodeinPath = 0;
             return buildPaths.Count - 1;
-				}
+        }
         // Sets the index of the current build path.
         public void SetPath(int path) => currentPath = Mathf.Clamp(path, 0, buildPaths.Count - 1);
 
@@ -422,23 +415,21 @@ namespace Rails {
             if (path >= 0 && path < buildPaths.Count)
                 return buildPaths[path];
             return null;
-				}
+        }
         // Returns the number of paths in the build paths list.
         public int GetPathCount() {
             return buildPaths.Count;
-				}
+        }
         // Adds a node to the list.
         // Clear current Queue
         public void ClearPath(int path) {
             // Move Phase
-            if (currentPhase == 0)
-            {
+            if (currentPhase == 0) {
                 GameGraphics.HighlightRoute(moveRoute, null);
                 player.movePath.Clear();
                 player.movePath.Add(player.trainPosition);
             }
-            else
-            {
+            else {
                 GameGraphics.DestroyPotentialTrack(buildRoutes[path]);
                 buildPaths[path].Clear();
                 if (buildPaths.Count == 0)
@@ -460,11 +451,10 @@ namespace Rails {
             
             PlannedTracks(); 
             return;
-		}
+        }
         public void AddNode(int path, NodeId node) {
             // Add to player's movesegments if in move phase.
-            if (currentPhase == 0)
-            {
+            if (currentPhase == 0) {
                 player.movePath.Add(node);
                 PlannedRoute();
             }
@@ -508,9 +498,8 @@ namespace Rails {
 				private void GameLoopSetup() {
             // Assign integers
             currentPlayer = 0;
-            currentPhase = -2;
+            currentPhase = Phase.InitBuild;
             currentPath = 0;
-            maxPhases = PhasePanels.Length;
 
             // Create the path lists.
             buildPaths = new List<List<NodeId>>();
@@ -529,11 +518,11 @@ namespace Rails {
             for (int c = 0; c < _rules.HandSize; c++) {
                 for (int p = 0; p < Players.Length; p++) {
                     Players[p].demandCards.Add(Deck.DrawOne());
-								}
-						}
+                }
+            }
 
             // Deactivate all panels just in case.
-            for (int u = 0; u < maxPhases; u++)
+            for (int u = 0; u < (int)Phase.MAX; u++)
                 PhasePanels[u].SetActive(false);
 
             // Activate first turn panel.
@@ -544,11 +533,11 @@ namespace Rails {
             if (currentPhase < 0) {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
             }
-			      else {
+            else {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
-			      }
+            }
             if (currentPhase >= 0) {
-                GameLogic.UpdatePhase(PhasePanels, ref currentPhase, maxPhases);
+                GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
                 OnPhaseChange?.Invoke(this);
             }
             player = Players[currentPlayer];
@@ -558,10 +547,8 @@ namespace Rails {
         }
         // Show the planned tracks on the map.
         private void PlannedTracks() {
-            if (buildPaths.Count > 0)
-            {
-                if (buildRoutes != null)
-                {
+            if (buildPaths.Count > 0) {
+                if (buildRoutes != null) {
                     foreach (var route in buildRoutes)
                         GameGraphics.DestroyPotentialTrack(route);
                     buildRoutes.Clear();
@@ -578,7 +565,7 @@ namespace Rails {
             if (player.movePath.Count > 0) {
                 if (moveRoute != null) {
                     GameGraphics.HighlightRoute(moveRoute, null);
-				}
+                }
 
                 // Calculate the Route
                 moveRoute = Pathfinding.CheapestMove(
@@ -593,25 +580,20 @@ namespace Rails {
                     GameGraphics.HighlightRoute(moveRoute.Nodes.Take(movePoints).ToList(), player.color);
 		        }
             return;
-				}
-        
+        }
+
         /// <summary>
         /// Sets up the tracks that are automatically assigned to
         /// a Major City
         /// </summary>
-        private void SetupMajorCityTracks()
-        {
-            for (int i = 0; i < Size * Size; ++i)
-            {
-                if (MapData.Nodes[i].Type == NodeType.MajorCity)
-                {
+        private void SetupMajorCityTracks() {
+            for (int i = 0; i < Size * Size; ++i) {
+                if (MapData.Nodes[i].Type == NodeType.MajorCity) {
                     var nodeId = NodeId.FromSingleId(i);
-                    for (var c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
-                    {
+                    for (var c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c) {
                         var adjNodeId = Utilities.PointTowards(nodeId, c);
                         if (MapData.Nodes[adjNodeId.GetSingleId()].Type == NodeType.MajorCity &&
-                           (!Tracks.TryGetEdgeValue(nodeId, c, out int e) || e == -1))
-                        {
+                           (!Tracks.TryGetEdgeValue(nodeId, c, out int e) || e == -1)) {
                             Tracks[nodeId, adjNodeId] = MajorCityIndex;
                             var route = new Route(0, new List<NodeId> { nodeId, adjNodeId });
 
