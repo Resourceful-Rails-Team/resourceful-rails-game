@@ -38,6 +38,9 @@ namespace Rails.UI
         public Transform MoveInfoPanel;
         public Transform MoveInfoItemsRoot;
 
+        [Header("Pickup Drop")]
+        public Transform CityPickDropPanel;
+
 
 
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
@@ -110,7 +113,23 @@ namespace Rails.UI
 
         private void Manager_OnPhaseChange(Manager manager)
         {
-
+            switch (manager.CurrentPhase)
+            {
+                case Phase.Build:
+                case Phase.InitBuild:
+                case Phase.InitBuildRev:
+                    {
+                        BuildInfoPanel.gameObject.SetActive(true);
+                        MoveInfoPanel.gameObject.SetActive(false);
+                        break;
+                    }
+                case Phase.Move:
+                    {
+                        BuildInfoPanel.gameObject.SetActive(false);
+                        MoveInfoPanel.gameObject.SetActive(true);
+                        break;
+                    }
+            }
         }
 
         private void Manager_OnPlayerInfoUpdate(Manager manager)

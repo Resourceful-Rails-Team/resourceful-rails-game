@@ -1789,7 +1789,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3332313832378421966
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3100,6 +3100,7 @@ MonoBehaviour:
   TrackSelectDeleteItemSmallPrefab: {fileID: 2321464813107104478, guid: 2ef2de514c5edf24fb37d7005c810ee4, type: 3}
   MoveInfoPanel: {fileID: 6594030274456884014}
   MoveInfoItemsRoot: {fileID: 2403572413142043451}
+  CityPickDropPanel: {fileID: 3332313832378421966}
 --- !u!1 &6093689427448112690
 GameObject:
   m_ObjectHideFlags: 0
