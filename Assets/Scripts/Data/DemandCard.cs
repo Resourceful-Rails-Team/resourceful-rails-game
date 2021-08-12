@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Rails.Data
 {
@@ -15,7 +16,8 @@ namespace Rails.Data
 
         public DemandCard(IEnumerable<Demand> demands)
         {
-            _demands = demands.Take(3).ToList();
+            int count = Mathf.Min(DemandCount, demands.Count());
+            _demands = demands.Take(count).ToList();
         }
 
         public Demand Card1 => _demands[0];

@@ -257,12 +257,17 @@ namespace Rails.Rendering
                                 foreach (var nId in neighborNodes.Select(nn => nn.Item1))
                                     _mapTokens[nId] = token;
 
+                                token.SetPrimaryColor(Color.red);
                                 _mapTokens[nodeId] = token;
                             }
                         }
                         else
                         {
                             var token = Instantiate(modelToken, _singleton.transform);
+
+                            if (node.Type == NodeType.MediumCity || node.Type == NodeType.SmallCity)
+                                token.SetPrimaryColor(Color.red);
+
                             token.transform.position = pos + new Vector3(0, 0.1f, 0);
 
                             _mapTokens[nodeId] = token;
