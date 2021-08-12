@@ -18,7 +18,7 @@ namespace Assets.Scripts.Data
         public NodeId trainPosition;
         public bool trainPlaced;
 
-        public List<NodeId> moveSegments;
+        public List<NodeId> movePath;
         public int movePathStyle;
         public int buildPathStyle;
 
@@ -35,7 +35,7 @@ namespace Assets.Scripts.Data
             trainPosition = new NodeId(0, 0);
             trainPlaced = false;
 
-            moveSegments = new List<NodeId>();
+            movePath = new List<NodeId>();
             movePathStyle = 0;
             buildPathStyle = 0;
 

@@ -293,7 +293,9 @@ namespace Rails.Rendering
                 yield break;
             if (path == null || path.Count == 0)
                 yield break;
-
+            
+            // If this coroutine has been called on the same player again, while
+            // a previous one is still running, cancel the previous one
             if (_currentlyRunningTrains.Contains(player))
             {
                 _currentlyRunningTrains.Remove(player);
@@ -303,12 +305,12 @@ namespace Rails.Rendering
 
             var tr = _playerTrains[player].transform;
             tr.gameObject.SetActive(true);
-
+            tr.position = Utilities.GetPosition(path[0]);
+            
+            // Create a point and rotation value representing the next target for the train
             Vector3 nextPoint;
             var nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(path[0], path[1]));
-
-            tr.position = Utilities.GetPosition(path[0]);
-
+            
             for (int i = 0; i < path.Count - 1; ++i)
             {
                 nextPoint = Utilities.GetPosition(path[i + 1]);
