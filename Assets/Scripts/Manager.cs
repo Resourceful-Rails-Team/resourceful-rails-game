@@ -38,7 +38,7 @@ namespace Rails {
         public delegate void OnBuildTrackHandler(Manager manager);
         public event OnTurnEndEventHandler OnBuildTrack;
 
-        public EventHandler<TrainCityInteraction> OnTrainMeetsCityHandler;
+        public EventHandler<TrainCityInteraction> OnTrainMeetsCity;
         public EventHandler OnTrainMeetsCityComplete;
 
         #endregion
