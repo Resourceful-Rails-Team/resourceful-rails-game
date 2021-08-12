@@ -1,3 +1,4 @@
+using Rails.Controls;
 using Rails.Data;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +20,8 @@ namespace Rails.UI
         [Header("Train")]
         public TMPro.TMP_Text TrainNameText;
         public Image TrainIconImage;
-        public TMPro.TMP_Text TrainUpgradeText;
-        public Image[] TrainUpgradeImages;
+        public TMPro.TMP_Text TrainUpgradeTextUpper;
+        public TMPro.TMP_Text TrainUpgradeTextLower;
 
         [Header("Goods")]
         public IconValueItem[] Goods;
@@ -38,13 +39,19 @@ namespace Rails.UI
         public TrackSelectDeleteItem TrackSelectDeleteItemPrefab;
         public Transform TrackSelectPanel;
         public Transform TrackSelectItemsRoot;
+        public Transform TrackSelectStartRoot;
         public Transform TrackSelectDeleteButtonRoot;
+
+        [Header("Move")]
+        public TrackSelectDeleteItem TrackSelectDeleteItemSmallPrefab;
+        public Transform MoveInfoPanel;
+        public Transform MoveInfoItemsRoot;
 
 
 
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
         private List<TrackItem> _uiTrackItems = new List<TrackItem>();
-        private int _uiTrackSelectDeletePathIndex = -1;
+        private int _uiTrackSelectPathIndex = -1;
         private List<TrackSelectDeleteItem> _uiTrackSelectDeleteItems = new List<TrackSelectDeleteItem>();
 
         private class BuildMarkerContainer
@@ -87,11 +94,18 @@ namespace Rails.UI
 
             manager.OnPlayerInfoUpdate += Manager_OnPlayerInfoUpdate;
             Manager_OnPlayerInfoUpdate(manager);
+            manager.OnPhaseChange += Manager_OnPhaseChange;
+            Manager_OnPhaseChange(manager);
         }
 
         private void Update()
         {
-            Manager_OnBuildTrackChanged(Manager.Singleton);
+            Manager_OnBuildTrack(Manager.Singleton);
+        }
+
+        private void Manager_OnPhaseChange(Manager manager)
+        {
+
         }
 
         private void Manager_OnPlayerInfoUpdate(Manager manager)
@@ -105,7 +119,10 @@ namespace Rails.UI
             this.PlayerCitiesText.text = $"{currentPlayer.majorCities}";
 
             // update train
+            var trainSpecs = manager._rules.TrainSpecs[currentPlayer.trainStyle];
             this.TrainNameText.text = currentPlayer.trainStyle.ToString();
+            this.TrainUpgradeTextUpper.text = $"{0}";
+            this.TrainUpgradeTextLower.text = $"{trainSpecs.movePoints}";
 
             // update demand cards
             for (int i = 0; i < Cards.Length; ++i)
@@ -133,7 +150,7 @@ namespace Rails.UI
             SetGoods(currentPlayer.goodsCarried);
         }
 
-        private void Manager_OnBuildTrackChanged(Manager manager)
+        private void Manager_OnBuildTrack(Manager manager)
         {
             var players = manager.Players;
             var currentPlayer = players[manager.CurrentPlayer];
@@ -198,7 +215,7 @@ namespace Rails.UI
                 trackItem.OnTrackDeleted += OnUITrackDelete;
             }
 
-            trackItem.Name = $"{(Manager.Singleton.CurrentPath == index ? "* " : "")}Track {Utilities.GetTrackNameByIndex(index)}";
+            trackItem.Name = $"{(Manager.Singleton.CurrentPath == index ? "<color=#FFFF00>" : "")}Track {Utilities.GetTrackNameByIndex(index)}";
             trackItem.Cost = $"{path.Count}"; // todo
         }
 
@@ -227,7 +244,22 @@ namespace Rails.UI
 
         public void OnUITrackSelectDeletePath()
         {
+            var manager = Manager.Singleton;
+            manager.RemovePath(_uiTrackSelectPathIndex);
 
+            // close
+            OnUITrackSelectClose();
+        }
+
+        public void OnUITrackSelectStart()
+        {
+            var manager = Manager.Singleton;
+
+            // set selected node to
+            manager.SetNode(_uiTrackSelectPathIndex, 0);
+
+            // close
+            OnUITrackSelectClose();
         }
 
         public void OnUITrackSelectClose()
@@ -243,6 +275,9 @@ namespace Rails.UI
 
             // hide panel
             TrackSelectPanel.gameObject.SetActive(false);
+
+            // enable game interactions
+            GameInput.IsEnabled = true;
         }
 
         private void OpenUITrackSelect(int pathIndex, bool select)
@@ -250,17 +285,24 @@ namespace Rails.UI
             // call close to ensure its closed before opening again
             OnUITrackSelectClose();
 
+            // prevent game interactions
+            GameInput.IsEnabled = false;
+
+            // set path index
+            _uiTrackSelectPathIndex = pathIndex;
+
             // show panel
             TrackSelectPanel.gameObject.SetActive(true);
 
             // show delete if not select
             TrackSelectDeleteButtonRoot.gameObject.SetActive(!select);
+            TrackSelectStartRoot.gameObject.SetActive(select);
 
             // add items
             var manager = Manager.Singleton;
             var path = manager.GetPath(pathIndex);
             var pathName = Utilities.GetTrackNameByIndex(pathIndex);
-            int i = 0;
+            int i = select ? 1 : 0;
             foreach (var nodeId in path)
             {
                 var item = Instantiate(TrackSelectDeleteItemPrefab);
@@ -304,6 +346,7 @@ namespace Rails.UI
         private void UpdateBuildMarkers(int index, List<NodeId> path)
         {
             var trackName = Utilities.GetTrackNameByIndex(index);
+            var isTrackSelected = Manager.Singleton.CurrentPath == index;
             for (int i = 0; i < path.Count; ++i)
             {
                 var nodeId = path[i];
@@ -324,7 +367,11 @@ namespace Rails.UI
                 }
 
                 // add name
-                marker.AddName($"{trackName}{i + 1}");
+                var name = $"{trackName}{i + 1}";
+                if (isTrackSelected && i == 0)
+                    marker.AddName($"<color=#FFFF00>{name}</color>");
+                else
+                    marker.AddName($"{name}");
 
                 // move to node
                 marker.GameObject.transform.position = Utilities.GetPosition(nodeId);
