@@ -12,7 +12,6 @@ namespace Rails.UI
     public class TooltipHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         public GameObject TooltipRoot;
-
         private Transform _parentBeforeShow;
 
         void Start()
@@ -29,8 +28,14 @@ namespace Rails.UI
             // show
             if (TooltipRoot)
             {
+                // save parent before we move it
                 _parentBeforeShow = TooltipRoot.transform.parent;
+
+                // move to root of canvas
+                // this ensures that the tooltip will render on top of everything else
                 TooltipRoot.transform.SetParent(GameHUDManager.Singleton.transform, true);
+
+                // show
                 TooltipRoot.SetActive(true);
             }
         }
@@ -40,8 +45,11 @@ namespace Rails.UI
             // hide
             if (TooltipRoot)
             {
+                // return gameobject to normal parent
                 if (_parentBeforeShow)
                     TooltipRoot.transform.SetParent(_parentBeforeShow);
+
+                // hide
                 TooltipRoot.SetActive(false);
             }
         }
