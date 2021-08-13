@@ -363,6 +363,7 @@ namespace Rails
                 Player.movePath.Insert(0, Player.trainPosition);
 
             PathPlanner.PlannedRoute();
+            PathPlanner.SetNode(Player.movePath.Count);
    
             if (Player.movePointsLeft == 0)
             {
