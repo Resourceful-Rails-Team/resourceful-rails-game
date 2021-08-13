@@ -581,6 +581,10 @@ namespace Rails
                     {
                         income += match.Reward;
                         GoodsBank.GoodDropoff(Player.goodsCarried.IndexOf(match.Good), Player.goodsCarried);
+
+                        Deck.Discard(card);
+                        Player.demandCards.Remove(card);
+                        Player.demandCards.Add(Deck.DrawOne());
                     }
                 }
             }
