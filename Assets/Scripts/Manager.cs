@@ -582,6 +582,7 @@ namespace Rails
                         income += match.Reward;
                         GoodsBank.GoodDropoff(Player.goodsCarried.IndexOf(match.Good), Player.goodsCarried);
 
+                        // Update the Deck, and the player's demand cards
                         Deck.Discard(card);
                         Player.demandCards.Remove(card);
                         Player.demandCards.Add(Deck.DrawOne());
