@@ -12,6 +12,7 @@ namespace Rails.UI
         public TMPro.TMP_Text NameText;
         public Button SelectButton;
         public Button DeleteButton;
+        public bool ShowBoth;
 
         public string Name { get => NameText.text; set => NameText.text = value; }
         public event Action<TrackSelectDeleteItem> OnTrackSelected;
@@ -53,8 +54,11 @@ namespace Rails.UI
         /// </summary>
         private void UpdateState()
         {
-            SelectButton.gameObject.SetActive(_isSelect);
-            DeleteButton.gameObject.SetActive(!_isSelect);
+            if (!ShowBoth)
+            {
+                SelectButton.gameObject.SetActive(_isSelect);
+                DeleteButton.gameObject.SetActive(!_isSelect);
+            }
         }
     }
 }

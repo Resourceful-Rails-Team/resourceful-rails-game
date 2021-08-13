@@ -85,12 +85,14 @@ namespace Rails.Systems
             GameGraphics.HighlightRoute(moveRoute, null);
             manager.Player.movePath.Clear();
             manager.Player.movePath.Add(manager.Player.trainPosition);
+            currentNode = 1;
         }
         // Clear all build paths.
         public static void ClearBuild()
         {
             buildPaths.Clear();
             buildPaths.Add(new List<NodeId>());
+            currentNode = 0;
         }
         // Clear current build path.
         public static bool ClearPath(int path)
@@ -102,6 +104,7 @@ namespace Rails.Systems
             buildPaths[path].Clear();
             if (buildPaths.Count == 0)
                 buildPaths.Add(new List<NodeId>());
+            currentNode = 0;
             PlannedTracks();
 
             return true;
@@ -121,14 +124,16 @@ namespace Rails.Systems
         // Adds a node to move path.
         public static void AddNode(NodeId node)
         {
-            manager.Player.movePath.Add(node);
+            manager.Player.movePath.Insert(currentNode, node);
+            currentNode += 1;
             PlannedRoute();
             return;
         }
         // Adds a node to build path.
         public static void AddNode(int path, NodeId node)
         {
-            buildPaths[path].Add(node);
+            buildPaths[path].Insert(currentNode, node);
+            currentNode += 1;
             PlannedTracks();
             return;
         }
@@ -137,6 +142,8 @@ namespace Rails.Systems
         {
             if (node >= 0 && node < manager.Player.movePath.Count)
             {
+                if (currentNode > node)
+                    --currentNode;
                 manager.Player.movePath.RemoveAt(node);
                 return true;
             }
@@ -150,25 +157,31 @@ namespace Rails.Systems
             if (node < 0 || node >= buildPaths[path].Count)
                 return false;
 
+            if (currentNode > node)
+                --currentNode;
             buildPaths[path].RemoveAt(node);
             return true;
         }
         // Sets current node for move path.
         public static void SetNode(int node)
         {
-            currentNode = CircularIndex(node, 0, manager.Player.movePath.Count);
+            currentNode = CircularIndex(node, 0, manager.Player.movePath.Count+1);
             return;
         }
         // Sets the current node for build path.
         public static void SetNode(int path, int node)
         {
-            currentNode = CircularIndex(node, 0, Paths);
+            currentNode = CircularIndex(node, 0, buildPaths[path].Count+1);
             return;
         }
         public static void InitializePlayerMove()
         {
             manager.Player.movePointsLeft = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
-            if (manager.Player.movePath.Count == 0) manager.Player.movePath.Add(manager.Player.trainPosition);
+            if (manager.Player.movePath.Count == 0)
+            {
+                manager.Player.movePath.Add(manager.Player.trainPosition);
+                currentNode = 1;
+            }
             PlannedRoute();
         }
         public static TrainCityInteraction GetStop(NodeId id)
@@ -178,15 +191,17 @@ namespace Rails.Systems
 
             if (node.Type >= NodeType.SmallCity && node.Type <= NodeType.MajorCity)
             {
+                var city = manager.MapData.Cities[node.CityId];
                 return new TrainCityInteraction
                 {
                     // Select any demand cards that both match the city, and
                     // which the player has the good in their load
                     Cards = manager.Player.demandCards
                             .Where(dc => dc.Any(d =>
-                                d.City == manager.MapData.Cities[node.CityId] &&
+                                d.City == city &&
                                 manager.Player.goodsCarried.Contains(d.Good)
                             ))
+                            .OrderBy(dc => dc.FirstOrDefault(x=>x.City == city).Reward)
                             .ToArray(),
 
                     // Select any good that is from the city, and that
@@ -249,7 +264,7 @@ namespace Rails.Systems
             return index;
         }
         // Show the planned tracks on the map.
-        private static void PlannedTracks()
+        public static void PlannedTracks()
         {
             if (buildPaths.Count > 0)
             {
