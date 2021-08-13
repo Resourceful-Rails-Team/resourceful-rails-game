@@ -14,6 +14,6 @@ namespace Rails.Data
         }
 
         public override string ToString()
-            => $"Demand: {City.Name}, {Good.Name}, {Reward}";
+            => $"{City.Name}, {Good.Name}, {Reward}";
     }
 }
