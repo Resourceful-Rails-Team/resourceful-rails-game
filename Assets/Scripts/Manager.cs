@@ -169,7 +169,6 @@ namespace Rails
         private Phase currentPhase;
         private GameToken _highlightToken;
         private bool _movingTrain = false;
-        private TrainMovement _trainMovement;
         #endregion
 
         #region Unity Events
@@ -180,7 +179,6 @@ namespace Rails
             _singleton = this;
             _startRules = FindObjectOfType<GameStartRules>();
             _rules = MapData.DefaultRules;
-            _trainMovement = GetComponent<TrainMovement>();
 
             // generate start rules if empty
             if (_startRules == null)
@@ -194,9 +192,9 @@ namespace Rails
                 };
             }
 
-            _trainMovement.OnMovementFinished += (_, __) => _movingTrain = false;
+            OnTrainMeetsCityComplete += (_, result) => CompleteCityTransaction(result);
         }
-
+ 
         private void Start()
         {
             GameGraphics.Initialize(MapData, _startRules.Players.Length, _startRules.Players.Select(p => p.Color).ToArray());
@@ -218,40 +216,43 @@ namespace Rails
                 highlightToken.SetColor(Color.yellow);
                 _highlightToken = highlightToken;
             }
-            if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds)
+            if (!_movingTrain)
             {
-                Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
-                if (currentPhase == Phase.Move)
+                if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds)
                 {
-                    if (!player.trainPlaced)
+                    Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
+                    if (currentPhase == Phase.Move)
                     {
-                        Debug.Log("Place Train");
-                        PlaceTrain(GameInput.MouseNodeId);
+                        if (!player.trainPlaced)
+                        {
+                            Debug.Log("Place Train");
+                            PlaceTrain(GameInput.MouseNodeId);
+                        }
+                        else
+                        {
+                            PathPlanner.AddNode(GameInput.MouseNodeId);
+                        }
                     }
                     else
                     {
-                        PathPlanner.AddNode(GameInput.MouseNodeId);
+                        Debug.Log("Add Node");
+                        PathPlanner.AddNode(PathPlanner.CurrentPath, GameInput.MouseNodeId);
                     }
                 }
-                else
+                if (GameInput.DeleteJustPressed)
                 {
-                    Debug.Log("Add Node");
-                    PathPlanner.AddNode(PathPlanner.CurrentPath, GameInput.MouseNodeId);
+                    if (currentPhase == Phase.Move)
+                        PathPlanner.ClearPath();
+                    else
+                        PathPlanner.ClearPath(PathPlanner.CurrentPath);
                 }
-            }
-            if (GameInput.DeleteJustPressed)
-            {
-                if (currentPhase == Phase.Move)
-                    PathPlanner.ClearPath();
-                else
-                    PathPlanner.ClearPath(PathPlanner.CurrentPath);
-            }
-            if (GameInput.EnterJustPressed)
-            {
-                if (currentPhase == Phase.Move)
-                    MoveTrain();
-                else
-                    BuildTrack();
+                if (GameInput.EnterJustPressed)
+                {
+                    if (currentPhase == Phase.Move)
+                        MoveTrain();
+                    else
+                        BuildTrack();
+                }
             }
         }
 
@@ -323,32 +324,52 @@ namespace Rails
         // General gameplay methods.
 
         // Moves the train to final node in path.
-        public void MoveTrain() => StartCoroutine(CMoveTrain());
+        public void MoveTrain()
+        {
+            if (!_movingTrain)
+                StartCoroutine(CMoveTrain());
+        }
         private IEnumerator CMoveTrain()
         {
-            var movePoints = Mathf.Min(_rules.TrainSpecs[player.trainType].movePoints, PathPlanner.moveRoute.Distance);
+            var moveRoute = PathPlanner.moveRoute;  
+            Player.movePath.RemoveAt(0);
 
-            player.movePath.RemoveAt(0);
-            for (int i = 0; i < movePoints; ++i)
+            _movingTrain = true; 
+            for(int i = 0; i < moveRoute.Distance; ++i)
             {
-                if (PathPlanner.moveRoute.Nodes[i] == player.movePath[0])
-                    player.movePath.RemoveAt(0);
-            }
+                Player.trainPosition = moveRoute.Nodes[i + 1];
+                Player.movePointsLeft -= 1;
 
-            if (player.movePath[0] != player.trainPosition)
-                player.movePath.Insert(0, player.trainPosition);
-
-            player.trainPosition = PathPlanner.moveRoute.Nodes.Last();
-
-            _movingTrain = true;
-            _trainMovement.MoveTrain(currentPlayer, PathPlanner.moveRoute.Nodes.Take(movePoints + 1).ToList());
-
-            while (_movingTrain)
+                GameGraphics.MoveTrain(currentPlayer, moveRoute.Nodes[i], moveRoute.Nodes[i + 1]);
                 yield return null;
 
-            // Moving only updates the phase.
-            GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
-            OnPhaseChange?.Invoke(this);
+                while (GameGraphics.IsTrainMoving) yield return null;
+
+                if (moveRoute.Nodes[i + 1] == Player.movePath[0])
+                    Player.movePath.RemoveAt(0);
+
+                var stop = PathPlanner.GetStop(moveRoute.Nodes[i + 1]);
+
+                if (stop != null)
+                {
+                    OnTrainMeetsCityHandler?.Invoke(this, stop);
+                    break;
+                }
+                if (Player.movePointsLeft == 0) break;
+            }
+            _movingTrain = false;
+
+            if (Player.trainPosition != Player.movePath.FirstOrDefault())
+                Player.movePath.Insert(0, Player.trainPosition);
+
+            PathPlanner.PlannedRoute();
+   
+            if (Player.movePointsLeft == 0)
+            {
+                GameGraphics.HighlightRoute(PathPlanner.moveRoute, null);
+                GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
+                OnPhaseChange?.Invoke(this);
+            } 
         }
 
         // Discards the player's hand.
@@ -409,13 +430,14 @@ namespace Rails
             }
             if (city)
             {
+                GameGraphics.PositionTrain(currentPlayer, position);
                 player.trainPosition = position;
+                player.movePath = new List<NodeId> { position };
                 player.trainPlaced = true;
-                player.movePath.Insert(0, player.trainPosition);
+                PathPlanner.PlannedRoute();
                 Debug.Log("Train position = " + player.trainPosition.ToString());
             }
 
-            GameGraphics.PositionTrain(currentPlayer, position);
             return city;
         }
         // Ends the Move phase prematurely.
@@ -423,6 +445,7 @@ namespace Rails
         {
             GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
             OnPhaseChange?.Invoke(this);
+
             return;
         }
         #endregion
@@ -481,6 +504,14 @@ namespace Rails
             player = Players[currentPlayer];
             OnPlayerInfoUpdate?.Invoke(this);
             OnTurnEnd?.Invoke(this);
+
+            // Assign the player's move points before starting their move turn
+            // and insert their move route
+            if (currentPhase == Phase.Move)
+            {
+                PathPlanner.InitializePlayerMove();
+            }
+
             return;
         }
         /// <summary>
@@ -510,6 +541,31 @@ namespace Rails
                 }
             }
         }
+        private void CompleteCityTransaction(TrainCityInteractionResult result)
+        {
+            var playerCityId = MapData.Nodes[Player.trainPosition.GetSingleId()].CityId;
+
+            if (result.ChosenCards != null)
+            {
+                var income = 0;
+                foreach (var card in result.ChosenCards)
+                {
+                    var match = card.FirstOrDefault(demand => demand.City == MapData.Cities[playerCityId]);
+                    if (match != null)
+                    {
+                        income += match.Reward;
+                        GoodsBank.GoodDropoff(Player.goodsCarried.IndexOf(match.Good), Player.goodsCarried);
+                    }
+                }
+            }
+            if (result.Goods != null)
+            {
+                foreach (var good in result.Goods)
+                    GoodsBank.GoodPickup(good, Player.goodsCarried, Player.trainType);
+            }
+            OnPlayerInfoUpdate?.Invoke(this);
+        }
+
 
         #endregion
     }

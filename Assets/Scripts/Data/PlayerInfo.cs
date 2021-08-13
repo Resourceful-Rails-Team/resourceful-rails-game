@@ -20,6 +20,7 @@ namespace Assets.Scripts.Data
 
         public int movePathStyle;
         public int buildPathStyle;
+        public int movePointsLeft;
 
         public List<NodeId> movePath;
         public List<DemandCard> demandCards;
@@ -38,6 +39,7 @@ namespace Assets.Scripts.Data
 
             movePathStyle = 0;
             buildPathStyle = 0;
+            movePointsLeft = 0;
 
             demandCards = new List<DemandCard>();
             goodsCarried = new List<Good>();

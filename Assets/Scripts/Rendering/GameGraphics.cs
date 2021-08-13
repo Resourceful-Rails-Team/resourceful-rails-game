@@ -40,9 +40,9 @@ namespace Rails.Rendering
         // more than once at a time.
         private static HashSet<int> _currentlyRunningTrains;
 
-        public static EventHandler OnTrainMovementFinished;
+        public static bool IsTrainMoving { get; private set; }
 
-        public static void Initialize(MapData mapData, int playerCount, Color [] playerColors)
+        public static void Initialize(MapData mapData, int playerCount, Color[] playerColors)
         {
             _mapTokens = new Dictionary<NodeId, GameToken>();
             _trackTokens = new TrackGraph<GameToken>();
@@ -90,14 +90,19 @@ namespace Rails.Rendering
                     Utilities.CardinalBetween(route.Nodes[i], route.Nodes[i + 1])
                 );
 
-                // Setup the track GameToken
-                var trackToken = _trackPool.Retrieve();
-                trackToken.transform.position = Utilities.GetPosition(route.Nodes[i]);
-                trackToken.transform.rotation = rotation;
+                if (
+                    (!_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edge) || edge == null)
+                    && !route.Nodes.Take(i).Contains(route.Nodes[i + 1])
+                ) {
+                    // Setup the track GameToken
+                    var trackToken = _trackPool.Retrieve();
+                    trackToken.transform.position = Utilities.GetPosition(route.Nodes[i]);
+                    trackToken.transform.rotation = rotation;
 
-                // Highlight the token and add it to the token list
-                trackToken.SetColor(highlightColor);
-                trackTokens.Add(trackToken);
+                    // Highlight the token and add it to the token list
+                    trackToken.SetColor(highlightColor);
+                    trackTokens.Add(trackToken);
+                }
             }
 
             _potentialTracks[route] = trackTokens;
@@ -135,10 +140,15 @@ namespace Rails.Rendering
             // Add its GameTokens to the track token map.
             if (_potentialTracks.TryGetValue(route, out var tokens))
             {
+                int tokenIndex = 0;
                 for (int i = 0; i < route.Distance; ++i)
                 {
-                    _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = tokens[i];
-                    tokens[i].SetPrimaryColor(color);
+                    if (!_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edge) || edge == null)
+                    {
+                        _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = tokens[tokenIndex];
+                        tokens[tokenIndex].SetPrimaryColor(color);
+                        ++tokenIndex;
+                    }
                 }
                 _potentialTracks.Remove(route);
             }
@@ -150,7 +160,7 @@ namespace Rails.Rendering
         /// </summary>
         /// <param name="route">The list of nodes to alter</param>
         /// <param name="highlightColor">Highlights to the specified Color, or resets Color if null</param>
-        public static void HighlightRoute(List<NodeId> route, Color ? highlightColor)
+        public static void HighlightRoute(List<NodeId> route, Color? highlightColor)
         {
             if (route == null) return;
 
@@ -212,8 +222,9 @@ namespace Rails.Rendering
         /// </summary>
         /// <param name="player">The player index to move.</param>
         /// <param name="path">The nodes the player train will traverse on.</param>
-        public static void MoveTrain(int player, List<NodeId> path) => _singleton.StartCoroutine(CMoveTrain(player, path, 5.0f));
-        
+        public static void MoveTrain(int player, NodeId start, NodeId end) 
+            => _singleton.StartCoroutine(CMoveTrain(player, 5.0f, start, end));
+
         #endregion
 
         #region Private Methods
@@ -292,13 +303,15 @@ namespace Rails.Rendering
         }
 
         // Moves a player train through the given `Route`
-        private static IEnumerator CMoveTrain(int player, List<NodeId> path, float speed)
+        private static IEnumerator CMoveTrain(int player, float speed, NodeId start, NodeId end)
         {
+            IsTrainMoving = true;
+
             if (player < 0 || player >= _playerTrains.Length)
                 yield break;
-            if (path == null || path.Count == 0)
+            if (start == end)
                 yield break;
-            
+
             // If this coroutine has been called on the same player again, while
             // a previous one is still running, cancel the previous one
             if (_currentlyRunningTrains.Contains(player))
@@ -308,36 +321,24 @@ namespace Rails.Rendering
             }
             _currentlyRunningTrains.Add(player);
 
+            var position = Utilities.GetPosition(end);
+            var rotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(start, end));
             var tr = _playerTrains[player].transform;
+
             tr.gameObject.SetActive(true);
-            tr.position = Utilities.GetPosition(path[0]);
-            
-            // Create a point and rotation value representing the next target for the train
-            Vector3 nextPoint;
-            var nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(path[0], path[1]));
-            
-            for (int i = 0; i < path.Count - 1; ++i)
+            tr.position = Utilities.GetPosition(start);
+
+            while (tr.position != position)
             {
-                nextPoint = Utilities.GetPosition(path[i + 1]);
-                nextRotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(path[i], path[i + 1]));
+                if (!_currentlyRunningTrains.Contains(player))
+                    yield break;
 
-                while (tr.position != nextPoint)
-                {
-                    if (!_currentlyRunningTrains.Contains(player))
-                    {
-                        tr.position = Utilities.GetPosition(path.Last());
-                        tr.rotation = Utilities.GetCardinalRotation(
-                            Utilities.CardinalBetween(path[path.Count - 2], path.Last())
-                        );
-                        yield break;
-                    }
-
-                    tr.position = Vector3.MoveTowards(tr.position, nextPoint, speed * Time.deltaTime);
-                    tr.rotation = Quaternion.Slerp(tr.rotation, nextRotation, speed * 2.5f * Time.deltaTime);
-                    yield return null;
-                }
+                tr.position = Vector3.MoveTowards(tr.position, position, speed * Time.deltaTime);
+                tr.rotation = Quaternion.Slerp(tr.rotation, rotation, speed * 2.5f * Time.deltaTime);
+                yield return null;
             }
-            OnTrainMovementFinished?.Invoke(_singleton, null);
+
+            IsTrainMoving = false;
         }
         #endregion
     }

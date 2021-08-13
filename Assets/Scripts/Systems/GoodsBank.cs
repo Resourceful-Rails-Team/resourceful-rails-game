@@ -60,8 +60,7 @@ namespace Rails.Systems
             if (goodsCarried.Count > 0 &&
                 index >= 0 && index < goodsCarried.Count)
             {
-                // TODO: Find the index of the good for the Bank.
-                int i = 0;
+                int i = mapData.Goods.IndexOf(goodsCarried[index]);
                 ++tokens[i];
                 goodsCarried.RemoveAt(index);
                 success = true;
