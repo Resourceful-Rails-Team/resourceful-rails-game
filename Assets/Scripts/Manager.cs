@@ -390,9 +390,7 @@ namespace Rails
             // End the phase if the player is out of move points
             if (Player.movePointsLeft == 0)
             {
-                GameGraphics.HighlightRoute(PathPlanner.moveRoute, null);
-                GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
-                OnPhaseChange?.Invoke(this);
+                EndMove();
             } 
         }
 
@@ -467,9 +465,10 @@ namespace Rails
         // Ends the Move phase prematurely.
         public void EndMove()
         {
+            GameGraphics.HighlightRoute(PathPlanner.moveRoute, null);
             GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
             OnPhaseChange?.Invoke(this);
-
+            PathPlanner.CurrentNode = 0;
             return;
         }
         #endregion
