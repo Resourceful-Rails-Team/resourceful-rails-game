@@ -169,7 +169,6 @@ namespace Rails
         private Phase currentPhase;
         private GameToken _highlightToken;
         private bool _movingTrain = false;
-        private TrainMovement _trainMovement;
         #endregion
 
         #region Unity Events
@@ -180,7 +179,6 @@ namespace Rails
             _singleton = this;
             _startRules = FindObjectOfType<GameStartRules>();
             _rules = MapData.DefaultRules;
-            _trainMovement = GetComponent<TrainMovement>();
 
             // generate start rules if empty
             if (_startRules == null)
@@ -193,8 +191,6 @@ namespace Rails
                     new StartPlayerInfo() { Name = "Player 2", Color = Color.blue }
                 };
             }
-
-            _trainMovement.OnMovementFinished += (_, __) => _movingTrain = false;
         }
 
         private void Start()
@@ -326,29 +322,43 @@ namespace Rails
         public void MoveTrain() => StartCoroutine(CMoveTrain());
         private IEnumerator CMoveTrain()
         {
-            var movePoints = Mathf.Min(_rules.TrainSpecs[player.trainType].movePoints, PathPlanner.moveRoute.Distance);
+            var moveRoute = PathPlanner.moveRoute;  
 
-            player.movePath.RemoveAt(0);
-            for (int i = 0; i < movePoints; ++i)
+            Player.movePath.RemoveAt(0);
+            for(int i = 0; i < moveRoute.Distance; ++i)
             {
-                if (PathPlanner.moveRoute.Nodes[i] == player.movePath[0])
-                    player.movePath.RemoveAt(0);
-            }
+                Player.trainPosition = moveRoute.Nodes[i + 1];
+                Player.movePointsLeft -= 1;
 
-            if (player.movePath[0] != player.trainPosition)
-                player.movePath.Insert(0, player.trainPosition);
-
-            player.trainPosition = PathPlanner.moveRoute.Nodes.Last();
-
-            _movingTrain = true;
-            _trainMovement.MoveTrain(currentPlayer, PathPlanner.moveRoute.Nodes.Take(movePoints + 1).ToList());
-
-            while (_movingTrain)
+                GameGraphics.MoveTrain(currentPlayer, moveRoute.Nodes[i], moveRoute.Nodes[i + 1]);
                 yield return null;
 
-            // Moving only updates the phase.
-            GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
-            OnPhaseChange?.Invoke(this);
+                while (GameGraphics.IsTrainMoving) yield return null;
+
+                if (moveRoute.Nodes[i + 1] == Player.movePath[0])
+                    Player.movePath.RemoveAt(0);
+
+                var stop = PathPlanner.GetStop(moveRoute.Nodes[i + 1]);
+
+                if (stop != null)
+                {
+                    OnTrainMeetsCityHandler?.Invoke(this, stop);
+                    break;
+                }
+                if (Player.movePointsLeft == 0) break;
+            }
+
+            if (Player.trainPosition != Player.movePath.FirstOrDefault())
+                Player.movePath.Insert(0, Player.trainPosition);
+
+            PathPlanner.PlannedRoute();
+   
+            if (Player.movePointsLeft == 0)
+            {
+                GameGraphics.HighlightRoute(PathPlanner.moveRoute, null);
+                GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
+                OnPhaseChange?.Invoke(this);
+            } 
         }
 
         // Discards the player's hand.
@@ -409,13 +419,14 @@ namespace Rails
             }
             if (city)
             {
+                GameGraphics.PositionTrain(currentPlayer, position);
                 player.trainPosition = position;
+                player.movePath = new List<NodeId> { position };
                 player.trainPlaced = true;
-                player.movePath.Insert(0, player.trainPosition);
+                PathPlanner.PlannedRoute();
                 Debug.Log("Train position = " + player.trainPosition.ToString());
             }
 
-            GameGraphics.PositionTrain(currentPlayer, position);
             return city;
         }
         // Ends the Move phase prematurely.
@@ -423,6 +434,7 @@ namespace Rails
         {
             GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
             OnPhaseChange?.Invoke(this);
+
             return;
         }
         #endregion
@@ -481,6 +493,14 @@ namespace Rails
             player = Players[currentPlayer];
             OnPlayerInfoUpdate?.Invoke(this);
             OnTurnEnd?.Invoke(this);
+
+            // Assign the player's move points before starting their move turn
+            // and insert their move route
+            if (currentPhase == Phase.Move)
+            {
+                PathPlanner.InitializePlayerMove();
+            }
+
             return;
         }
         /// <summary>

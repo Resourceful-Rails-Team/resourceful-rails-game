@@ -4,6 +4,8 @@ using UnityEngine;
 using Rails.Data;
 using Rails.Rendering;
 using System.Linq;
+using Assets.Scripts.Data;
+using System;
 
 namespace Rails.Systems
 {
@@ -163,6 +165,77 @@ namespace Rails.Systems
             currentNode = CircularIndex(node, 0, Paths);
             return;
         }
+        public static void InitializePlayerMove()
+        {
+            manager.Player.movePointsLeft = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
+            if (manager.Player.movePath.Count == 0) manager.Player.movePath.Add(manager.Player.trainPosition);
+            PlannedRoute();
+        }
+        public static TrainCityInteraction GetStop(NodeId id)
+        {
+            var currentCityId = manager.MapData.Nodes[id.GetSingleId()].CityId;
+            var node = manager.MapData.Nodes[id.GetSingleId()];
+
+            if (node.Type >= NodeType.SmallCity && node.Type <= NodeType.MajorCity)
+            {
+                return new TrainCityInteraction
+                {
+                    // Select any demand cards that both match the city, and
+                    // which the player has the good in their load
+                    Cards = manager.Player.demandCards
+                            .Where(dc => dc.Any(d =>
+                                d.City == manager.MapData.Cities[node.CityId] &&
+                                manager.Player.goodsCarried.Contains(d.Good)
+                            ))
+                            .ToArray(),
+
+                    // Select any good that is from the city, and that
+                    // the player can currently pick up
+                    Goods =
+                            manager.Player.goodsCarried.Count < manager._rules.TrainSpecs[manager.Player.trainType].goodsTotal
+                            ?
+                            manager.MapData.GetGoodsAtCity(manager.MapData.Cities[node.CityId])
+                                .Select(gi => manager.MapData.Goods[gi])
+                                .Where(g => GoodsBank.GetGoodQuantity(g) > 0)
+                                .ToArray()
+                        :
+                        new Good[0],
+
+                    PlayerIndex = manager.CurrentPlayer,
+                    TrainPosition = id,
+                    City = manager.MapData.Cities[node.CityId]
+                };
+            }
+            return null;
+        }
+        
+        // Show the planned route on the map.
+        public static void PlannedRoute()
+        {
+            if (manager.Player.movePath.Count > 0)
+            {
+                if (moveRoute != null)
+                {
+                    GameGraphics.HighlightRoute(moveRoute, null);
+                }
+
+                int move = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
+                // Calculate the Route
+                moveRoute = Pathfinding.CheapestMove(
+                    manager.CurrentPlayer,
+                    move,
+                    manager.Player.movePath.ToArray());
+
+                var movePoints = Mathf.Min(manager.Player.movePointsLeft, moveRoute.Distance);
+
+                // Highlight the Route
+                Color pco = manager.Player.color;
+                GameGraphics.HighlightRoute(moveRoute.Nodes.GetRange(0, movePoints + 1).ToList(), pco * 4.0f);
+                GameGraphics.HighlightRoute(moveRoute.Nodes.Skip(movePoints).ToList(), pco * 2.0f);
+            }
+            return;
+        }
+
         #endregion
 
         #region Private
@@ -190,32 +263,6 @@ namespace Rails.Systems
 
                 foreach (var route in buildRoutes)
                     GameGraphics.GeneratePotentialTrack(route, Color.yellow);
-            }
-            return;
-        }
-        // Show the planned route on the map.
-        private static void PlannedRoute()
-        {
-            if (Manager.Singleton.Player.movePath.Count > 0)
-            {
-                if (moveRoute != null)
-                {
-                    GameGraphics.HighlightRoute(moveRoute, null);
-                }
-
-                int move = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
-                // Calculate the Route
-                moveRoute = Pathfinding.CheapestMove(
-                    manager.CurrentPlayer,
-                    move,
-                    manager.Player.movePath.ToArray());
-
-                var movePoints = Mathf.Min(move, moveRoute.Distance);
-
-                // Highlight the Route
-                Color pco = manager.Player.color;
-                GameGraphics.HighlightRoute(moveRoute.Nodes.Take(movePoints + 1).ToList(), pco * 2.0f);
-                GameGraphics.HighlightRoute(moveRoute.Nodes.Take(movePoints).ToList(), pco);
             }
             return;
         }
