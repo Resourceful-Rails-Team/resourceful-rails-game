@@ -64,6 +64,7 @@ namespace Rails.Systems
         public static int CreatePath()
         {
             buildPaths.Add(new List<NodeId>());
+            currentNode = 0;
             return buildPaths.Count - 1;
         }
         // Sets the index of the current build path.
