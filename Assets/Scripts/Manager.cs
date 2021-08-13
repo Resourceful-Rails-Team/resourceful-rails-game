@@ -100,7 +100,7 @@ namespace Rails
         /// <summary>
         /// A collection of game rules.
         /// </summary>
-        public GameRules _rules;
+        public GameRules Rules;
         /// <summary>
         /// Stores the layout of the map, including nodes, cities, goods, etc.
         /// </summary>
@@ -178,7 +178,7 @@ namespace Rails
             // set singleton reference on awake
             _singleton = this;
             _startRules = FindObjectOfType<GameStartRules>();
-            _rules = MapData.DefaultRules;
+            Rules = MapData.DefaultRules;
 
             // generate start rules if empty
             if (_startRules == null)
@@ -198,7 +198,7 @@ namespace Rails
         private void Start()
         {
             GameGraphics.Initialize(MapData, _startRules.Players.Length, _startRules.Players.Select(p => p.Color).ToArray());
-            Pathfinding.Initialize(_rules, Tracks, MapData);
+            Pathfinding.Initialize(Rules, Tracks, MapData);
             PathPlanner.Initialize();
             Deck.Initialize();
             GoodsBank.Initialize();
@@ -213,7 +213,7 @@ namespace Rails
 
             if (highlightToken != null)
             {
-                highlightToken.SetColor(Color.yellow);
+                highlightToken.Color = Color.yellow;
                 _highlightToken = highlightToken;
             }
             if (!_movingTrain)
@@ -379,7 +379,7 @@ namespace Rails
             foreach (DemandCard card in player.demandCards) {
                 Deck.Discard(card);
             }
-            for (int c = 0; c < _rules.HandSize; c++)
+            for (int c = 0; c < Rules.HandSize; c++)
             {
                 player.demandCards.Add(Deck.DrawOne());
             }
@@ -395,10 +395,10 @@ namespace Rails
             // Build the tracks
             if (PathPlanner.Paths != 0)
             {
-                if (PathPlanner.BuildCost > _rules.MaxBuild)
+                if (PathPlanner.BuildCost > Rules.MaxBuild)
                     return false;
 
-                player.money -= GameLogic.BuildTrack(Tracks, PathPlanner.buildRoutes, currentPlayer, player.color, _rules.MaxBuild);
+                player.money -= GameLogic.BuildTrack(Tracks, PathPlanner.buildRoutes, currentPlayer, player.color, Rules.MaxBuild);
                 OnBuildTrack?.Invoke(this);
             }
 
@@ -410,7 +410,7 @@ namespace Rails
         // Upgrades the player's train.
         public void UpgradeTrain(int choice)
         {
-            GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, _rules.TrainUpgrade);
+            GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
             EndTurn();
             return;
         }
@@ -464,11 +464,11 @@ namespace Rails
             Players = new PlayerInfo[_startRules.Players.Length];
             for (int p = 0; p < Players.Length; p++)
                 Players[p] = new PlayerInfo(_startRules.Players[p].Name,
-                  _startRules.Players[p].Color, _rules.MoneyStart, 0);
+                  _startRules.Players[p].Color, Rules.MoneyStart, 0);
             player = Players[currentPlayer];
 
             // Draw all players' cards.
-            for (int c = 0; c < _rules.HandSize; c++)
+            for (int c = 0; c < Rules.HandSize; c++)
             {
                 for (int p = 0; p < Players.Length; p++)
                 {

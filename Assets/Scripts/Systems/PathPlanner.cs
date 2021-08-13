@@ -167,7 +167,7 @@ namespace Rails.Systems
         }
         public static void InitializePlayerMove()
         {
-            manager.Player.movePointsLeft = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
+            manager.Player.movePointsLeft = manager.Rules.TrainSpecs[manager.Player.trainType].movePoints;
             if (manager.Player.movePath.Count == 0) manager.Player.movePath.Add(manager.Player.trainPosition);
             PlannedRoute();
         }
@@ -192,7 +192,7 @@ namespace Rails.Systems
                     // Select any good that is from the city, and that
                     // the player can currently pick up
                     Goods =
-                            manager.Player.goodsCarried.Count < manager._rules.TrainSpecs[manager.Player.trainType].goodsTotal
+                            manager.Player.goodsCarried.Count < manager.Rules.TrainSpecs[manager.Player.trainType].goodsTotal
                             ?
                             manager.MapData.GetGoodsAtCity(manager.MapData.Cities[node.CityId])
                                 .Select(gi => manager.MapData.Goods[gi])
@@ -219,7 +219,7 @@ namespace Rails.Systems
                     GameGraphics.HighlightRoute(moveRoute, null);
                 }
 
-                int move = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
+                int move = manager.Rules.TrainSpecs[manager.Player.trainType].movePoints;
                 // Calculate the Route
                 moveRoute = Pathfinding.CheapestMove(
                     manager.CurrentPlayer,

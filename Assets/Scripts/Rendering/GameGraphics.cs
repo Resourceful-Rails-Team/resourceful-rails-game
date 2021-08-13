@@ -100,7 +100,7 @@ namespace Rails.Rendering
                     trackToken.transform.rotation = rotation;
 
                     // Highlight the token and add it to the token list
-                    trackToken.SetColor(highlightColor);
+                    trackToken.Color = highlightColor;
                     trackTokens.Add(trackToken);
                 }
             }
@@ -146,7 +146,7 @@ namespace Rails.Rendering
                     if (!_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edge) || edge == null)
                     {
                         _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = tokens[tokenIndex];
-                        tokens[tokenIndex].SetPrimaryColor(color);
+                        tokens[tokenIndex].PrimaryColor = color;
                         ++tokenIndex;
                     }
                 }
@@ -171,7 +171,7 @@ namespace Rails.Rendering
                 if (_trackTokens.TryGetEdgeValue(route[i], route[i + 1], out var token))
                 {
                     if (highlightColor.HasValue)
-                        token.SetColor(highlightColor.Value);
+                        token.Color = highlightColor.Value;
                     else
                         token.ResetColor();
                 }
@@ -191,7 +191,7 @@ namespace Rails.Rendering
         /// <summary>
         /// Sets a given player's train's `GameToken` based on the `TrainType` provided.
         /// </summary>
-        public static void UpdatePlayerTrain(MapData mapData, int player, int index)
+        public static void UpgradePlayerTrain(MapData mapData, int player, int index)
         {
             if (player < 0 || player >= _playerTrains.Length)
                 throw new ArgumentException("Attempted to upgrade train for player that doesn't exist.");
@@ -225,6 +225,8 @@ namespace Rails.Rendering
         public static void MoveTrain(int player, NodeId start, NodeId end) 
             => _singleton.StartCoroutine(CMoveTrain(player, 5.0f, start, end));
 
+        public static GameToken GetTrackToken(NodeId id, NodeId adjId)
+            => _trackTokens[id, adjId];
         #endregion
 
         #region Private Methods
@@ -268,7 +270,7 @@ namespace Rails.Rendering
                                 foreach (var nId in neighborNodes.Select(nn => nn.Item1))
                                     _mapTokens[nId] = token;
 
-                                token.SetPrimaryColor(Color.red);
+                                token.PrimaryColor = Color.red;
                                 _mapTokens[nodeId] = token;
                             }
                         }
@@ -277,7 +279,7 @@ namespace Rails.Rendering
                             var token = Instantiate(modelToken, _singleton.transform);
 
                             if (node.Type == NodeType.MediumCity || node.Type == NodeType.SmallCity)
-                                token.SetPrimaryColor(Color.red);
+                                token.PrimaryColor = Color.red;
 
                             token.transform.position = pos + new Vector3(0, 0.1f, 0);
 
@@ -298,7 +300,7 @@ namespace Rails.Rendering
                 _playerTrains[p].gameObject.SetActive(false);
 
                 if (p < playerColors.Length)
-                    _playerTrains[p].SetColor(playerColors[p]);
+                    _playerTrains[p].Color = playerColors[p];
             }
         }
 

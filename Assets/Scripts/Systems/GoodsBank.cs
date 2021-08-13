@@ -44,7 +44,7 @@ namespace Rails.Systems
             // Make sure there are enough goods left and that the train isn't full.
             if (tokens[index] != 0 &&
                 goodsCarried.Count <
-                manager._rules.TrainSpecs[trainType].goodsTotal)
+                manager.Rules.TrainSpecs[trainType].goodsTotal)
             {
                 --tokens[index];
                 goodsCarried.Add(mapData.Goods[index]);
