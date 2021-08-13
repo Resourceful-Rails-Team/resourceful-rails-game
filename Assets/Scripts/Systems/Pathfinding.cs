@@ -66,26 +66,24 @@ namespace Rails.Systems
         public static List<Route> ShortestBuilds(List<List<NodeId>> segmentGroups) {
             var routes = new List<Route>();
             int majorCitiesLeft = _rules.MajorCityBuildsPerTurn;
-            var newTracks = _tracks.Clone();
 
             foreach(var segments in segmentGroups)
             { 
-                var newRoute = FindPathBetweenPoints(newTracks, ref majorCitiesLeft, false, segments);
+                var newRoute = FindPathBetweenPoints(_tracks.Clone(), _tracks.Clone(), ref majorCitiesLeft, false, segments);
                 routes.Add(newRoute);
             }
 
             return routes;
         }
 
-        public static List<Route> CheapestBuilds(List<List<NodeId>> segmentGroups)
+        public static List<Route> CheapestBuilds(List<List<NodeId>> paths)
         { 
             var routes = new List<Route>();
             int majorCount = _rules.MajorCityBuildsPerTurn;
-            var newTracks = _tracks.Clone();
 
-            foreach(var segments in segmentGroups)
+            foreach(var path in paths)
             { 
-                var newRoute = FindPathBetweenPoints(newTracks, ref majorCount, true, segments);
+                var newRoute = FindPathBetweenPoints(_tracks.Clone(), _tracks.Clone(), ref majorCount, true, path);
                 routes.Add(newRoute);
             }
 
@@ -125,7 +123,8 @@ namespace Rails.Systems
         /// Finds the best build path, either shortest or cheapest.
         /// </summary>
         private static Route FindPathBetweenPoints(
-            TrackGraph<int> tracks,
+            TrackGraph<int> pathfindingTracks,
+            TrackGraph<int> pathbuildingTracks,
             ref int majorCitiesLeft,
             bool addWeight, 
             List<NodeId> segments
@@ -147,22 +146,27 @@ namespace Rails.Systems
             {
                 var route = LeastCostPath(
                     ref majorCountDuplicate,
-                    tracks, segments[i],
-                    segments[i + 1], addWeight
+                    pathfindingTracks, 
+                    segments[i],
+                    segments[i + 1], 
+                    addWeight
                 );
                 if(route == null) break;
 
                 routes.Add(route);
                 
                 // Add the new path to newTracks
+                // Using the pathfinding tracks
                 for(int j = 0; j < route.Count - 1; ++j)
-                    tracks[route[j], route[j+1]] = 6;
+                    pathfindingTracks[route[j], route[j+1]] = Manager.Singleton.CurrentPlayer;
 
                 path.AddRange(route.Take(route.Count - 1));
                 if (i == segments.Count - 2) path.Add(segments.Last());
             }
-
-            return CreatePathRoute(ref majorCitiesLeft, path);
+            
+            // Use the pathbuilding tracks, which will not have the pathfindingTracks
+            // on them, to build the Route, calculating the cost
+            return CreatePathRoute(pathbuildingTracks, ref majorCitiesLeft, path);
         }
 
         /// <summary>
@@ -331,9 +335,9 @@ namespace Rails.Systems
         ) {
             if(start == end)
                 return null;
-            if(tracks.TryGetEdges(start, out var startCardinals) && startCardinals.All(p => p != -1))
+            if(tracks.TryGetEdges(start, out var startCardinals) && startCardinals.All(p => p != -1 && p != Manager.MajorCityIndex))
                 return null;
-            if(tracks.TryGetEdges(end, out var endCardinals) && endCardinals.All(p => p != -1))
+            if(tracks.TryGetEdges(end, out var endCardinals) && endCardinals.All(p => p != -1 && p != Manager.MajorCityIndex))
                 return null;
 
             // The list of nodes to return from method
@@ -375,45 +379,52 @@ namespace Rails.Systems
                 {
                     int citiesLeft = node.MajorCitiesLeft;
                     var newPoint = Utilities.PointTowards(node.Position, c);
+                    bool edgeFound;
 
                     // If there is a track already at the considered edge, continue
-                    if (tracks.TryGetEdgeValue(node.Position, c, out var edge) && edge != -1 && edge != Manager.MajorCityIndex)
+                    if ((edgeFound = tracks.TryGetEdgeValue(node.Position, c, out var edge)) 
+                        && edge != Manager.Singleton.CurrentPlayer
+                        && edge != Manager.MajorCityIndex
+                        && edge != -1)
                         continue;
 
-                    if (!newPoint.InBounds)
+                    if (!newPoint.InBounds || _mapData.Nodes[newPoint.GetSingleId()].Type == NodeType.Water)
                         continue;
 
                     var newCost = distMap[node.Position];
 
                     if (addWeight)
                     {
-                        // Retrieve both NodeTypes for the two considered Nodes
-                        var nodeType1 = _mapData.Nodes[node.Position.GetSingleId()].Type;
-                        var nodeType2 = _mapData.Nodes[newPoint.GetSingleId()].Type;
-
-                        // If the one of the considered nodes is a major city, while the other one isn't
-                        if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
+                        if (!edgeFound || edge != Manager.Singleton.CurrentPlayer)
                         {
-                            // If the player can still build from major cities this turn, add the cost
-                            // of the current node instead of the major city node. Subtract from major city points left.
-                            if (citiesLeft > 0)
-                            {
-                                newCost += _rules.GetNodeCost(nodeType1 == NodeType.MajorCity ? nodeType2 : nodeType1);
-                                citiesLeft -= 1;
-                            }
-                            // Otherwise, charge the cost of inserting into a new major city
-                            else
-                                newCost += _rules.GetNodeCost(NodeType.MajorCity);
-                        }
-                        // If both nodes are not a major city, add the NodeType cost to the new point.
-                        else if((nodeType1 & nodeType2) != NodeType.MajorCity)
-                            newCost += _rules.GetNodeCost(_mapData.Nodes[newPoint.GetSingleId()].Type);
+                            // Retrieve both NodeTypes for the two considered Nodes
+                            var nodeType1 = _mapData.Nodes[node.Position.GetSingleId()].Type;
+                            var nodeType2 = _mapData.Nodes[newPoint.GetSingleId()].Type;
 
-                        // (A cost is not added if both NodeTypes are MajorCity)
-                        
-                        // Add the river cost if the node is over a river
-                        if (_mapData.Segments[(newPoint.GetSingleId() * 6) + (int)c].Type == NodeSegmentType.River)
-                            newCost += _rules.RiverCrossCost;
+                            // If the one of the considered nodes is a major city, while the other one isn't
+                            if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
+                            {
+                                // If the player can still build from major cities this turn, add the cost
+                                // of the current node instead of the major city node. Subtract from major city points left.
+                                if (citiesLeft > 0)
+                                {
+                                    newCost += _rules.GetNodeCost(nodeType1 == NodeType.MajorCity ? nodeType2 : nodeType1);
+                                    citiesLeft -= 1;
+                                }
+                                // Otherwise, charge the cost of inserting into a new major city
+                                else
+                                    newCost += _rules.GetNodeCost(NodeType.MajorCity);
+                            }
+                            // If both nodes are not a major city, add the NodeType cost to the new point.
+                            else if ((nodeType1 & nodeType2) != NodeType.MajorCity)
+                                newCost += _rules.GetNodeCost(_mapData.Nodes[newPoint.GetSingleId()].Type);
+
+                            // (A cost is not added if both NodeTypes are MajorCity)
+
+                            // Add the river cost if the node is over a river
+                            if (_mapData.Segments[(newPoint.GetSingleId() * 6) + (int)c].Type == NodeSegmentType.River)
+                                newCost += _rules.RiverCrossCost;
+                        }
                     }
                     else newCost += 1;
 
@@ -427,11 +438,11 @@ namespace Rails.Systems
                     // the path upon completion
                     previous[newPoint] = node.Position;
 
-                    // Add the new cost, with the A* heuristic, to the node's weight
+                    // Add the new cost, to the node's weight
                     var newNode = new WeightedNode
                     {
                         Position = newPoint,
-                        Weight = newCost + (int)NodeId.Distance(node.Position, newPoint),
+                        Weight = newCost,
                         MajorCitiesLeft = citiesLeft // Add the calculated Major Cities left,
                                                      // should the pathfinder choose that route.
                     };
@@ -580,6 +591,7 @@ namespace Rails.Systems
         /// Creates a new Route using the MapData and a list of NodeIds
         /// </summary>
         private static Route CreatePathRoute(
+            TrackGraph<int> pathbuildingTracks,
             ref int majorCitiesLeft,
             List<NodeId> path
         ) {
@@ -591,21 +603,26 @@ namespace Rails.Systems
                 var nodeType1 = _mapData.Nodes[path[i].GetSingleId()].Type;
                 var nodeType2 = _mapData.Nodes[path[i+1].GetSingleId()].Type;
 
-                if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
-                { 
-                    if (majorCitiesLeft > 0)
+                if (!pathbuildingTracks.TryGetEdgeValue(path[i], path[i + 1], out int _))
+                {
+                    if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
                     {
-                        cost += _rules.GetNodeCost(nodeType1 == NodeType.MajorCity ? nodeType2 : nodeType1);
-                        majorCitiesLeft -= 1;
+                        if (majorCitiesLeft > 0)
+                        {
+                            cost += _rules.GetNodeCost(nodeType1 == NodeType.MajorCity ? nodeType2 : nodeType1);
+                            majorCitiesLeft -= 1;
+                        }
+                        else
+                            cost += _rules.GetNodeCost(NodeType.MajorCity);
                     }
-                    else
-                        cost += _rules.GetNodeCost(NodeType.MajorCity);
-                }
-                else if ((nodeType1 & nodeType2) != NodeType.MajorCity)
-                    cost += _rules.GetNodeCost(_mapData.Nodes[path[i + 1].GetSingleId()].Type);
+                    else if ((nodeType1 & nodeType2) != NodeType.MajorCity)
+                        cost += _rules.GetNodeCost(_mapData.Nodes[path[i + 1].GetSingleId()].Type);
 
-                if (_mapData.Segments[path[i].GetSingleId() * 6 + (int)Utilities.CardinalBetween(path[i], path[i + 1])].Type == NodeSegmentType.River)
-                    cost += _rules.RiverCrossCost;
+                    if (_mapData.Segments[path[i].GetSingleId() * 6 + (int)Utilities.CardinalBetween(path[i], path[i + 1])].Type == NodeSegmentType.River)
+                        cost += _rules.RiverCrossCost;
+
+                    pathbuildingTracks[path[i], path[i + 1]] = Manager.Singleton.CurrentPlayer;
+                }
             }
  
             return new Route(cost, path);
