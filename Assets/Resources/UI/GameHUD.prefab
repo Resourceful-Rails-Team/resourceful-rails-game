@@ -6000,7 +6000,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 186118153659507621}
         m_TargetAssemblyTypeName: Rails.UI.GameHUDManager, Assembly-CSharp
-        m_MethodName: OnUITrackSelectDeletePath
+        m_MethodName: OnUIBuildTrackSelectDeletePath
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6133,7 +6133,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 186118153659507621}
         m_TargetAssemblyTypeName: Rails.UI.GameHUDManager, Assembly-CSharp
-        m_MethodName: OnUITrackSelectClose
+        m_MethodName: OnUIBuildTrackSelectClose
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7171,7 +7171,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8413996292271755500, guid: 6faa3e910916dfd4bb86a26043575293, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnUITrackSelectStart
+      value: OnUIBuildTrackSelectStart
       objectReference: {fileID: 0}
     - target: {fileID: 8413996292271755500, guid: 6faa3e910916dfd4bb86a26043575293, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName

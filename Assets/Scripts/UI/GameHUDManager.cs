@@ -336,7 +336,7 @@ namespace Rails.UI
             // Delete excess track item gameobjects
             while (pathCount < _uiBuildTrackItems.Count)
             {
-                DestroyUITrackItem(_uiBuildTrackItems[_uiBuildTrackItems.Count - 1]);
+                DestroyUIBuildTrackItem(_uiBuildTrackItems[_uiBuildTrackItems.Count - 1]);
                 _uiBuildTrackItems.RemoveAt(_uiBuildTrackItems.Count - 1);
             }
 
@@ -350,11 +350,11 @@ namespace Rails.UI
                 var path = PathPlanner.GetPath(i);
 
                 // update markers
-                UpdateBuildMarkers(i, path);
+                UpdateTrackMarkers(i, path);
 
                 // update track ui
                 var track = _uiBuildTrackItems[i];
-                UpdateUITrackItems(i, ref track, path);
+                UpdateUIBuildTrackItems(i, ref track, path);
                 _uiBuildTrackItems[i] = track;
             }
         }
@@ -362,7 +362,7 @@ namespace Rails.UI
         /// <summary>
         /// 
         /// </summary>
-        private void DestroyUITrackItem(TrackItem trackItem)
+        private void DestroyUIBuildTrackItem(TrackItem trackItem)
         {
             // destroy
             if (trackItem)
@@ -374,7 +374,7 @@ namespace Rails.UI
         /// <summary>
         /// 
         /// </summary>
-        private void UpdateUITrackItems(int index, ref TrackItem trackItem, List<NodeId> path)
+        private void UpdateUIBuildTrackItems(int index, ref TrackItem trackItem, List<NodeId> path)
         {
             var trackName = Utilities.GetTrackNameByIndex(index);
             int i = 0;
@@ -384,54 +384,54 @@ namespace Rails.UI
                 trackItem = Instantiate(TrackItemPrefab);
                 trackItem.transform.SetParent(TracksRoot, false);
                 trackItem.transform.SetSiblingIndex(index);
-                trackItem.OnTrackSelected += OnUITrackSelect;
-                trackItem.OnTrackDeleted += OnUITrackDelete;
+                trackItem.OnTrackSelected += OnUIBuildTrackSelect;
+                trackItem.OnTrackDeleted += OnUIBuildTrackDelete;
             }
 
             trackItem.Name = $"{(PathPlanner.CurrentPath == index ? "<color=#FFFF00>" : "")}Track {Utilities.GetTrackNameByIndex(index)}";
             trackItem.Cost = $"{(index < PathPlanner.buildRoutes.Count ? PathPlanner.buildRoutes[index].Cost : 0)}";
         }
 
-        private void OnUITrackSelect(TrackItem trackItem)
+        private void OnUIBuildTrackSelect(TrackItem trackItem)
         {
             var index = trackItem.transform.GetSiblingIndex();
-            OpenUITrackSelect(index, true);
+            OpenUIBuildTrackSelect(index, true);
 
             // Manager.Singleton.SetPath(index);
         }
 
-        private void OnUITrackDelete(TrackItem trackItem)
+        private void OnUIBuildTrackDelete(TrackItem trackItem)
         {
             var index = trackItem.transform.GetSiblingIndex();
-            OpenUITrackSelect(index, false);
+            OpenUIBuildTrackSelect(index, false);
 
             // Manager.Singleton.ClearPath(index);
         }
 
-        public void OnUITrackAddNew()
+        public void OnUIBuildTrackAddNew()
         {
             var index = PathPlanner.CreatePath();
             PathPlanner.SetPath(index);
         }
 
-        public void OnUITrackSelectDeletePath()
+        public void OnUIBuildTrackSelectDeletePath()
         {
             PathPlanner.RemovePath(_uiTrackSelectPathIndex);
 
             // close
-            OnUITrackSelectClose();
+            OnUIBuildTrackSelectClose();
         }
 
-        public void OnUITrackSelectStart()
+        public void OnUIBuildTrackSelectStart()
         {
             // set selected node to
             PathPlanner.SetNode(_uiTrackSelectPathIndex, 0);
 
             // close
-            OnUITrackSelectClose();
+            OnUIBuildTrackSelectClose();
         }
 
-        public void OnUITrackSelectClose()
+        public void OnUIBuildTrackSelectClose()
         {
             // clear items
             foreach (var item in _uiTrackSelectDeleteItems)
@@ -449,10 +449,10 @@ namespace Rails.UI
             GameInput.CurrentContext = GameInput.Context.Game;
         }
 
-        private void OpenUITrackSelect(int pathIndex, bool select)
+        private void OpenUIBuildTrackSelect(int pathIndex, bool select)
         {
             // call close to ensure its closed before opening again
-            OnUITrackSelectClose();
+            OnUIBuildTrackSelectClose();
 
             // prevent game interactions
             GameInput.CurrentContext = GameInput.Context.Popup;
@@ -471,12 +471,13 @@ namespace Rails.UI
             var manager = Manager.Singleton;
             var path = PathPlanner.GetPath(pathIndex);
             var pathName = Utilities.GetTrackNameByIndex(pathIndex);
-            int i = select ? 1 : 0;
+            int i = 0;
+            int offset = select ? 1 : 0;
             foreach (var nodeId in path)
             {
                 var item = Instantiate(TrackSelectDeleteItemPrefab);
                 item.transform.SetParent(TrackSelectItemsRoot, false);
-                item.transform.SetSiblingIndex(i);
+                item.transform.SetSiblingIndex(i + offset);
                 item.IsSelect = select;
                 item.Name = $"{pathName}{i + 1}";
 
@@ -485,18 +486,19 @@ namespace Rails.UI
                 item.OnTrackSelected += (track) =>
                 {
                     // set selected node to
-                    PathPlanner.SetNode(pathIndex, iRef);
+                    PathPlanner.SetNode(pathIndex, iRef+1);
 
                     // close
-                    OnUITrackSelectClose();
+                    OnUIBuildTrackSelectClose();
                 };
                 item.OnTrackDeleted += (track) =>
                 {
                     // remove
                     PathPlanner.RemoveNode(pathIndex, iRef);
+                    PathPlanner.PlannedTracks();
 
                     // close
-                    OnUITrackSelectClose();
+                    OnUIBuildTrackSelectClose();
                 };
 
                 _uiTrackSelectDeleteItems.Add(item);
@@ -509,7 +511,7 @@ namespace Rails.UI
         /// </summary>
         /// <param name="index"></param>
         /// <param name="path"></param>
-        private void UpdateBuildMarkers(int index, List<NodeId> path, int startIndex = 0)
+        private void UpdateTrackMarkers(int index, List<NodeId> path, int startIndex = 0)
         {
             var trackName = Utilities.GetTrackNameByIndex(index);
             var isTrackSelected = PathPlanner.CurrentPath == index;
@@ -534,7 +536,7 @@ namespace Rails.UI
 
                 // add name
                 var name = $"{trackName}{i + 1}";
-                if (isTrackSelected && i == PathPlanner.CurrentNode)
+                if (isTrackSelected && i == (PathPlanner.CurrentNode-1))
                     marker.AddName($"<color=#FFFF00>{name}</color>");
                 else
                     marker.AddName($"{name}");
@@ -570,7 +572,7 @@ namespace Rails.UI
                 _uiMoveTrackItems.Add(null);
 
             // update markers
-            UpdateBuildMarkers(0, path, 1);
+            UpdateTrackMarkers(0, path, 1);
 
             // populate markers
             for (int i = 0; i < _uiMoveTrackItems.Count; ++i)
@@ -605,25 +607,29 @@ namespace Rails.UI
                 trackItem.OnTrackDeleted += OnUIMoveTrackDelete;
             }
 
+            // set name to train if index is 0
             var name = $"A{index+1}";
             if (index == 0)
             {
                 name = "Train";
                 trackItem.DeleteButton.interactable = false;
             }
-            trackItem.Name = $"{(PathPlanner.CurrentNode == index ? "<color=#FFFF00>" : "")}{name}";
+            
+            // update name, setting color to yellow if selected
+            trackItem.Name = $"{(PathPlanner.CurrentNode == (index+1) ? "<color=#FFFF00>" : "")}{name}";
         }
 
         private void OnUIMoveTrackSelect(TrackSelectDeleteItem trackItem)
         {
             var index = trackItem.transform.GetSiblingIndex();
-            PathPlanner.SetNode(index);
+            PathPlanner.SetNode(index+1);
         }
 
         private void OnUIMoveTrackDelete(TrackSelectDeleteItem trackItem)
         {
             var index = trackItem.transform.GetSiblingIndex();
             PathPlanner.RemoveNode(index);
+            PathPlanner.PlannedRoute();
         }
 
         #endregion
