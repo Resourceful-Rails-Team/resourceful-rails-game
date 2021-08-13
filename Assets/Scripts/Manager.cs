@@ -563,6 +563,7 @@ namespace Rails
                 foreach (var good in result.Goods)
                     GoodsBank.GoodPickup(good, Player.goodsCarried, Player.trainType);
             }
+            OnPlayerInfoUpdate?.Invoke(this);
         }
 
 
