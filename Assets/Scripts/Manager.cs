@@ -191,8 +191,10 @@ namespace Rails
                     new StartPlayerInfo() { Name = "Player 2", Color = Color.blue }
                 };
             }
-        }
 
+            OnTrainMeetsCityComplete += (_, result) => CompleteCityTransaction(result);
+        }
+ 
         private void Start()
         {
             GameGraphics.Initialize(MapData, _startRules.Players.Length, _startRules.Players.Select(p => p.Color).ToArray());
@@ -214,40 +216,43 @@ namespace Rails
                 highlightToken.SetColor(Color.yellow);
                 _highlightToken = highlightToken;
             }
-            if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds)
+            if (!_movingTrain)
             {
-                Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
-                if (currentPhase == Phase.Move)
+                if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds)
                 {
-                    if (!player.trainPlaced)
+                    Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
+                    if (currentPhase == Phase.Move)
                     {
-                        Debug.Log("Place Train");
-                        PlaceTrain(GameInput.MouseNodeId);
+                        if (!player.trainPlaced)
+                        {
+                            Debug.Log("Place Train");
+                            PlaceTrain(GameInput.MouseNodeId);
+                        }
+                        else
+                        {
+                            PathPlanner.AddNode(GameInput.MouseNodeId);
+                        }
                     }
                     else
                     {
-                        PathPlanner.AddNode(GameInput.MouseNodeId);
+                        Debug.Log("Add Node");
+                        PathPlanner.AddNode(PathPlanner.CurrentPath, GameInput.MouseNodeId);
                     }
                 }
-                else
+                if (GameInput.DeleteJustPressed)
                 {
-                    Debug.Log("Add Node");
-                    PathPlanner.AddNode(PathPlanner.CurrentPath, GameInput.MouseNodeId);
+                    if (currentPhase == Phase.Move)
+                        PathPlanner.ClearPath();
+                    else
+                        PathPlanner.ClearPath(PathPlanner.CurrentPath);
                 }
-            }
-            if (GameInput.DeleteJustPressed)
-            {
-                if (currentPhase == Phase.Move)
-                    PathPlanner.ClearPath();
-                else
-                    PathPlanner.ClearPath(PathPlanner.CurrentPath);
-            }
-            if (GameInput.EnterJustPressed)
-            {
-                if (currentPhase == Phase.Move)
-                    MoveTrain();
-                else
-                    BuildTrack();
+                if (GameInput.EnterJustPressed)
+                {
+                    if (currentPhase == Phase.Move)
+                        MoveTrain();
+                    else
+                        BuildTrack();
+                }
             }
         }
 
@@ -319,12 +324,17 @@ namespace Rails
         // General gameplay methods.
 
         // Moves the train to final node in path.
-        public void MoveTrain() => StartCoroutine(CMoveTrain());
+        public void MoveTrain()
+        {
+            if (!_movingTrain)
+                StartCoroutine(CMoveTrain());
+        }
         private IEnumerator CMoveTrain()
         {
             var moveRoute = PathPlanner.moveRoute;  
-
             Player.movePath.RemoveAt(0);
+
+            _movingTrain = true; 
             for(int i = 0; i < moveRoute.Distance; ++i)
             {
                 Player.trainPosition = moveRoute.Nodes[i + 1];
@@ -347,6 +357,7 @@ namespace Rails
                 }
                 if (Player.movePointsLeft == 0) break;
             }
+            _movingTrain = false;
 
             if (Player.trainPosition != Player.movePath.FirstOrDefault())
                 Player.movePath.Insert(0, Player.trainPosition);
@@ -530,6 +541,30 @@ namespace Rails
                 }
             }
         }
+        private void CompleteCityTransaction(TrainCityInteractionResult result)
+        {
+            var playerCityId = MapData.Nodes[Player.trainPosition.GetSingleId()].CityId;
+
+            if (result.ChosenCards != null)
+            {
+                var income = 0;
+                foreach (var card in result.ChosenCards)
+                {
+                    var match = card.FirstOrDefault(demand => demand.City == MapData.Cities[playerCityId]);
+                    if (match != null)
+                    {
+                        income += match.Reward;
+                        GoodsBank.GoodDropoff(Player.goodsCarried.IndexOf(match.Good), Player.goodsCarried);
+                    }
+                }
+            }
+            if (result.Goods != null)
+            {
+                foreach (var good in result.Goods)
+                    GoodsBank.GoodPickup(good, Player.goodsCarried, Player.trainType);
+            }
+        }
+
 
         #endregion
     }
