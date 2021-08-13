@@ -48,7 +48,7 @@ namespace Rails {
 
                 for (int i = 0; i < route.Distance; ++i)
                 {
-                    if (!Tracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i+1], out var e) || e != Manager.MajorCityIndex)
+                    if (!Tracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i+1], out var e) || e == -1)
                         Tracks[route.Nodes[i], route.Nodes[i + 1]] = player;
                 }
             }
