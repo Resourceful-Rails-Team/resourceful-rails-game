@@ -41,6 +41,7 @@ namespace Assets.Scripts.Data
 
             demandCards = new List<DemandCard>();
             goodsCarried = new List<Good>();
+            movePath = new List<NodeId>();
         }
     }
 }

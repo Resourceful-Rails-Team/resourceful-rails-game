@@ -1,3 +1,4 @@
+using Assets.Scripts.Data;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
@@ -40,7 +41,13 @@ namespace Rails.UI
 
         [Header("Pickup Drop")]
         public Transform CityPickDropPanel;
-
+        public TMPro.TMP_Text CityPickDropNameText;
+        public Toggle[] CityPickDropPickupToggles;
+        public TMPro.TMP_Text[] CityPickDropPickupTexts;
+        public CityPickDropDropoffItem[] CityPickDropDropoffItems;
+        public Button CityPickDropContinue;
+        public TMPro.TMP_Text CityPickDropContinueTooltipText;
+        public TooltipHandler CityPickDropContinueTooltipHandler;
 
 
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
@@ -95,6 +102,7 @@ namespace Rails.UI
             Manager_OnPlayerInfoUpdate(manager);
             manager.OnPhaseChange += Manager_OnPhaseChange;
             Manager_OnPhaseChange(manager);
+            manager.OnTrainMeetsCityHandler += Manager_OnTrainMeetsCity;
         }
 
         private void Update()
@@ -175,6 +183,115 @@ namespace Rails.UI
                 _uiTrackItems[i] = track;
             }
         }
+
+        #region City PickDrop
+
+
+        private void Manager_OnTrainMeetsCity(object sender, TrainCityInteraction e)
+        {
+            CityPickDropPanel.gameObject.SetActive(true);
+            GameInput.CurrentContext = GameInput.Context.Popup;
+
+            // set city name
+            CityPickDropNameText.text = e.City.Name;
+
+            // set pickup goods
+            for (int i = 0; i < CityPickDropPickupToggles.Length; ++i)
+            {
+                // try and get good
+                var good = e.Goods.ElementAtOrDefault(i);
+                var toggle = CityPickDropPickupToggles[i];
+
+                // if good doesn't exist then hide UI row
+                if (good == null)
+                {
+                    toggle.gameObject.SetActive(false);
+                }
+                else
+                {
+                    toggle.gameObject.SetActive(true);
+                    toggle.isOn = false;
+                    CityPickDropPickupTexts[i].text = good.Name;
+                }
+            }
+
+            // set dropoff
+            for (int i = 0; i < CityPickDropDropoffItems.Length; ++i)
+            {
+                var item = CityPickDropDropoffItems[i];
+                var demand = e.Cards.ElementAtOrDefault(i)?.FirstOrDefault(x => x.City == e.City);
+
+                if (demand == null)
+                {
+                    item.gameObject.SetActive(false);
+                }
+                else
+                {
+                    item.gameObject.SetActive(true);
+                    item.Money = $"${demand.Reward}";
+                    item.CardNumber = i + 1;
+                    item.Icon = demand.Good.Icon;
+                    item.IconTooltip = demand.Good.Name;
+                    item.Toggle.isOn = false;
+                }
+            }
+        }
+
+        public void CityPickDrop_Validate()
+        {
+            bool isValid = true;
+            string invalidMessage = "";
+
+
+
+            // update state
+            CityPickDropContinue.interactable = isValid;
+            CityPickDropContinueTooltipHandler.enabled = !isValid;
+            CityPickDropContinueTooltipText.text = invalidMessage;
+        }
+
+        public void CityPickDrop_Continue()
+        {
+            // 
+            Manager.Singleton.OnTrainMeetsCityComplete.Invoke(this, new TrainCityInteractionResult()
+            {
+                
+            });
+
+            // close panel and return input state to game
+            CityPickDropPanel.gameObject.SetActive(false);
+            GameInput.CurrentContext = GameInput.Context.Game;
+        }
+
+        #endregion
+
+        #region Build Panel
+
+        public void BuildTrack()
+        {
+            Manager.Singleton.BuildTrack();
+        }
+
+        public void UpgradeTrain()
+        {
+            Manager.Singleton.UpgradeTrain(0);
+        }
+
+        #endregion
+
+        #region Move Panel
+
+        public void MoveTrain()
+        {
+            Manager.Singleton.MoveTrain();
+        }
+
+        public void DiscardHand()
+        {
+            Manager.Singleton.DiscardHand();
+        }
+
+        #endregion
 
         /// <summary>
         /// 
