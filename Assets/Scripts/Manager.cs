@@ -221,10 +221,17 @@ namespace Rails
             if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds)
             {
                 Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
-                if (currentPhase == 0 && !player.trainPlaced)
+                if (currentPhase == Phase.Move)
                 {
-                    Debug.Log("Place Train");
-                    PlaceTrain(GameInput.MouseNodeId);
+                    if (!player.trainPlaced)
+                    {
+                        Debug.Log("Place Train");
+                        PlaceTrain(GameInput.MouseNodeId);
+                    }
+                    else
+                    {
+                        PathPlanner.AddNode(GameInput.MouseNodeId);
+                    }
                 }
                 else
                 {
@@ -234,11 +241,17 @@ namespace Rails
             }
             if (GameInput.DeleteJustPressed)
             {
-                PathPlanner.ClearPath(PathPlanner.CurrentPath);
+                if (currentPhase == Phase.Move)
+                    PathPlanner.ClearPath();
+                else
+                    PathPlanner.ClearPath(PathPlanner.CurrentPath);
             }
             if (GameInput.EnterJustPressed)
             {
-                BuildTrack();
+                if (currentPhase == Phase.Move)
+                    MoveTrain();
+                else
+                    BuildTrack();
             }
         }
 
