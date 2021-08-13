@@ -349,8 +349,9 @@ namespace Rails
                     Player.movePath.RemoveAt(0);
 
                 var stop = PathPlanner.GetStop(moveRoute.Nodes[i + 1]);
+                var previousCityIndex = MapData.Nodes[moveRoute.Nodes[i].GetSingleId()].CityId;
 
-                if (stop != null)
+                if (stop != null && MapData.Cities.IndexOf(stop.City) != previousCityIndex)
                 {
                     OnTrainMeetsCityHandler?.Invoke(this, stop);
                     break;
