@@ -51,9 +51,10 @@ namespace Rails.UI
 
 
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
-        private List<TrackItem> _uiTrackItems = new List<TrackItem>();
+        private List<TrackItem> _uiBuildTrackItems = new List<TrackItem>();
         private int _uiTrackSelectPathIndex = -1;
         private List<TrackSelectDeleteItem> _uiTrackSelectDeleteItems = new List<TrackSelectDeleteItem>();
+        private List<TrackSelectDeleteItem> _uiMoveTrackItems = new List<TrackSelectDeleteItem>();
         private TrainCityInteraction _cityPickDropInteraction;
 
         private class BuildMarkerContainer
@@ -108,7 +109,21 @@ namespace Rails.UI
 
         private void Update()
         {
-            Manager_OnBuildTrack(Manager.Singleton);
+            switch (Manager.Singleton.CurrentPhase)
+            {
+                case Phase.Build:
+                case Phase.InitBuild:
+                case Phase.InitBuildRev:
+                    {
+                        Manager_OnBuildTrackUpdated(Manager.Singleton);
+                        break;
+                    }
+                case Phase.Move:
+                    {
+                        Manager_OnMoveTrackUpdated(Manager.Singleton);
+                        break;
+                    }
+            }
 
             // handle toggling of all players panel
             if (GameInput.ToggleAllPlayersJustPressed)
@@ -138,50 +153,6 @@ namespace Rails.UI
                         MoveInfoPanel.gameObject.SetActive(true);
                         break;
                     }
-            }
-        }
-
-        private void Manager_OnPlayerInfoUpdate(Manager manager)
-        {
-            var currentPlayerIndex = manager.CurrentPlayer;
-            var currentPlayer = manager.Players[currentPlayerIndex];
-
-            CurrentPlayerInfo.UpdateInfo(currentPlayer);
-        }
-
-        private void Manager_OnBuildTrack(Manager manager)
-        {
-            var players = manager.Players;
-            var currentPlayer = players[manager.CurrentPlayer];
-            var pathCount = PathPlanner.Paths;
-
-            // clear markers
-            foreach (var marker in _buildMarkers)
-                marker.Value.ClearText();
-
-            // Delete excess track item gameobjects
-            while (pathCount < _uiTrackItems.Count)
-            {
-                DestroyUITrackItem(_uiTrackItems[_uiTrackItems.Count - 1]);
-                _uiTrackItems.RemoveAt(_uiTrackItems.Count - 1);
-            }
-
-            // add missing tracks as empty
-            while (pathCount > _uiTrackItems.Count)
-                _uiTrackItems.Add(null);
-
-            // populate markers
-            for (int i = 0; i < pathCount; ++i)
-            {
-                var path = PathPlanner.GetPath(i);
-
-                // update markers
-                UpdateBuildMarkers(i, path);
-
-                // update track ui
-                var track = _uiTrackItems[i];
-                UpdateUITrackItems(i, ref track, path);
-                _uiTrackItems[i] = track;
             }
         }
 
@@ -350,6 +321,44 @@ namespace Rails.UI
 
         #endregion
 
+        #region Build Track UI
+
+        private void Manager_OnBuildTrackUpdated(Manager manager)
+        {
+            var players = manager.Players;
+            var currentPlayer = players[manager.CurrentPlayer];
+            var pathCount = PathPlanner.Paths;
+
+            // clear markers
+            foreach (var marker in _buildMarkers)
+                marker.Value.ClearText();
+
+            // Delete excess track item gameobjects
+            while (pathCount < _uiBuildTrackItems.Count)
+            {
+                DestroyUITrackItem(_uiBuildTrackItems[_uiBuildTrackItems.Count - 1]);
+                _uiBuildTrackItems.RemoveAt(_uiBuildTrackItems.Count - 1);
+            }
+
+            // add missing tracks as empty
+            while (pathCount > _uiBuildTrackItems.Count)
+                _uiBuildTrackItems.Add(null);
+
+            // populate markers
+            for (int i = 0; i < pathCount; ++i)
+            {
+                var path = PathPlanner.GetPath(i);
+
+                // update markers
+                UpdateBuildMarkers(i, path);
+
+                // update track ui
+                var track = _uiBuildTrackItems[i];
+                UpdateUITrackItems(i, ref track, path);
+                _uiBuildTrackItems[i] = track;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -380,7 +389,7 @@ namespace Rails.UI
             }
 
             trackItem.Name = $"{(PathPlanner.CurrentPath == index ? "<color=#FFFF00>" : "")}Track {Utilities.GetTrackNameByIndex(index)}";
-            trackItem.Cost = $"{path.Count}"; // todo
+            trackItem.Cost = $"{(index < PathPlanner.buildRoutes.Count ? PathPlanner.buildRoutes[index].Cost : 0)}";
         }
 
         private void OnUITrackSelect(TrackItem trackItem)
@@ -500,11 +509,11 @@ namespace Rails.UI
         /// </summary>
         /// <param name="index"></param>
         /// <param name="path"></param>
-        private void UpdateBuildMarkers(int index, List<NodeId> path)
+        private void UpdateBuildMarkers(int index, List<NodeId> path, int startIndex = 0)
         {
             var trackName = Utilities.GetTrackNameByIndex(index);
             var isTrackSelected = PathPlanner.CurrentPath == index;
-            for (int i = 0; i < path.Count; ++i)
+            for (int i = startIndex; i < path.Count; ++i)
             {
                 var nodeId = path[i];
                 var marker = _buildMarkers.ContainsKey(nodeId) ? _buildMarkers[nodeId] : null;
@@ -533,6 +542,100 @@ namespace Rails.UI
                 // move to node
                 marker.GameObject.transform.position = Utilities.GetPosition(nodeId);
             }
+        }
+
+        #endregion
+
+        #region Move Track UI
+
+        private void Manager_OnMoveTrackUpdated(Manager manager)
+        {
+            var players = manager.Players;
+            var currentPlayer = players[manager.CurrentPlayer];
+            var path = currentPlayer.movePath;
+
+            // clear markers
+            foreach (var marker in _buildMarkers)
+                marker.Value.ClearText();
+
+            // Delete excess track item gameobjects
+            while (path.Count < _uiMoveTrackItems.Count)
+            {
+                DestroyMoveTrackItem(_uiMoveTrackItems[_uiMoveTrackItems.Count - 1]);
+                _uiMoveTrackItems.RemoveAt(_uiMoveTrackItems.Count - 1);
+            }
+
+            // add missing tracks as empty
+            while (path.Count > _uiMoveTrackItems.Count)
+                _uiMoveTrackItems.Add(null);
+
+            // update markers
+            UpdateBuildMarkers(0, path, 1);
+
+            // populate markers
+            for (int i = 0; i < _uiMoveTrackItems.Count; ++i)
+            {
+                // update track ui
+                var track = _uiMoveTrackItems[i];
+                UpdateUIMoveTrackItems(i, ref track, path[i]);
+                _uiMoveTrackItems[i] = track;
+            }
+        }
+
+        private void DestroyMoveTrackItem(TrackSelectDeleteItem trackItem)
+        {
+            // destroy
+            if (trackItem)
+            {
+                Destroy(trackItem.gameObject);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void UpdateUIMoveTrackItems(int index, ref TrackSelectDeleteItem trackItem, NodeId nodeId)
+        {
+            if (trackItem == null)
+            {
+                trackItem = Instantiate(TrackSelectDeleteItemSmallPrefab);
+                trackItem.transform.SetParent(MoveInfoItemsRoot, false);
+                trackItem.transform.SetSiblingIndex(index);
+                trackItem.OnTrackSelected += OnUIMoveTrackSelect;
+                trackItem.OnTrackDeleted += OnUIMoveTrackDelete;
+            }
+
+            var name = $"A{index+1}";
+            if (index == 0)
+            {
+                name = "Train";
+                trackItem.DeleteButton.interactable = false;
+            }
+            trackItem.Name = $"{(PathPlanner.CurrentNode == index ? "<color=#FFFF00>" : "")}{name}";
+        }
+
+        private void OnUIMoveTrackSelect(TrackSelectDeleteItem trackItem)
+        {
+            var index = trackItem.transform.GetSiblingIndex();
+            PathPlanner.SetNode(index);
+        }
+
+        private void OnUIMoveTrackDelete(TrackSelectDeleteItem trackItem)
+        {
+            var index = trackItem.transform.GetSiblingIndex();
+            PathPlanner.RemoveNode(index);
+        }
+
+        #endregion
+
+        #region Player Info
+
+        private void Manager_OnPlayerInfoUpdate(Manager manager)
+        {
+            var currentPlayerIndex = manager.CurrentPlayer;
+            var currentPlayer = manager.Players[currentPlayerIndex];
+
+            CurrentPlayerInfo.UpdateInfo(currentPlayer);
         }
 
         public void OnShowAllPlayerInfos()
@@ -572,5 +675,7 @@ namespace Rails.UI
             // enable game interaction
             GameInput.CurrentContext = GameInput.Context.Game;
         }
+
+        #endregion
     }
 }

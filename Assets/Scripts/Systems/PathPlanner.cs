@@ -175,10 +175,10 @@ namespace Rails.Systems
         {
             var currentCityId = manager.MapData.Nodes[id.GetSingleId()].CityId;
             var node = manager.MapData.Nodes[id.GetSingleId()];
-            var city = manager.MapData.Cities[node.CityId];
 
             if (node.Type >= NodeType.SmallCity && node.Type <= NodeType.MajorCity)
             {
+                var city = manager.MapData.Cities[node.CityId];
                 return new TrainCityInteraction
                 {
                     // Select any demand cards that both match the city, and
