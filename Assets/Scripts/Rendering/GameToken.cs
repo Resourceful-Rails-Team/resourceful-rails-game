@@ -10,20 +10,25 @@ namespace Rails.Rendering
     /// </summary>
     public class GameToken : MonoBehaviour
     {
+        // The detail renderers - can change color
         private MeshRenderer[] _detailRenderers;
+        // The node renderers - these represent Clear and Mountain nodes
+        // which are always black
         private MeshRenderer[] _nodeRenderers;
+        // The animator for the Token
         private Animator _animator;
-        private Color _primaryColor;
         private TMPro.TMP_Text _text;
 
         private void Awake()
         {
+            // Assign the detail renderers to all non-clear / mountain nodes
             _detailRenderers = GetComponentsInChildren<MeshRenderer>()
                 .Where(r => 
                     !r.gameObject.name.StartsWith("Clear") && 
                     !r.gameObject.name.StartsWith("Mountain")
                 ).ToArray();
-
+            
+            // Assign the node renderers to all clear / mountain nodes
             _nodeRenderers = GetComponentsInChildren<MeshRenderer>()
                 .Where(r => 
                     r.gameObject.name.StartsWith("Clear") ||
@@ -32,44 +37,55 @@ namespace Rails.Rendering
 
             _text = GetComponentInChildren<TMPro.TMP_Text>();
             _animator = GetComponent<Animator>();
-            _primaryColor = _detailRenderers?.FirstOrDefault()?.material.color ?? Color.white;
 
-            SetColor(_primaryColor);
+            // Setup the primary color - grabbing the color of the material if possible
+            PrimaryColor = _detailRenderers?.FirstOrDefault()?.material.color ?? Color.white;     
         }
 
-        /// <summary>
-        /// Set the GameToken's mesh color (if it has a mesh)
-        /// </summary>
-        /// <param name="color">The color to set the mesh</param>
-        public void SetColor(Color color)
-        {
-            if (_detailRenderers != null)
-                foreach (var renderer in _detailRenderers)
-                {
-                    renderer.material.color = color;
-                    if (color.a == 0.0f)
-                        renderer.enabled = false;
-                }
+        private Color _color;
 
-            foreach (var renderer in _nodeRenderers)
-                renderer.material.color = Color.black;
+        /// <summary>
+        /// The current Color of the GameToken.
+        /// </summary>
+        public Color Color
+        {
+            get => _color;
+            set
+            {
+                if (_detailRenderers != null)
+                    foreach (var renderer in _detailRenderers)
+                    {
+                        renderer.material.color = value;
+                        if (value.a == 0.0f)
+                            renderer.enabled = false;
+                    }
+
+                foreach (var renderer in _nodeRenderers)
+                    renderer.material.color = Color.black;
+
+                _color = value;
+            }
         }
 
+        private Color _primaryColor;
         /// <summary>
-        /// Establishes a primary color for a GameToken.
-        /// The token resets to this color when `ResetColor` is called.
+        /// The default Color of the GameToken. When ResetColor is called
+        /// the GameToken reverts back to this Color.
         /// </summary>
-        /// <param name="color">The color to set the primary color to</param>
-        public void SetPrimaryColor(Color color)
+        public Color PrimaryColor
         {
-            _primaryColor = color;
-            ResetColor();
+            get => _primaryColor;
+            set
+            {
+                _primaryColor = value;
+                ResetColor();
+            }
         }
 
         /// <summary>
         /// Resets the `GameToken`'s color to its primary color
         /// </summary>
-        public void ResetColor() => SetColor(_primaryColor);
+        public void ResetColor() => Color = _primaryColor;
 
         /// <summary>
         /// Plays a given animation on the token (if it has an animator).

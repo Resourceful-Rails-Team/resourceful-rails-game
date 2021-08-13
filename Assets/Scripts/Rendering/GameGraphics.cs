@@ -40,6 +40,9 @@ namespace Rails.Rendering
         // more than once at a time.
         private static HashSet<int> _currentlyRunningTrains;
 
+        /// <summary>
+        /// Toggled whenever a train is performing movement.
+        /// </summary>
         public static bool IsTrainMoving { get; private set; }
 
         public static void Initialize(MapData mapData, int playerCount, Color[] playerColors)
@@ -100,7 +103,7 @@ namespace Rails.Rendering
                     trackToken.transform.rotation = rotation;
 
                     // Highlight the token and add it to the token list
-                    trackToken.SetColor(highlightColor);
+                    trackToken.Color = highlightColor;
                     trackTokens.Add(trackToken);
                 }
             }
@@ -146,7 +149,7 @@ namespace Rails.Rendering
                     if (!_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edge) || edge == null)
                     {
                         _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = tokens[tokenIndex];
-                        tokens[tokenIndex].SetPrimaryColor(color);
+                        tokens[tokenIndex].PrimaryColor = color;
                         ++tokenIndex;
                     }
                 }
@@ -171,7 +174,7 @@ namespace Rails.Rendering
                 if (_trackTokens.TryGetEdgeValue(route[i], route[i + 1], out var token))
                 {
                     if (highlightColor.HasValue)
-                        token.SetColor(highlightColor.Value);
+                        token.Color = highlightColor.Value;
                     else
                         token.ResetColor();
                 }
@@ -191,7 +194,7 @@ namespace Rails.Rendering
         /// <summary>
         /// Sets a given player's train's `GameToken` based on the `TrainType` provided.
         /// </summary>
-        public static void UpdatePlayerTrain(MapData mapData, int player, int index)
+        public static void UpgradePlayerTrain(MapData mapData, int player, int index)
         {
             if (player < 0 || player >= _playerTrains.Length)
                 throw new ArgumentException("Attempted to upgrade train for player that doesn't exist.");
@@ -225,6 +228,8 @@ namespace Rails.Rendering
         public static void MoveTrain(int player, NodeId start, NodeId end) 
             => _singleton.StartCoroutine(CMoveTrain(player, 5.0f, start, end));
 
+        public static GameToken GetTrackToken(NodeId id, NodeId adjId)
+            => _trackTokens[id, adjId];
         #endregion
 
         #region Private Methods
@@ -268,7 +273,7 @@ namespace Rails.Rendering
                                 foreach (var nId in neighborNodes.Select(nn => nn.Item1))
                                     _mapTokens[nId] = token;
 
-                                token.SetPrimaryColor(Color.red);
+                                token.PrimaryColor = Color.red;
                                 _mapTokens[nodeId] = token;
                             }
                         }
@@ -277,7 +282,7 @@ namespace Rails.Rendering
                             var token = Instantiate(modelToken, _singleton.transform);
 
                             if (node.Type == NodeType.MediumCity || node.Type == NodeType.SmallCity)
-                                token.SetPrimaryColor(Color.red);
+                                token.PrimaryColor = Color.red;
 
                             token.transform.position = pos + new Vector3(0, 0.1f, 0);
 
@@ -298,15 +303,16 @@ namespace Rails.Rendering
                 _playerTrains[p].gameObject.SetActive(false);
 
                 if (p < playerColors.Length)
-                    _playerTrains[p].SetColor(playerColors[p]);
+                    _playerTrains[p].Color = playerColors[p];
             }
         }
 
         // Moves a player train through the given `Route`
         private static IEnumerator CMoveTrain(int player, float speed, NodeId start, NodeId end)
         {
+            // Inform the game that a train is currently moving
             IsTrainMoving = true;
-
+            
             if (player < 0 || player >= _playerTrains.Length)
                 yield break;
             if (start == end)
@@ -320,25 +326,35 @@ namespace Rails.Rendering
                 yield return null;
             }
             _currentlyRunningTrains.Add(player);
-
+            
+            // Retrieve the world position / rotation of the target
             var position = Utilities.GetPosition(end);
             var rotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(start, end));
             var tr = _playerTrains[player].transform;
 
             tr.gameObject.SetActive(true);
             tr.position = Utilities.GetPosition(start);
-
+            
+            // While the position has not been reached, traverse and rotate the player
+            // train to the location
             while (tr.position != position)
             {
+                // If a new train movement on the same train occurs, cancel this
+                // movement
                 if (!_currentlyRunningTrains.Contains(player))
                     yield break;
-
+          
                 tr.position = Vector3.MoveTowards(tr.position, position, speed * Time.deltaTime);
                 tr.rotation = Quaternion.Slerp(tr.rotation, rotation, speed * 2.5f * Time.deltaTime);
                 yield return null;
             }
 
-            IsTrainMoving = false;
+            _currentlyRunningTrains.Remove(player);
+            if (_currentlyRunningTrains.Count == 0)
+            {
+                // Inform the game that no trains are moving
+                IsTrainMoving = false;
+            }
         }
         #endregion
     }

@@ -37,7 +37,7 @@ namespace Rails.UI
             this.PlayerCitiesText.text = $"{player.majorCities}";
 
             // update train
-            var trainSpecs = manager._rules.TrainSpecs[player.trainType];
+            var trainSpecs = manager.Rules.TrainSpecs[player.trainType];
             this.TrainNameText.text = player.trainType.ToString();
             this.TrainUpgradeTextUpper.text = $"{0}";
             this.TrainUpgradeTextLower.text = $"{trainSpecs.movePoints}";

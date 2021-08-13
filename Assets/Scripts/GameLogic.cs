@@ -1,6 +1,7 @@
 using Rails.Collections;
 using Rails.Data;
 using Rails.Rendering;
+using Rails.Systems;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,6 +89,7 @@ namespace Rails {
             if (currentPhase >= Phase.MAX)
                 currentPhase = 0;
             PhasePanels[(int)currentPhase].SetActive(true);
+
             return currentPhase;
         }
         // Check if the current player has won.
