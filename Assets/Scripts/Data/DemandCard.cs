@@ -24,6 +24,8 @@ namespace Rails.Data
         public Demand Card2 => _demands[1];
         public Demand Card3 => _demands[2];
 
+        public Demand this[int index] => _demands[index];
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
@@ -31,6 +33,15 @@ namespace Rails.Data
         public IEnumerator<Demand> GetEnumerator()
         {
             return _demands.GetEnumerator();
+        }
+        public override string ToString()
+        {
+            string output = "";
+            foreach (Demand demand in _demands)
+            {
+                output += demand.ToString() + "\n";
+            }
+            return output;
         }
     }
 }

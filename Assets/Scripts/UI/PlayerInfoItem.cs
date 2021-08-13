@@ -48,14 +48,10 @@ namespace Rails.UI
                 if (i < player.demandCards.Count)
                 {
                     Cards[i].gameObject.SetActive(true);
-                    foreach (var demandCard in player.demandCards)
+                    var demandCard = player.demandCards[i];
+                    for (int d = 0; d < player.demandCards.Count; d++)
                     {
-                        int d = 0;
-                        foreach (var demand in demandCard)
-                        {
-                            Cards[i].SetDemand(d, demand);
-                            ++d;
-                        }
+                        Cards[i].SetDemand(d, player.demandCards[i][d]);
                     }
                 }
                 else
