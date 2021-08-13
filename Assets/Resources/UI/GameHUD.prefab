@@ -604,7 +604,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 186118153659507621}
+        m_TargetAssemblyTypeName: Rails.UI.GameHUDManager, Assembly-CSharp
+        m_MethodName: CityPickDrop_Validate
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!1 &671566829118350043
 GameObject:
@@ -2137,7 +2149,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5002907207161879348}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 186118153659507621}
+        m_TargetAssemblyTypeName: Rails.UI.GameHUDManager, Assembly-CSharp
+        m_MethodName: CityPickDrop_Continue
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1585741112877493381
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5722,7 +5746,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 186118153659507621}
+        m_TargetAssemblyTypeName: Rails.UI.GameHUDManager, Assembly-CSharp
+        m_MethodName: CityPickDrop_Validate
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!1 &7589008364690913400
 GameObject:
@@ -6610,7 +6646,19 @@ MonoBehaviour:
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 186118153659507621}
+        m_TargetAssemblyTypeName: Rails.UI.GameHUDManager, Assembly-CSharp
+        m_MethodName: CityPickDrop_Validate
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_IsOn: 0
 --- !u!1 &8597321988115613426
 GameObject:
@@ -7231,6 +7279,34 @@ PrefabInstance:
     - target: {fileID: 4738017076561333731, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 186118153659507621}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: CityPickDrop_Validate
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Rails.UI.GameHUDManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 8916592477395917308, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
       propertyPath: m_Name
@@ -11018,6 +11094,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 186118153659507621}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: CityPickDrop_Validate
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Rails.UI.GameHUDManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 8916592477395917308, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
       propertyPath: m_Name
       value: CityPickDropDropoffItem (1)
@@ -11695,6 +11799,34 @@ PrefabInstance:
     - target: {fileID: 4738017076561333731, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 186118153659507621}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: CityPickDrop_Validate
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Rails.UI.GameHUDManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6626983650386075535, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 8916592477395917308, guid: 08009dbe10d3e974c9ed33b742b254e2, type: 3}
       propertyPath: m_Name

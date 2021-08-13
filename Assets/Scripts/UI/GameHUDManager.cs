@@ -54,6 +54,7 @@ namespace Rails.UI
         private List<TrackItem> _uiTrackItems = new List<TrackItem>();
         private int _uiTrackSelectPathIndex = -1;
         private List<TrackSelectDeleteItem> _uiTrackSelectDeleteItems = new List<TrackSelectDeleteItem>();
+        private TrainCityInteraction _cityPickDropInteraction;
 
         private class BuildMarkerContainer
         {
@@ -191,6 +192,7 @@ namespace Rails.UI
         {
             CityPickDropPanel.gameObject.SetActive(true);
             GameInput.CurrentContext = GameInput.Context.Popup;
+            _cityPickDropInteraction = e;
 
             // set city name
             CityPickDropNameText.text = e.City.Name;
@@ -235,14 +237,51 @@ namespace Rails.UI
                     item.Toggle.isOn = false;
                 }
             }
+
+            // trigger initial validation
+            CityPickDrop_Validate();
         }
 
         public void CityPickDrop_Validate()
         {
             bool isValid = true;
             string invalidMessage = "";
+            var manager = Manager.Singleton;
+            var player = manager.Players[_cityPickDropInteraction.PlayerIndex];
+            var playerGoodsCarried = player.goodsCarried.ToList();
 
+            // 
+            foreach (var dropoffItem in CityPickDropDropoffItems)
+            {
+                if (dropoffItem.Toggle.isOn)
+                {
+                    var good = playerGoodsCarried.FirstOrDefault(x => x.Icon == dropoffItem.Icon);
+                    if (good != null)
+                    {
+                        playerGoodsCarried.Remove(good);
+                    }
+                    else
+                    {
+                        isValid = false;
+                        invalidMessage = $"You do not have enough {good.Name} to dropoff!";
+                    }
+                }
+            }
 
+            // 
+            for (int i = 0; i < _cityPickDropInteraction.Goods.Length; ++i)
+            {
+                var pickupToggle = CityPickDropPickupToggles[i];
+                if (pickupToggle.isOn)
+                    playerGoodsCarried.Add(_cityPickDropInteraction.Goods[i]);
+            }
+
+            // invalid if goods carried is more than allowed
+            if (isValid && playerGoodsCarried.Count >= 3)
+            {
+                isValid = false;
+                invalidMessage = $"Your train cannot carry {playerGoodsCarried.Count} goods!";
+            }
 
             // update state
             CityPickDropContinue.interactable = isValid;
@@ -252,10 +291,28 @@ namespace Rails.UI
 
         public void CityPickDrop_Continue()
         {
-            // 
+            var goods = new List<Good>();
+            var cards = new List<DemandCard>();
+
+            // Construct list of cards to use for dropoff
+            for (int i = 0; i < _cityPickDropInteraction.Cards.Length; ++i)
+            {
+                if (CityPickDropDropoffItems[i].Toggle.isOn)
+                    cards.Add(_cityPickDropInteraction.Cards[i]);
+            }
+
+            // Construct list of goods to pickup from city
+            for (int i = 0; i < _cityPickDropInteraction.Goods.Length; ++i)
+            {
+                if (CityPickDropPickupToggles[i].isOn)
+                    goods.Add(_cityPickDropInteraction.Goods[i]);
+            }
+
+            // Send to handler
             Manager.Singleton.OnTrainMeetsCityComplete.Invoke(this, new TrainCityInteractionResult()
             {
-                
+                ChosenCards = cards.ToArray(),
+                Goods = goods.ToArray()
             });
 
             // close panel and return input state to game
