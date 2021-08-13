@@ -33,7 +33,56 @@ namespace Rails.Systems
             _drawPile = new List<DemandCard>();
             _discardPile = new List<DemandCard>();
             _manager = Manager.Singleton;
+            GenerateDemandCards(GenerateDemands());
+        } 
 
+        /// <summary>
+        /// Draws a single Demand card
+        /// </summary>
+        /// <returns>An array of 3 demands, 
+        /// representing the card contents</returns>
+        public static DemandCard DrawOne()
+        {
+            // If there are no cards in the draw pile,
+            // shuffle the discards and readd them to the draw pile.
+            if (_drawPile.Count == 0)
+                ShuffleDiscards();
+
+            var index = _drawPile.Count - 1;
+            var card = _drawPile[index];
+
+            _drawPile.RemoveAt(index);
+            Debug.Log(card.ToString());
+            return card;
+        }
+        
+        /// <summary>
+        /// Discard a single Demand card into the discard pile
+        /// </summary>
+        /// <param name="demandCard">The card to add to the discard pile</param>
+        public static void Discard(DemandCard demandCard) => _discardPile.Add(demandCard);
+
+        #endregion
+
+        #region Private Methods 
+
+        // Randomly reinserts all discard Demand cards
+        // into the draw pile
+        private static void ShuffleDiscards()
+        {
+            while(_discardPile.Count > 0)
+            {
+                int cardIndex = UnityEngine.Random.Range(0, _discardPile.Count);
+                _drawPile.Add(_discardPile[cardIndex]);
+                _discardPile.RemoveAt(cardIndex); 
+            }
+        }
+
+        /// <summary>
+        /// Generate a list of demands to be arranged on Cards.
+        /// </summary>
+        private static List<Demand> GenerateDemands()
+        {
             var demands = new List<Demand>();
 
             // Grab all cities, grouping them by type
@@ -53,7 +102,7 @@ namespace Rails.Systems
             var goodsPositions = new List<NodeId>();
             for (int i = 0; i < goods.Length; ++i)
             {
-                var ids = _manager.MapData.LocationsOfGood(goods[i]); 
+                var ids = _manager.MapData.LocationsOfGood(goods[i]);
                 goodsPositions.Add(ids[0]);
             }
 
@@ -103,7 +152,8 @@ namespace Rails.Systems
                         while (
                             distance < minDist ||
                             selectedCity.Goods.Any(g => g.x == goodIndex)
-                        ) {
+                        )
+                        {
                             goodIndex = UnityEngine.Random.Range(0, goods.Length);
                             distance = NodeId.Distance(
                                 _manager.MapData.LocationsOfCity(selectedCity).First(),
@@ -125,7 +175,7 @@ namespace Rails.Systems
                         citySelectionLists[i].Remove(selectedCity);
 
                         // Determine the reward by City NodeType, with distance considered
-                        int reward = (((int)distance * 3) + (i * 5)) / 20 * 10;
+                        int reward = DetermineReward(distance, i);
                         demands.Add(new Demand(selectedCity, goods[goodIndex], reward));
 
                         if (demands.Count >= DemandCardCount * 3) break;
@@ -133,49 +183,20 @@ namespace Rails.Systems
                     if (demands.Count >= DemandCardCount * 3) break;
                 }
             }
-
-            GenerateDemandCards(demands);
-        } 
-
-        /// <summary>
-        /// Draws a single Demand card
-        /// </summary>
-        /// <returns>An array of 3 demands, 
-        /// representing the card contents</returns>
-        public static DemandCard DrawOne()
-        {
-            // If there are no cards in the draw pile,
-            // shuffle the discards and readd them to the draw pile.
-            if (_drawPile.Count == 0)
-                ShuffleDiscards();
-
-            var index = _drawPile.Count - 1;
-            var card = _drawPile[index];
-
-            _drawPile.RemoveAt(index);
-            return card;
+            return demands;
         }
-        
         /// <summary>
-        /// Discard a single Demand card into the discard pile
+        /// Randomly generates a reward amount for a demand based on distance with a gaussian distribution.
         /// </summary>
-        /// <param name="demandCard">The card to add to the discard pile</param>
-        public static void Discard(DemandCard demandCard) => _discardPile.Add(demandCard);
-
-        #endregion
-
-        #region Private Methods 
-
-        // Randomly reinserts all discard Demand cards
-        // into the draw pile
-        private static void ShuffleDiscards()
+        /// <param name="distance"></param>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        private static int DetermineReward(float distance, int i)
         {
-            while(_discardPile.Count > 0)
-            {
-                int cardIndex = UnityEngine.Random.Range(0, _discardPile.Count);
-                _drawPile.Add(_discardPile[cardIndex]);
-                _discardPile.RemoveAt(cardIndex); 
-            }
+            int reward = 0;
+            // TODO: randomize with a gaussian distribution.
+            reward = (((int)distance * 3) + (i * 5)) / 20 * 10;
+            return reward;
         }
 
         /// <summary>

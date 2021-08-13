@@ -48,7 +48,6 @@ namespace Rails.Systems
         private static int currentNode;
         #endregion
 
-        #region Public
         public static void Initialize()
         {
             manager = Manager.Singleton;
@@ -60,10 +59,12 @@ namespace Rails.Systems
             currentNode = 0;
         }
 
+        #region Path
         // Adds a new path to the end of the list.
         public static int CreatePath()
         {
             buildPaths.Add(new List<NodeId>());
+            currentNode = 0;
             return buildPaths.Count - 1;
         }
         // Sets the index of the current build path.
@@ -112,15 +113,38 @@ namespace Rails.Systems
         // Removes a path from the list.
         public static bool RemovePath(int path)
         {
-            if (path >= 0 && path < Paths)
+            if (Paths != 0 && path >= 0 && path < Paths)
             {
-                buildPaths[path].RemoveAt(path);
+                buildPaths.RemoveAt(path);
+
+                // If there are no paths left, add one.
+                if (Paths == 0)
+                {
+                    buildPaths.Add(new List<NodeId>());
+                    currentPath = 0;
+                    currentNode = 0;
+                }
+                else
+                {
+                    // Decrement current path and reset if it goes less than 0.
+                    --currentPath;
+                    if (currentPath < 0)
+                        currentPath = 0;
+
+                    // Reset current node to be in bounds.
+                    int nodes = buildPaths[currentPath].Count - 1;
+                    if (currentNode > nodes)
+                        currentNode = nodes;
+                }
+
+                PlannedTracks();
                 return true;
             }
             return false;
         }
+        #endregion
 
-
+        #region Node
         // Adds a node to move path.
         public static void AddNode(NodeId node)
         {
@@ -174,6 +198,9 @@ namespace Rails.Systems
             currentNode = CircularIndex(node, 0, buildPaths[path].Count+1);
             return;
         }
+        #endregion
+
+        #region Other
         public static void InitializePlayerMove()
         {
             manager.Player.movePointsLeft = manager.Rules.TrainSpecs[manager.Player.trainType].movePoints;
@@ -259,19 +286,6 @@ namespace Rails.Systems
             }
             return;
         }
-
-        #endregion
-
-        #region Private
-        // Sets an index to be between two values, inclusive min, exclusive max.
-        private static int CircularIndex(int index, int min, int max)
-        {
-            while (index < min)
-                index += max;
-            while (index >= max)
-                index -= max;
-            return index;
-        }
         // Show the planned tracks on the map.
         public static void PlannedTracks()
         {
@@ -289,6 +303,18 @@ namespace Rails.Systems
                     GameGraphics.GeneratePotentialTrack(route, Color.yellow);
             }
             return;
+        }
+        #endregion
+
+        #region Private
+        // Sets an index to be between two values, inclusive min, exclusive max.
+        private static int CircularIndex(int index, int min, int max)
+        {
+            while (index < min)
+                index += max;
+            while (index >= max)
+                index -= max;
+            return index;
         }
         #endregion
     }

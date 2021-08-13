@@ -395,8 +395,12 @@ namespace Rails
         }
 
         // Discards the player's hand.
-        public void DiscardHand()
+        public bool DiscardHand()
         {
+            // You can't discard unless you haven't moved yet.
+            if (player.movePointsLeft != Rules.TrainSpecs[player.trainType].movePoints)
+                return false;
+
             // Remove and refill players' hand
             foreach (DemandCard card in player.demandCards) {
                 Deck.Discard(card);
@@ -408,9 +412,9 @@ namespace Rails
             // Ends the turn.
             GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             OnPlayerInfoUpdate?.Invoke(this);
-            return;
-        }
 
+            return true;
+        }
         // Builds the track between the nodes in path.
         public bool BuildTrack()
         {
@@ -430,11 +434,14 @@ namespace Rails
             return true;
         }
         // Upgrades the player's train.
-        public void UpgradeTrain(int choice)
+        public bool UpgradeTrain(int choice)
         {
+            if (player.money < Rules.TrainUpgrade)
+                return false;
+
             GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
             EndTurn();
-            return;
+            return true;
         }
 
         // Places the current player's train at position.
