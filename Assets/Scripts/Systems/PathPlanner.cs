@@ -176,7 +176,7 @@ namespace Rails.Systems
         }
         public static void InitializePlayerMove()
         {
-            manager.Player.movePointsLeft = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
+            manager.Player.movePointsLeft = manager.Rules.TrainSpecs[manager.Player.trainType].movePoints;
             if (manager.Player.movePath.Count == 0)
             {
                 manager.Player.movePath.Add(manager.Player.trainPosition);
@@ -207,7 +207,7 @@ namespace Rails.Systems
                     // Select any good that is from the city, and that
                     // the player can currently pick up
                     Goods =
-                            manager.Player.goodsCarried.Count < manager._rules.TrainSpecs[manager.Player.trainType].goodsTotal
+                            manager.Player.goodsCarried.Count < manager.Rules.TrainSpecs[manager.Player.trainType].goodsTotal
                             ?
                             manager.MapData.GetGoodsAtCity(manager.MapData.Cities[node.CityId])
                                 .Select(gi => manager.MapData.Goods[gi])
@@ -234,7 +234,7 @@ namespace Rails.Systems
                     GameGraphics.HighlightRoute(moveRoute, null);
                 }
 
-                int move = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
+                int move = manager.Rules.TrainSpecs[manager.Player.trainType].movePoints;
                 // Calculate the Route
                 moveRoute = Pathfinding.CheapestMove(
                     manager.CurrentPlayer,
@@ -243,10 +243,16 @@ namespace Rails.Systems
 
                 var movePoints = Mathf.Min(manager.Player.movePointsLeft, moveRoute.Distance);
 
-                // Highlight the Route
-                Color pco = manager.Player.color;
-                GameGraphics.HighlightRoute(moveRoute.Nodes.GetRange(0, movePoints + 1).ToList(), pco * 4.0f);
-                GameGraphics.HighlightRoute(moveRoute.Nodes.Skip(movePoints).ToList(), pco * 2.0f);
+                for (int i = 0; i < moveRoute.Distance; ++i)
+                {
+                    // Highlight the Route
+                    var trackToken = GameGraphics.GetTrackToken(moveRoute.Nodes[i], moveRoute.Nodes[i + 1]);
+
+                    if (i < movePoints)
+                        trackToken.Color *= 4.0f;
+                    else
+                        trackToken.Color *= 2.0f;
+                }
             }
             return;
         }
