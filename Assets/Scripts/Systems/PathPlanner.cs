@@ -182,6 +182,9 @@ namespace Rails.Systems
                 manager.Player.movePath.Add(manager.Player.trainPosition);
                 currentNode = 1;
             }
+            else
+                currentNode = manager.Player.movePath.Count;
+
             PlannedRoute();
         }
         public static TrainCityInteraction GetStop(NodeId id)
