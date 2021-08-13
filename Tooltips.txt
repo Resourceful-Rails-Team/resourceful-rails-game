@@ -1,0 +1,31 @@
+Tool Tips
+
+
+Introduction
+
+Welcome to Resourceful Rails! This is a game about building railroad tracks, running your locomotive, and picking up and delivering goods to make a profit. You win once you have connected a number of major cities together along with earning enough money. The typical game will have you connect 6 out of 7 major cities and earn $250 million.
+
+
+Game Setup
+
+To set up the game, have everyone enter their name and choose their color on this menu, along with the map you want to play and the ruleset you want to play with. Play order will use the order of the names in the list, unless you select the Random Order setting at the bottom of the screen, which will randomize the order of players.
+
+
+First Two Turns
+
+The first two turns are known as Build turns, where the only actions you can take are building track or upgrading your train. For the first round, play goes in the normal order, but once the last player has finished their turn they go again and play continues in reverse order until the first player finishes their turn. After that play continues in normal order for the rest of the game.
+
+
+Building Track
+
+To build track you simply select a starting point and an ending point. The starting point must start from either a major city or from track you have previously built. The game will figure out the best path between those two points, either finding the cheapest path or the fastest path. Generally it's better to use the cheapest path in the beginning of the game. If you add another point it will continue from the last point you added. To select another point to start from or add another path use the widget in the upper left corner. Once you're done planning your build then click the Build button and your planned track will be permanently built! Be aware that there is usually a limit to how much money you can spend on building per turn; if your planned path costs too much the build won't go through and you'll have to either fix it or delete it before continuing.
+
+
+Strategy
+
+When planning where you want to build your track you need to take into account the cards you drew at the beginning of the game. Each card has 3 orders on them, each one including a city, a good, and a payout. In order to recieve the payout you need to bring your train to the city with that good. So when playing your starting two build turns you should be trying to set up a delivery between as many cards as you can, generally prioritizing the cheaper routes. When you dropoff a good for the payout you'll have to discard the whole card, so choose which of the three orders to pursue wisely. Once your delivery is completed successfully you'll get a new order card to replace it right away.
+
+
+Placing and Moving Your Train
+
+Once the initial build turns have ended then the game proper can begin. Each player places their train on the board on their first normal turn, taking into account a single restriction: the train must be placed on a city. When you place your first path marker it will place the train there. Similarly to the build turns you move by adding points into the path. In this case you only have one path and the first marker must be where your train is. Once your train is moving on a track it can't go backwards. However, a train may turn around in any city.
