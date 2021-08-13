@@ -175,6 +175,7 @@ namespace Rails.Systems
         {
             var currentCityId = manager.MapData.Nodes[id.GetSingleId()].CityId;
             var node = manager.MapData.Nodes[id.GetSingleId()];
+            var city = manager.MapData.Cities[node.CityId];
 
             if (node.Type >= NodeType.SmallCity && node.Type <= NodeType.MajorCity)
             {
@@ -184,9 +185,10 @@ namespace Rails.Systems
                     // which the player has the good in their load
                     Cards = manager.Player.demandCards
                             .Where(dc => dc.Any(d =>
-                                d.City == manager.MapData.Cities[node.CityId] &&
+                                d.City == city &&
                                 manager.Player.goodsCarried.Contains(d.Good)
                             ))
+                            .OrderBy(dc => dc.FirstOrDefault(x=>x.City == city).Reward)
                             .ToArray(),
 
                     // Select any good that is from the city, and that
