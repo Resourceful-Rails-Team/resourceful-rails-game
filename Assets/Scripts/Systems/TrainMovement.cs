@@ -29,6 +29,7 @@ public class TrainMovement : MonoBehaviour
 
     private Manager _manager;
     private MapData _mapData;
+    private GameRules _rules;
     private bool _trainMoving = false;
 
     // Is the player still choosing whether to load new Goods at a city?
@@ -37,6 +38,9 @@ public class TrainMovement : MonoBehaviour
     private void Start()
     {
         _manager = Manager.Singleton;
+        _mapData = _manager.MapData;
+        _rules = _manager._rules;
+
         Manager.Singleton.OnTrainMeetsCityComplete += (__, _) => _awaitingGUI = false;
         GameGraphics.OnTrainMovementFinished += (_, __) => _trainMoving = false;
     }
@@ -67,11 +71,10 @@ public class TrainMovement : MonoBehaviour
             // If the city hasn't been already visited, and if
             // it has any goods, invoke the interaction method
             if(
-                (node.Type == NodeType.MajorCity  ||
-                node.Type == NodeType.MediumCity ||
-                node.Type == NodeType.SmallCity)
-                && !visitedCityIndices.Contains(node.CityId)
-                && _mapData.Cities[node.CityId].Goods.Count > 0
+                node.Type >= NodeType.SmallCity &&
+                node.Type <= NodeType.MajorCity &&
+                !visitedCityIndices.Contains(node.CityId) &&
+                _mapData.Cities[node.CityId].Goods.Count > 0
             ) {
                 _awaitingGUI = true;
                 visitedCityIndices.Add(node.CityId);
@@ -89,14 +92,19 @@ public class TrainMovement : MonoBehaviour
                                 currentPlayer.goodsCarried.Contains(d.Good)
                         ))
                         .ToArray(),
+
                     // Select any good that is from the city, and that
                     // the player can currently pick up
-                    Goods = _mapData.GetGoodsAtCity(_mapData.Cities[node.CityId])
-                        .Select(gi => _mapData.Goods[gi])
-                        .Where(g => 
-                            GoodsBank.GetGoodQuantity(g) > 0 && 
-                            currentPlayer.goodsCarried.Count < _manager._rules.TrainSpecs[currentPlayer.trainType].goodsTotal)
-                        .ToArray(),
+                    Goods = 
+                        currentPlayer.goodsCarried.Count < _rules.TrainSpecs[currentPlayer.trainType].goodsTotal 
+                        ?
+                        _mapData.GetGoodsAtCity(_mapData.Cities[node.CityId])
+                            .Select(gi => _mapData.Goods[gi])
+                            .Where(g => GoodsBank.GetGoodQuantity(g) > 0)
+                            .ToArray()
+                        :
+                        new Good[0],
+
                     PlayerIndex = playerIndex,
                     TrainPosition = route[i],
                     City = _mapData.Cities[node.CityId]
