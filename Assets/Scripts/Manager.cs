@@ -505,12 +505,8 @@ namespace Rails
             OnPlayerInfoUpdate?.Invoke(this);
             OnTurnEnd?.Invoke(this);
 
-            // Assign the player's move points before starting their move turn
-            // and insert their move route
-            if (currentPhase == Phase.Move)
-            {
+            if(CurrentPhase == Phase.Move)
                 PathPlanner.InitializePlayerMove();
-            }
 
             return;
         }

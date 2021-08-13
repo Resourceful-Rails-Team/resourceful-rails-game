@@ -40,6 +40,9 @@ namespace Rails.Rendering
         // more than once at a time.
         private static HashSet<int> _currentlyRunningTrains;
 
+        /// <summary>
+        /// Toggled whenever a train is performing movement.
+        /// </summary>
         public static bool IsTrainMoving { get; private set; }
 
         public static void Initialize(MapData mapData, int playerCount, Color[] playerColors)
@@ -307,8 +310,9 @@ namespace Rails.Rendering
         // Moves a player train through the given `Route`
         private static IEnumerator CMoveTrain(int player, float speed, NodeId start, NodeId end)
         {
+            // Inform the game that a train is currently moving
             IsTrainMoving = true;
-
+            
             if (player < 0 || player >= _playerTrains.Length)
                 yield break;
             if (start == end)
@@ -322,25 +326,35 @@ namespace Rails.Rendering
                 yield return null;
             }
             _currentlyRunningTrains.Add(player);
-
+            
+            // Retrieve the world position / rotation of the target
             var position = Utilities.GetPosition(end);
             var rotation = Utilities.GetCardinalRotation(Utilities.CardinalBetween(start, end));
             var tr = _playerTrains[player].transform;
 
             tr.gameObject.SetActive(true);
             tr.position = Utilities.GetPosition(start);
-
+            
+            // While the position has not been reached, traverse and rotate the player
+            // train to the location
             while (tr.position != position)
             {
+                // If a new train movement on the same train occurs, cancel this
+                // movement
                 if (!_currentlyRunningTrains.Contains(player))
                     yield break;
-
+          
                 tr.position = Vector3.MoveTowards(tr.position, position, speed * Time.deltaTime);
                 tr.rotation = Quaternion.Slerp(tr.rotation, rotation, speed * 2.5f * Time.deltaTime);
                 yield return null;
             }
 
-            IsTrainMoving = false;
+            _currentlyRunningTrains.Remove(player);
+            if (_currentlyRunningTrains.Count == 0)
+            {
+                // Inform the game that no trains are moving
+                IsTrainMoving = false;
+            }
         }
         #endregion
     }

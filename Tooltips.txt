@@ -13,12 +13,25 @@ To set up the game, have everyone enter their name and choose their color on thi
 
 First Two Turns
 
-The first two turns are known as Build turns, where the only actions you can take are building track or upgrading your train. For the first round, play goes in the normal order, but once the last player has finished their turn they go again and play continues in reverse order until the first player finishes their turn. After that play continues in normal order for the rest of the game.
+The first two turns are known as Build turns, where the only actions you can take are building track or upgrading your train. For the first round, play goes in the normal order, but once the last player has finished their turn they go again and play continues in reverse order until the first player finishes their turn. Starting again from the first player play continues in normal order for the rest of the game.
 
 
 Building Track
 
 To build track you simply select a starting point and an ending point. The starting point must start from either a major city or from track you have previously built. The game will figure out the best path between those two points, either finding the cheapest path or the fastest path. Generally it's better to use the cheapest path in the beginning of the game. If you add another point it will continue from the last point you added. To select another point to start from or add another path use the widget in the upper left corner. Once you're done planning your build then click the Build button and your planned track will be permanently built! Be aware that there is usually a limit to how much money you can spend on building per turn; if your planned path costs too much the build won't go through and you'll have to either fix it or delete it before continuing.
+
+
+Building Track Continued
+
+When building track the cost may vary. Building track only takes into account the node you are building to, not the node you are building from. Here are the prices to build to certain types of nodes:
+
+clear - $1
+mountain - $2
+small city - $3
+medium city - $3
+major city - $5
+
+Note that you may build from major cities up to two times in one turn; after that you must build into major cities at $5 a node.
 
 
 Strategy
@@ -28,4 +41,24 @@ When planning where you want to build your track you need to take into account t
 
 Placing and Moving Your Train
 
-Once the initial build turns have ended then the game proper can begin. Each player places their train on the board on their first normal turn, taking into account a single restriction: the train must be placed on a city. When you place your first path marker it will place the train there. Similarly to the build turns you move by adding points into the path. In this case you only have one path and the first marker must be where your train is. Once your train is moving on a track it can't go backwards. However, a train may turn around in any city.
+Once the initial build turns have ended then the game proper can begin. Each player places their train on the board on their first normal turn, taking into account a single restriction: the train must be placed on a city. When you place your first path marker it will place the train there. Don't worry if you misplace it; its final position will only be set once you start moving. Similarly to the build turns you move by adding points into the path. In this case you only have one path and the first marker must be where your train is.
+
+
+Moving Continued
+
+Moving between any node is free as long as it is track you have built or it's track within a major city. If you wish to move on another players' track you must pay that player $4 per turn that you use their track. This applies to any number of players whose track you use. Ending your turn on another players' track guarantees that you pay that player twice for using their track.
+
+
+Picking Up and Dropping Off
+
+Whenever you move your train and it passes a city you have the option to pick up or drop off a good. As long as there are goods available then you can pickup goods, replacing any other goods you want if you have no free space. You may only drop off goods that you have a demand card for that has a matching demand on it. Once you drop off that good and trade in the demand card you will recieve the money printed as a payout straight into your bank account.
+
+
+Upgrading Your Train
+
+For every turn you have the option to upgrade your train instead of build track. Upgrading your train cost, by default, $20 million. Your first upgrade gives you the option between increasing the amount of spaces your train can move or increasing the amount of goods your train can hold. After that you may upgrade to the last train type that hase both of these upgrades in one.
+
+
+Winning the Game
+
+Any player may trigger the end of the game by reaching the two end goals: connecting 6 of the 7 major cities and having $250 million in cash. In order to meet the requirments for the major cities the cities must be connected by your own track and must form a path where any of the 6 cities can be reached from anywhere in the path. As for the cash requirement, none of the tracks or upgrades you have bought count toward this limit, you must have the $250 in your bank account. This value is stated in your info card on the side of the screen. Once the end of the game has been triggered each player after that player in turn order gets a turn. If another player meets the requirements after their turn is over then the winner is determined by who has more money. If the players have equal amounts of money then it's a draw.
