@@ -405,6 +405,13 @@ namespace Rails
             GameGraphics.PositionTrain(currentPlayer, position);
             return city;
         }
+        // Ends the Move phase prematurely.
+        public void EndMove()
+        {
+            GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
+            OnPhaseChange?.Invoke(this);
+            return;
+        }
         #endregion
 
         #region Private

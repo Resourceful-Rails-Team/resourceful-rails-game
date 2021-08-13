@@ -1,0 +1,21 @@
+Tool Tips
+
+
+Introduction
+
+Welcome to Resourceful Rails! This is a game about building railroad tracks, running your locomotive, and picking up and delivering goods to make a profit. You win once you have connected a number of major cities together along with earning enough money. The typical game will have you connect 6 out of 7 major cities and earn $250 million.
+
+
+Game Setup
+
+To set up the game, have everyone enter their name and choose their color on this menu, along with the map you want to play and the ruleset you want to play with. Play order will use the order of the names in the list, unless you select the Random Order setting at the bottom of the screen, which will randomize the order of players.
+
+
+First Two Turns
+
+While a normal turn will have you move your train and then build track, during the first two turns you are only allowed to build track. You also have the option to upgrade your train, but that's for advanced players. You can build track by selecting points on the map that you want to build between. Use the widget on the upper right to create new paths and modify existing paths to create your perfect track!
+
+
+Strategy
+
+When planning where you want to build your track you need to take into account the cards you drew at the beginning of the game. Each card has 3 orders on them, each one including a city, a good, and a payout. In order to recieve the payout you need to bring your train to the city with the good. So when playing your starting two build turns you should be trying to set up a delivery between as many as you can, generally prioritizing the cheaper routes.
