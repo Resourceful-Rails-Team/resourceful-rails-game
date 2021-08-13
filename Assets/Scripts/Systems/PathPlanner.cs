@@ -4,6 +4,8 @@ using UnityEngine;
 using Rails.Data;
 using Rails.Rendering;
 using System.Linq;
+using Assets.Scripts.Data;
+using System;
 
 namespace Rails.Systems
 {
@@ -83,12 +85,14 @@ namespace Rails.Systems
             GameGraphics.HighlightRoute(moveRoute, null);
             manager.Player.movePath.Clear();
             manager.Player.movePath.Add(manager.Player.trainPosition);
+            currentNode = 1;
         }
         // Clear all build paths.
         public static void ClearBuild()
         {
             buildPaths.Clear();
             buildPaths.Add(new List<NodeId>());
+            currentNode = 0;
         }
         // Clear current build path.
         public static bool ClearPath(int path)
@@ -100,6 +104,7 @@ namespace Rails.Systems
             buildPaths[path].Clear();
             if (buildPaths.Count == 0)
                 buildPaths.Add(new List<NodeId>());
+            currentNode = 0;
             PlannedTracks();
 
             return true;
@@ -119,14 +124,16 @@ namespace Rails.Systems
         // Adds a node to move path.
         public static void AddNode(NodeId node)
         {
-            manager.Player.movePath.Add(node);
+            manager.Player.movePath.Insert(currentNode, node);
+            currentNode += 1;
             PlannedRoute();
             return;
         }
         // Adds a node to build path.
         public static void AddNode(int path, NodeId node)
         {
-            buildPaths[path].Add(node);
+            buildPaths[path].Insert(currentNode, node);
+            currentNode += 1;
             PlannedTracks();
             return;
         }
@@ -135,6 +142,8 @@ namespace Rails.Systems
         {
             if (node >= 0 && node < manager.Player.movePath.Count)
             {
+                if (currentNode > node)
+                    --currentNode;
                 manager.Player.movePath.RemoveAt(node);
                 return true;
             }
@@ -148,55 +157,77 @@ namespace Rails.Systems
             if (node < 0 || node >= buildPaths[path].Count)
                 return false;
 
+            if (currentNode > node)
+                --currentNode;
             buildPaths[path].RemoveAt(node);
             return true;
         }
         // Sets current node for move path.
         public static void SetNode(int node)
         {
-            currentNode = CircularIndex(node, 0, manager.Player.movePath.Count);
+            currentNode = CircularIndex(node, 0, manager.Player.movePath.Count+1);
             return;
         }
         // Sets the current node for build path.
         public static void SetNode(int path, int node)
         {
-            currentNode = CircularIndex(node, 0, Paths);
+            currentNode = CircularIndex(node, 0, buildPaths[path].Count+1);
             return;
         }
-        #endregion
-
-        #region Private
-        // Sets an index to be between two values, inclusive min, exclusive max.
-        private static int CircularIndex(int index, int min, int max)
+        public static void InitializePlayerMove()
         {
-            while (index < min)
-                index += max;
-            while (index >= max)
-                index -= max;
-            return index;
-        }
-        // Show the planned tracks on the map.
-        private static void PlannedTracks()
-        {
-            if (buildPaths.Count > 0)
+            manager.Player.movePointsLeft = manager._rules.TrainSpecs[manager.Player.trainType].movePoints;
+            if (manager.Player.movePath.Count == 0)
             {
-                if (buildRoutes != null)
-                {
-                    foreach (var route in buildRoutes)
-                        GameGraphics.DestroyPotentialTrack(route);
-                    buildRoutes.Clear();
-                }
-                buildRoutes = Pathfinding.CheapestBuilds(buildPaths);
-
-                foreach (var route in buildRoutes)
-                    GameGraphics.GeneratePotentialTrack(route, Color.yellow);
+                manager.Player.movePath.Add(manager.Player.trainPosition);
+                currentNode = 1;
             }
-            return;
+            PlannedRoute();
         }
-        // Show the planned route on the map.
-        private static void PlannedRoute()
+        public static TrainCityInteraction GetStop(NodeId id)
         {
-            if (Manager.Singleton.Player.movePath.Count > 0)
+            var currentCityId = manager.MapData.Nodes[id.GetSingleId()].CityId;
+            var node = manager.MapData.Nodes[id.GetSingleId()];
+
+            if (node.Type >= NodeType.SmallCity && node.Type <= NodeType.MajorCity)
+            {
+                var city = manager.MapData.Cities[node.CityId];
+                return new TrainCityInteraction
+                {
+                    // Select any demand cards that both match the city, and
+                    // which the player has the good in their load
+                    Cards = manager.Player.demandCards
+                            .Where(dc => dc.Any(d =>
+                                d.City == city &&
+                                manager.Player.goodsCarried.Contains(d.Good)
+                            ))
+                            .OrderBy(dc => dc.FirstOrDefault(x=>x.City == city).Reward)
+                            .ToArray(),
+
+                    // Select any good that is from the city, and that
+                    // the player can currently pick up
+                    Goods =
+                            manager.Player.goodsCarried.Count < manager._rules.TrainSpecs[manager.Player.trainType].goodsTotal
+                            ?
+                            manager.MapData.GetGoodsAtCity(manager.MapData.Cities[node.CityId])
+                                .Select(gi => manager.MapData.Goods[gi])
+                                .Where(g => GoodsBank.GetGoodQuantity(g) > 0)
+                                .ToArray()
+                        :
+                        new Good[0],
+
+                    PlayerIndex = manager.CurrentPlayer,
+                    TrainPosition = id,
+                    City = manager.MapData.Cities[node.CityId]
+                };
+            }
+            return null;
+        }
+        
+        // Show the planned route on the map.
+        public static void PlannedRoute()
+        {
+            if (manager.Player.movePath.Count > 0)
             {
                 if (moveRoute != null)
                 {
@@ -210,12 +241,43 @@ namespace Rails.Systems
                     move,
                     manager.Player.movePath.ToArray());
 
-                var movePoints = Mathf.Min(move, moveRoute.Distance);
+                var movePoints = Mathf.Min(manager.Player.movePointsLeft, moveRoute.Distance);
 
                 // Highlight the Route
                 Color pco = manager.Player.color;
-                GameGraphics.HighlightRoute(moveRoute.Nodes.Take(movePoints + 1).ToList(), pco * 2.0f);
-                GameGraphics.HighlightRoute(moveRoute.Nodes.Take(movePoints).ToList(), pco);
+                GameGraphics.HighlightRoute(moveRoute.Nodes.GetRange(0, movePoints + 1).ToList(), pco * 4.0f);
+                GameGraphics.HighlightRoute(moveRoute.Nodes.Skip(movePoints).ToList(), pco * 2.0f);
+            }
+            return;
+        }
+
+        #endregion
+
+        #region Private
+        // Sets an index to be between two values, inclusive min, exclusive max.
+        private static int CircularIndex(int index, int min, int max)
+        {
+            while (index < min)
+                index += max;
+            while (index >= max)
+                index -= max;
+            return index;
+        }
+        // Show the planned tracks on the map.
+        public static void PlannedTracks()
+        {
+            if (buildPaths.Count > 0)
+            {
+                if (buildRoutes != null)
+                {
+                    foreach (var route in buildRoutes)
+                        GameGraphics.DestroyPotentialTrack(route);
+                    buildRoutes.Clear();
+                }
+                buildRoutes = Pathfinding.CheapestBuilds(buildPaths);
+
+                foreach (var route in buildRoutes)
+                    GameGraphics.GeneratePotentialTrack(route, Color.yellow);
             }
             return;
         }
