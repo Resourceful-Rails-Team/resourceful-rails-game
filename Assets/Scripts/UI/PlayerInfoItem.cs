@@ -1,5 +1,6 @@
 using Assets.Scripts.Data;
 using Rails.Data;
+using Rails.Systems;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,13 +28,15 @@ namespace Rails.UI
         [Header("Cards")]
         public CardItem[] Cards;
 
+        private void Start() => PathPlanner.OnCurrentCostChange += () => UpdateInfo(Manager.Singleton.Player);
+
         public void UpdateInfo(PlayerInfo player)
         {
             var manager = Manager.Singleton;
 
             // update basic info
             this.PlayerNameText.text = player.name;
-            this.PlayerMoneyText.text = $"{player.money}";
+            this.PlayerMoneyText.text = $"{player.money}" + (PathPlanner.CurrentCost != 0 ? $"<color=red> - {PathPlanner.CurrentCost}</color>" : "");
             this.PlayerCitiesText.text = $"{player.majorCities}";
 
             // update train

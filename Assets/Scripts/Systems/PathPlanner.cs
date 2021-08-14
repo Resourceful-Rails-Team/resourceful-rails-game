@@ -12,17 +12,11 @@ namespace Rails.Systems
     public static class PathPlanner
     {
         #region Public Properties
-        public static int BuildCost
-        {
-            get {
-                int cost = 0;
-                foreach (Route route in buildRoutes)
-                {
-                    cost += route.Cost;
-                }
-                return cost;
-            }
-        }
+        // Build Track
+        public delegate void OnCurrentCostChangeHandler();
+        public static event OnCurrentCostChangeHandler OnCurrentCostChange;
+
+        public static int CurrentCost { get; private set; }
         public static int Paths
         {
             get { return buildPaths.Count; }
@@ -36,7 +30,8 @@ namespace Rails.Systems
         {
             get { return currentNode; }
             set { SetNode(value); }
-        }
+        }  
+       
         public static Route moveRoute;
         public static List<Route> buildRoutes;
         #endregion
@@ -201,19 +196,6 @@ namespace Rails.Systems
         #endregion
 
         #region Other
-        public static void InitializePlayerMove()
-        {
-            manager.Player.movePointsLeft = manager.Rules.TrainSpecs[manager.Player.trainType].movePoints;
-            if (manager.Player.movePath.Count == 0)
-            {
-                manager.Player.movePath.Add(manager.Player.trainPosition);
-                currentNode = 1;
-            }
-            else
-                currentNode = manager.Player.movePath.Count;
-
-            PlannedRoute();
-        }
         public static TrainCityInteraction GetStop(NodeId id)
         {
             var currentCityId = manager.MapData.Nodes[id.GetSingleId()].CityID;
@@ -237,14 +219,10 @@ namespace Rails.Systems
                     // Select any good that is from the city, and that
                     // the player can currently pick up
                     Goods =
-                            manager.Player.goodsCarried.Count < manager.Rules.TrainSpecs[manager.Player.trainType].goodsTotal
-                            ?
                             manager.MapData.GetGoodsAtCity(manager.MapData.Cities[node.CityID])
                                 .Select(gi => manager.MapData.Goods[gi])
                                 .Where(g => GoodsBank.GetGoodQuantity(g) > 0)
-                                .ToArray()
-                        :
-                        new Good[0],
+                                .ToArray(),
 
                     PlayerIndex = manager.CurrentPlayer,
                     TrainPosition = id,
@@ -275,14 +253,20 @@ namespace Rails.Systems
 
                 for (int i = 0; i < moveRoute.Distance; ++i)
                 {
+                    if (moveRoute.Nodes.Take(i).Contains(moveRoute.Nodes[i]))
+                        continue;
+
                     // Highlight the Route
                     var trackToken = GameGraphics.GetTrackToken(moveRoute.Nodes[i], moveRoute.Nodes[i + 1]);
 
                     if (i < movePoints)
-                        trackToken.Color *= 4.0f;
+                        trackToken.Color = trackToken.PrimaryColor * 4.0f;
                     else
-                        trackToken.Color *= 2.0f;
+                        trackToken.Color = trackToken.PrimaryColor * 2.0f;
                 }
+
+                CurrentCost = moveRoute.Cost;
+                OnCurrentCostChange?.Invoke();
             }
             return;
         }
@@ -300,9 +284,25 @@ namespace Rails.Systems
                 buildRoutes = Pathfinding.CheapestBuilds(buildPaths);
 
                 foreach (var route in buildRoutes)
+                {
                     GameGraphics.GeneratePotentialTrack(route, Color.yellow);
+                }
+
+                CurrentCost = buildRoutes.Sum(br => br.Cost);
+                OnCurrentCostChange?.Invoke();
             }
             return;
+        }
+
+        public static void CommitTracks()
+        {
+            foreach (Route route in buildRoutes)
+            {
+                // Check to make sure we're not over the spending limit.
+                GameGraphics.CommitPotentialTrack(route, manager.Player.color);
+            }
+            CurrentCost = 0;
+            OnCurrentCostChange?.Invoke();
         }
         #endregion
 

@@ -36,23 +36,20 @@ namespace Rails {
         }
         // Builds the track.
         public static int BuildTrack(TrackGraph<int> Tracks, List<Route> routes, 
-            int player, Color playerColor, int spendLimit)
+            int player)
         {
-            int totalCost = 0;
-            foreach (Route route in routes) {
-                // Check to make sure we're not over the spending limit.
-                totalCost += route.Cost;
-                if (totalCost > spendLimit)
-                    break;
-
-                GameGraphics.CommitPotentialTrack(route, playerColor);
-
+            int totalCost = PathPlanner.CurrentCost;
+            foreach (var route in routes)
+            {
                 for (int i = 0; i < route.Distance; ++i)
                 {
-                    if (!Tracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i+1], out var e) || e == -1)
+                    if (!Tracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var e) || e == -1)
                         Tracks[route.Nodes[i], route.Nodes[i + 1]] = player;
                 }
             }
+
+            PathPlanner.CommitTracks();
+
             return totalCost;
         }
         // Upgrades the train to new if possible.
