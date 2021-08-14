@@ -141,11 +141,9 @@ Thanks to the [Unity development team](https://unity.com/) for creating the Unit
 
 <br>
 
-## License
+## Demo Video
 
-This work is made available under the "MIT License". Please
-see the [LICENSE](./LICENSE) in this distribution for license
-terms.
+Please [click here](https://drive.google.com/file/d/1wDlqFxuudIed_5_tMfCL8w4oI_okC6Ot/view?usp=sharing) to see our project video.
 
 ## Work Summary
 
@@ -173,3 +171,10 @@ Christian Schmid
 - Card Deck system
 - Train movement system
 - Test system / writing
+
+
+## License
+
+This work is made available under the "MIT License". Please
+see the [LICENSE](./LICENSE) in this distribution for license
+terms.
