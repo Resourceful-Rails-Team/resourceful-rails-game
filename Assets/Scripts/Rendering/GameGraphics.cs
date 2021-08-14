@@ -28,7 +28,7 @@ namespace Rails.Rendering
         // A collection of all track GameTokens on the map
         private static TrackGraph<GameToken> _trackTokens;
         // A collection of route GameTokens
-        private static Dictionary<Route, List<GameToken>> _potentialTracks;
+        private static TrackGraph<Route> _potentialTracks;
 
         private static GameToken[] _playerTrains;
 
@@ -49,7 +49,7 @@ namespace Rails.Rendering
         {
             _mapTokens = new Dictionary<NodeId, GameToken>();
             _trackTokens = new TrackGraph<GameToken>();
-            _potentialTracks = new Dictionary<Route, List<GameToken>>();
+            _potentialTracks = new TrackGraph<Route>();
 
             _trackPool = new ObjectPool<GameToken>(mapData.DefaultPlayerTemplate.RailToken, 20, 20);
             _currentlyRunningTrains = new HashSet<int>();
@@ -94,8 +94,8 @@ namespace Rails.Rendering
                 );
 
                 if (
-                    (!_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edge) || edge == null)
-                    && !route.Nodes.Take(i).Contains(route.Nodes[i + 1])
+                    (!_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edge) || edge == null) &&
+                    (!_potentialTracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edgePotential) || edgePotential == null)
                 ) {
                     // Setup the track GameToken
                     var trackToken = _trackPool.Retrieve();
@@ -104,11 +104,11 @@ namespace Rails.Rendering
 
                     // Highlight the token and add it to the token list
                     trackToken.Color = highlightColor;
-                    trackTokens.Add(trackToken);
+
+                    _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = trackToken;
+                    _potentialTracks[route.Nodes[i], route.Nodes[i + 1]] = route;
                 }
             }
-
-            _potentialTracks[route] = trackTokens;
         }
 
         /// <summary>
@@ -119,14 +119,16 @@ namespace Rails.Rendering
         {
             if (route == null) return;
 
-            // If the route exists in the current potential tracks,
-            // return all tracks to the ObjectPool
-            if (_potentialTracks.TryGetValue(route, out var tokens))
+            for (int i = 0; i < route.Distance; ++i)
             {
-                foreach (var token in tokens)
-                    _trackPool.Return(token);
-
-                _potentialTracks.Remove(route);
+                // If the route exists in the current potential tracks,
+                // return all tracks to the ObjectPool
+                if (_potentialTracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i+1], out var edge) && edge != null)
+                {
+                    _trackPool.Return(_trackTokens[route.Nodes[i], route.Nodes[i+1]]);
+                    _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = null;
+                    _potentialTracks[route.Nodes[i], route.Nodes[i+1]] = null;
+                }
             }
         }
 
@@ -141,19 +143,13 @@ namespace Rails.Rendering
 
             // If the route exists in the current potential tracks,
             // Add its GameTokens to the track token map.
-            if (_potentialTracks.TryGetValue(route, out var tokens))
+            for (int i = 0; i < route.Distance; ++i)
             {
-                int tokenIndex = 0;
-                for (int i = 0; i < route.Distance; ++i)
+                if (_potentialTracks.TryGetEdgeValue(route.Nodes[i], route.Nodes[i+1], out var edge) && edge != null)
                 {
-                    if (!_trackTokens.TryGetEdgeValue(route.Nodes[i], route.Nodes[i + 1], out var edge) || edge == null)
-                    {
-                        _trackTokens[route.Nodes[i], route.Nodes[i + 1]] = tokens[tokenIndex];
-                        tokens[tokenIndex].PrimaryColor = color;
-                        ++tokenIndex;
-                    }
+                    _trackTokens[route.Nodes[i], route.Nodes[i + 1]].PrimaryColor = color;
+                    _potentialTracks[route.Nodes[i], route.Nodes[i + 1]] = null;
                 }
-                _potentialTracks.Remove(route);
             }
         }
 
