@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* This work is released under the MIT license.
+     Please see the file LICENSE in this distribution for
+     license terms. */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +11,9 @@ using UnityEngine;
 
 namespace Rails.Collections
 {
+    // The PriorityQueue data structure in was adapted from the algorithm of
+    // on https://www.geeksforgeeks.org/difference-between-bfs-and-dfs/)
+    
     /// <summary>
     /// A collection of ordered items. Allows insertion, peeking
     /// and popping the minimum weight item off the queue.
