@@ -233,7 +233,7 @@ namespace Rails.Rendering
         #endregion
 
         #region Private Methods
-        /// Instantiates the MapData board, and sets it to the correct size
+        // Instantiates the MapData board, and sets it to the correct size
         private static void GenerateBoard(MapData mapData)
         {
             var board = Instantiate(mapData.Board);
@@ -242,7 +242,7 @@ namespace Rails.Rendering
             board.transform.localScale = Vector3.one * Manager.Singleton.WSSize;
         }
 
-        /// Instantiates all MapData nodes
+        // Instantiates all MapData nodes
         private static void GenerateNodes(MapData mapData)
         {
             // Cycle through all NodeIds

@@ -8,7 +8,6 @@ namespace Rails.Editor
     [CustomEditor(typeof(Manager))]
     public class ManagerEditor : UnityEditor.Editor
     {
-        private int _mapSize = 64;
 
         public override void OnInspectorGUI()
         {

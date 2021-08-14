@@ -1,18 +1,18 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine;
-using Rails.ScriptableObjects;
-using System.Collections.ObjectModel;
-using Rails.Rendering;
-using Rails.Controls;
-using Rails.Data;
-using Rails.Systems;
-using TMPro;
-using Rails.UI;
 using System.Linq;
-using Assets.Scripts.Data;
-using Rails.Collections;
 using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using UnityEngine;
+using TMPro;
+using Rails.Controls;
+using Rails.Collections;
+using Rails.Data;
+using Rails.Rendering;
+using Rails.ScriptableObjects;
+using Rails.Systems;
+using Rails.UI;
+using Assets.Scripts.Data;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -87,15 +87,20 @@ namespace Rails
         /// </summary>
         public const int MaxGoods = 64;
         /// <summary>
-        /// Controls the spacing between nodes in terms of Unity units.
-        /// </summary>
-        public float WSSize = 1f;
-        /// <summary>
         /// The value representing a MajorCity NodeType.
         /// Used when setting down initial MajorCity tracks,
         /// Tracks values and ghost tracks.
         /// </summary>
         public const int MajorCityIndex = -2;
+
+        /// <summary>
+        /// Controls the spacing between nodes in terms of Unity units.
+        /// </summary>
+        public float WSSize = 1f;
+        /// <summary>
+        /// For creating all of the city labels.
+        /// </summary>
+        public CityLabel _cityLabelPrefab;
 
         /// <summary>
         /// A collection of game rules.
@@ -106,6 +111,10 @@ namespace Rails
         /// </summary>
         [SerializeField]
         public MapData MapData;
+        /// <summary>
+        /// Rules set at the start of the game.
+        /// </summary>
+        public GameStartRules _startRules;
         /// <summary>
         /// The trains that players can use.
         /// </summary>
@@ -118,10 +127,6 @@ namespace Rails
         /// UI window that shows stats of the current player.
         /// </summary>
         public GameHUDManager GameHUDObject;
-        /// <summary>
-        /// Rules set at the start of the game.
-        /// </summary>
-        public GameStartRules _startRules;
         /// <summary>
         /// Stores info for all players.
         /// </summary>
@@ -156,6 +161,10 @@ namespace Rails
         /// </summary>
         private static TrackGraph<int> Tracks = new TrackGraph<int>(-1);
         /// <summary>
+        /// For rotating the labels so they stay in line with the camera.
+        /// </summary>
+        private List<CityLabel> cityLabels;
+        /// <summary>
         /// A reference to the current players info.
         /// </summary>
         private PlayerInfo player;
@@ -167,7 +176,13 @@ namespace Rails
         /// Phase of the turn of current player.
         /// </summary>
         private Phase currentPhase;
+        /// <summary>
+        /// Token that is to be highlighted when selected.
+        /// </summary>
         private GameToken _highlightToken;
+        /// <summary>
+        /// To stop the same train from moving multiple times at once.
+        /// </summary>
         private bool _movingTrain = false;
         #endregion
 
@@ -202,12 +217,14 @@ namespace Rails
             PathPlanner.Initialize();
             Deck.Initialize();
             GoodsBank.Initialize();
+            GenerateCityLabels();
             SetupMajorCityTracks();
             GameLoopSetup();
         }
 
         private void Update()
         {
+
             _highlightToken?.ResetColor();
             var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
 
@@ -216,11 +233,19 @@ namespace Rails
                 highlightToken.Color = Color.yellow;
                 _highlightToken = highlightToken;
             }
+
+            RotateCityLabels();
+            Loop();
+        }
+
+        private void Loop()
+        {
             if (!_movingTrain)
             {
                 if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds)
                 {
                     Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
+
                     if (currentPhase == Phase.Move)
                     {
                         if (!player.trainPlaced)
@@ -392,6 +417,7 @@ namespace Rails
 
             return true;
         }
+
         // Builds the track between the nodes in path.
         public bool BuildTrack()
         {
@@ -410,6 +436,7 @@ namespace Rails
             EndTurn();
             return true;
         }
+
         // Upgrades the player's train.
         public bool UpgradeTrain(int choice)
         {
@@ -446,6 +473,7 @@ namespace Rails
 
             return city;
         }
+
         // Ends the Move phase prematurely.
         public void EndMove()
         {
@@ -455,6 +483,7 @@ namespace Rails
             PathPlanner.CurrentNode = 0;
             return;
         }
+
         #endregion
 
         #region Private
@@ -490,6 +519,35 @@ namespace Rails
             // Activate first turn panel.
             PhasePanels[1].SetActive(true);
         }
+
+        /// <summary>
+        /// Sets up city labels.
+        /// </summary>
+        private void GenerateCityLabels()
+        {
+            cityLabels = new List<CityLabel>();
+            foreach (City city in MapData.Cities)
+            {
+                Vector3 pos = Utilities.GetPosition(MapData.LocationsOfCity(city)[0]);
+                pos.y += 1;
+                CityLabel lab = Instantiate(_cityLabelPrefab);
+                lab.Set(pos, city);
+                cityLabels.Add(lab);
+            }
+            return;
+        }
+
+        /// <summary>
+        /// Rotates the labels each frame so they're readable.
+        /// </summary>
+        private void RotateCityLabels()
+        {
+            foreach (CityLabel lab in cityLabels)
+            {
+                lab.transform.rotation = Camera.main.transform.rotation;
+            }
+        }
+
         /// <summary> 
         /// Ends the turn and changes phase.
         /// </summary>
@@ -517,6 +575,7 @@ namespace Rails
 
             return;
         }
+        
         /// <summary>
         /// Sets up the tracks that are automatically assigned to
         /// a Major City
@@ -544,6 +603,10 @@ namespace Rails
                 }
             }
         }
+
+        /// <summary>
+        /// Handles transactions when dropping off or picking up goods.
+        /// </summary>
         private void CompleteCityTransaction(TrainCityInteractionResult result)
         {
             var playerCityId = MapData.Nodes[Player.trainPosition.GetSingleId()].CityId;
@@ -568,7 +631,6 @@ namespace Rails
             }
             OnPlayerInfoUpdate?.Invoke(this);
         }
-
 
         #endregion
     }
