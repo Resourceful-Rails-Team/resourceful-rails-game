@@ -215,7 +215,7 @@ namespace Rails.Collections
         /// <param name="subgraphEdgeValue">The edge value each subgraph should match.</param>
         /// <param name="function">The function used to determine the resulting HashSet values per subgraph.</param>
         /// <returns>A collection of HashSets, each with vertex values run through the given function.</returns>
-        public HashSet<U>[] GetConnected<U>(T subgraphEdgeValue, Func<NodeId, U> function)
+        public HashSet<U>[] GetConnected<U>(Func<NodeId, U> function, T matchEdgeValue, params T[] connectEdgeValues)
         {
             var groups = new List<HashSet<U>>();
 
@@ -228,7 +228,7 @@ namespace Rails.Collections
                 {
                     if (edges[i].Equals(_defaultEdgeValue))
                         continue;
-                    if (!edges[i].Equals(subgraphEdgeValue))
+                    if (!edges[i].Equals(matchEdgeValue) && !connectEdgeValues.Any(v => edges[i].Equals(v)))
                         continue;
 
                     var rootEdge = new GraphEdge(id, Utilities.PointTowards(id, (Cardinal)i));
@@ -236,14 +236,19 @@ namespace Rails.Collections
                         continue;
 
                     // A new, unique group has been found 
-                    groups.Add(GenerateSubgraphVertices(subgraphEdgeValue, function, rootEdge, visitedEdges));
+                    groups.Add(GenerateSubgraphVertices(function, rootEdge, visitedEdges, matchEdgeValue, connectEdgeValues));
                 }
             }
             return groups.ToArray();
         }
 
-        private HashSet<U> GenerateSubgraphVertices<U>(T subgraphEdgeValue, Func<NodeId, U> query, GraphEdge rootEdge, HashSet<GraphEdge> visitedEdges)
-        {
+        private HashSet<U> GenerateSubgraphVertices<U>(
+            Func<NodeId, U> query, 
+            GraphEdge rootEdge, 
+            HashSet<GraphEdge> visitedEdges,
+            T matchEdgeValue, 
+            params T[] connectEdgeValues
+        ) {
             var group = new HashSet<U>();
             var edgeStack = new Stack<GraphEdge>();
             edgeStack.Push(rootEdge);
@@ -253,8 +258,11 @@ namespace Rails.Collections
                 var edge = edgeStack.Pop();
                 visitedEdges.Add(edge);
 
-                group.Add(query(edge.First));
-                group.Add(query(edge.Second));
+                if (this[edge.First, edge.Second].Equals(matchEdgeValue))
+                {
+                    group.Add(query(edge.First));
+                    group.Add(query(edge.Second));
+                }
 
                 for (Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                 {
@@ -272,7 +280,7 @@ namespace Rails.Collections
                             continue; 
                         if (adjEdgeValue.Equals(_defaultEdgeValue))
                             continue;
-                        if (!adjEdgeValue.Equals(subgraphEdgeValue))
+                        if (!adjEdgeValue.Equals(matchEdgeValue) && !connectEdgeValues.Any(v => adjEdgeValue.Equals(v)))
                             continue;
 
                         edgeStack.Push(adjacent);

@@ -620,6 +620,11 @@ namespace Rails
         /// </summary>
         private void EndTurn()
         {
+            if (PlayerWon())
+            {
+                OnGameOver?.Invoke(this, CurrentPlayer);
+                return;
+            }
             if (currentPhase < Phase.Move)
             {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
@@ -628,14 +633,8 @@ namespace Rails
             {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             }
-
             if (currentPhase >= Phase.Move)
             {
-                if (PlayerWon())
-                {
-                    OnGameOver?.Invoke(this, CurrentPlayer);
-                    return;
-                }
 
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
                 OnPhaseChange?.Invoke(this);
@@ -738,7 +737,7 @@ namespace Rails
         {
             var connected =
                 Tracks.GetConnected(
-                    currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityID
+                    (id) => MapData.Nodes[id.GetSingleId()].CityID, currentPlayer, MajorCityIndex
                 );
 
             if(connected.Length > 0)
@@ -751,7 +750,7 @@ namespace Rails
 
             return 0;
         }
-        private bool PlayerWon() => Player.majorCities > Rules.WinMajorCities && Player.money >= Rules.WinMoney;
+        private bool PlayerWon() => Player.majorCities >= Rules.WinMajorCities && Player.money >= Rules.WinMoney;
 
         #endregion
     }

@@ -139,15 +139,15 @@ namespace Rails
 
             graph[new NodeId(18, 8), Cardinal.NE] = 10;
 
-            Assert(graph.GetConnected(7, id => id).Length == 1);
-            Assert(graph.GetConnected(8, id => id).Length == 2);
-            Assert(graph.GetConnected(9, id => id).Length == 3);
-            Assert(graph.GetConnected(10, id => id).Length == 4);
+            Assert(graph.GetConnected(id => id, 7).Length == 1);
+            Assert(graph.GetConnected(id => id, 8).Length == 2);
+            Assert(graph.GetConnected(id => id, 9).Length == 3);
+            Assert(graph.GetConnected(id => id, 10).Length == 4);
 
-            Assert(graph.GetConnected(7, id => id).Sum(hs => hs.Count) == 2);
-            Assert(graph.GetConnected(8, id => id).Sum(hs => hs.Count) == 4);
-            Assert(graph.GetConnected(9, id => id).Sum(hs => hs.Count) == 6);
-            Assert(graph.GetConnected(10, id => id).Sum(hs => hs.Count) == 14);
+            Assert(graph.GetConnected(id => id, 7).Sum(hs => hs.Count) == 2);
+            Assert(graph.GetConnected(id => id, 8).Sum(hs => hs.Count) == 4);
+            Assert(graph.GetConnected(id => id, 9).Sum(hs => hs.Count) == 6);
+            Assert(graph.GetConnected(id => id, 10).Sum(hs => hs.Count) == 14);
         }
         #endregion
 
