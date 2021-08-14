@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 namespace Rails.UI
 {
+    /// <summary>
+    /// UI interop class that links the CardItem prefab's components into one managed object.
+    /// </summary>
     public class CardItem : MonoBehaviour
     {
         public TMPro.TMP_Text[] IconTooltipTexts;

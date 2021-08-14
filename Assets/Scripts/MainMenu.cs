@@ -36,10 +36,24 @@ namespace Rails
         #region Private Vars
 
 
-
+        /// <summary>
+        /// Number of players in create game screen.
+        /// </summary>
         private int _numberOfPlayers = 1;
+
+        /// <summary>
+        /// State of randomize toggle on create game screen.
+        /// </summary>
         private bool _randomizeOrder = false;
+
+        /// <summary>
+        /// Array of start player infos created by the create game screen.
+        /// </summary>
         private StartPlayerInfo[] _players;
+
+        /// <summary>
+        /// Array of UI input items per player created by the create game screen.
+        /// </summary>
         private ColorNameInputItem[] _playerInputs;
 
         #endregion
@@ -48,8 +62,11 @@ namespace Rails
 
         private void Start()
         {
+            // Initialize player count, randomize toggle
             PlayerCountInput.text = _numberOfPlayers.ToString();
             PlayerRandomizeOrderToggle.isOn = _randomizeOrder;
+
+            // Initialize player info
             CreateGame_FixPlayerInfo();
         }
 
