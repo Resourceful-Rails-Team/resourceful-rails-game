@@ -613,8 +613,9 @@ namespace Rails
                 currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityId
             ).Any(
                  g => g
+                .Where(id => id != -1)
                 .Select(id => MapData.GetCityType(MapData.Cities[id]) == NodeType.MajorCity)
-                .Count() > Rules.WinMajorCities // Accomodate for a MajorCity index of -1 (No City)
+                .Count() >= Rules.WinMajorCities
             );
         }
         private bool PlayerWon() => Player.hasMajorCities && Player.money >= Rules.WinMoney;
