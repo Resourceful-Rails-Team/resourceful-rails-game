@@ -54,7 +54,6 @@ namespace Rails.Systems
             var card = _drawPile[index];
 
             _drawPile.RemoveAt(index);
-            Debug.Log(card.ToString());
             return card;
         }
 

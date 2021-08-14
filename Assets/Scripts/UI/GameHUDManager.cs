@@ -26,6 +26,7 @@ namespace Rails.UI
         public TrackItem TrackItemPrefab;
         public Transform TracksRoot;
         public Transform BuildInfoPanel;
+        public Transform UpgradePanel;
 
         [Header("Track Select/Delete")]
         public TrackSelectDeleteItem TrackSelectDeleteItemPrefab;
@@ -302,7 +303,78 @@ namespace Rails.UI
 
         public void UpgradeTrain()
         {
-            Manager.Singleton.UpgradeTrain(0);
+            const string button1 = "Button 1";
+            const string button2 = "Button 2";
+
+            switch (Manager.Singleton.Player.trainType)
+            {
+                // Super
+                case 3:
+                    // Do nothing since player is fully upgraded.
+                    return;
+
+                // Fast or Heavy
+                case 1:
+                case 2:
+                    int t1 = 3;
+                    // Find the correct buttons.
+                    Button b1 = UpgradePanel.transform.Find(button1).GetComponent<Button>();
+                    Button b2 = UpgradePanel.transform.Find(button2).GetComponent<Button>();
+
+                    // Remove previous listeners
+                    b1.onClick.RemoveAllListeners();
+                    b2.onClick.RemoveAllListeners();
+
+                    // Add events to trigger upgrading.
+                    b1.onClick.AddListener(delegate { UpgradeTrain(t1); });
+
+                    // Change the text to match the train specs.
+                    b1.GetComponentInChildren<TMPro.TMP_Text>().text = Manager.Singleton.Rules.TrainSpecs[t1].ToString();
+
+                    // Set the correct elements to be active.
+                    b1.gameObject.SetActive(true);
+                    b2.gameObject.SetActive(false);
+                    UpgradePanel.gameObject.SetActive(true);
+                    break;
+
+                // Standard
+                case 0:
+                    t1 = 1;
+                    int t2 = 2;
+                    // Find the correct buttons.
+                    b1 = UpgradePanel.transform.Find(button1).GetComponent<Button>();
+                    b2 = UpgradePanel.transform.Find(button2).GetComponent<Button>();
+
+                    // Remove previous listeners
+                    b1.onClick.RemoveAllListeners();
+                    b2.onClick.RemoveAllListeners();
+
+                    // Add events to trigger upgrading.
+                    b1.onClick.AddListener(delegate { UpgradeTrain(t1); });
+                    b2.onClick.AddListener(delegate { UpgradeTrain(t2); });
+
+                    // Change the text to match the train specs.
+                    b1.GetComponentInChildren<TMPro.TMP_Text>().text = Manager.Singleton.Rules.TrainSpecs[t1].ToString();
+                    b2.GetComponentInChildren<TMPro.TMP_Text>().text = Manager.Singleton.Rules.TrainSpecs[t2].ToString();
+
+                    // Set the correct elements to be active.
+                    b1.gameObject.SetActive(true);
+                    b2.gameObject.SetActive(true);
+                    UpgradePanel.gameObject.SetActive(true);
+                    break;
+            }
+            return;
+        }
+
+        public void UpgradeCancel()
+        {
+            UpgradePanel.gameObject.SetActive(false);
+        }
+
+        public void UpgradeTrain(int value)
+        {
+            if (Manager.Singleton.UpgradeTrain(value))
+                UpgradePanel.gameObject.SetActive(false);
         }
 
         #endregion

@@ -116,10 +116,6 @@ namespace Rails
         /// </summary>
         public GameStartRules _startRules;
         /// <summary>
-        /// The trains that players can use.
-        /// </summary>
-        public TrainData[] trainData;
-        /// <summary>
         /// UI windows that show the controls for each phase.
         /// </summary>
         public GameObject[] PhasePanels;
@@ -471,12 +467,10 @@ namespace Rails
         // Upgrades the player's train.
         public bool UpgradeTrain(int choice)
         {
-            if (player.money < Rules.TrainUpgrade)
-                return false;
-
-            GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
-            EndTurn();
-            return true;
+            bool success = GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
+            if (success)
+                EndTurn();
+            return success;
         }
 
         // Places the current player's train at position.
@@ -601,7 +595,7 @@ namespace Rails
         /// </summary>
         private void EndTurn()
         {
-            if (currentPhase < 0)
+            if (currentPhase < Phase.Move)
             {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
             }
@@ -609,11 +603,19 @@ namespace Rails
             {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             }
-            if (currentPhase >= 0)
+
+            if (currentPhase >= Phase.Move)
             {
+                if (PlayerWon())
+                {
+                    // TODO: Trigger the end of the game from GameHUDManager.
+                    return;
+                }
+
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
                 OnPhaseChange?.Invoke(this);
             }
+
             player = Players[currentPlayer];
             OnPlayerInfoUpdate?.Invoke(this);
             OnTurnEnd?.Invoke(this);
