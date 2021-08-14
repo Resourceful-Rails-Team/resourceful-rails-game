@@ -116,6 +116,7 @@ namespace Rails.UI
         private List<TrackSelectDeleteItem> _uiTrackSelectDeleteItems = new List<TrackSelectDeleteItem>();
         private List<TrackSelectDeleteItem> _uiMoveTrackItems = new List<TrackSelectDeleteItem>();
         private TrainCityInteraction _cityPickDropInteraction;
+        private IEnumerator _phaseTurnTransitionCoroutine;
 
         private class BuildMarkerContainer
         {
@@ -940,7 +941,11 @@ namespace Rails.UI
 
         private void OpenPhaseTurnTransition(string title, PlayerInfo player, string subheading, float duration = 3f)
         {
-            StartCoroutine(OpenPhaseTurnTransition_coroutine(title, player, subheading, duration));
+            // stop coroutine if already exists
+            if (_phaseTurnTransitionCoroutine != null)
+                StopCoroutine(_phaseTurnTransitionCoroutine);
+
+            StartCoroutine(_phaseTurnTransitionCoroutine = OpenPhaseTurnTransition_coroutine(title, player, subheading, duration));
         }
 
         private IEnumerator OpenPhaseTurnTransition_coroutine(string title, PlayerInfo player, string subheading, float duration)
@@ -957,6 +962,23 @@ namespace Rails.UI
 
             // wait for duration
             yield return new WaitForSeconds(duration);
+
+            // close panel if not already closed
+            if (PhaseTurnTransitionPanel.gameObject.activeSelf)
+            {
+                // close panel
+                PhaseTurnTransitionPanel.gameObject.SetActive(false);
+
+                // enable gameinput
+                GameInput.CurrentContext = GameInput.Context.Game;
+            }
+        }
+
+        public void PhaseTurnTransitionForceStop()
+        {
+            // stop existing coroutine
+            if (_phaseTurnTransitionCoroutine != null)
+                StopCoroutine(_phaseTurnTransitionCoroutine);
 
             // close panel
             PhaseTurnTransitionPanel.gameObject.SetActive(false);
