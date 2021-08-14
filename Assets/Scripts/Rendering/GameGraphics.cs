@@ -265,7 +265,7 @@ namespace Rails.Rendering
                         if (node.Type == NodeType.MajorCity)
                         {
                             var neighborNodes = mapData.GetNeighborNodes(nodeId);
-                            if (neighborNodes.All(nn => nn.Item2.CityId == node.CityId && nn.Item2.Type == NodeType.MajorCity))
+                            if (neighborNodes.All(nn => nn.Item2.CityID == node.CityID && nn.Item2.Type == NodeType.MajorCity))
                             {
                                 var token = Instantiate(modelToken, _singleton.transform);
                                 token.transform.position = pos + new Vector3(0, 0.1f, 0);

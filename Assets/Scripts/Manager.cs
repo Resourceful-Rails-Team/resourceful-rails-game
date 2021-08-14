@@ -304,9 +304,9 @@ namespace Rails
                     Gizmos.DrawCube(pos, Vector3.one * WSSize * 0.3f);
 
                     //
-                    if (node.CityId >= 0 && node.CityId < MapData.Cities.Count)
+                    if (node.CityID >= 0 && node.CityID < MapData.Cities.Count)
                     {
-                        var city = MapData.Cities[node.CityId];
+                        var city = MapData.Cities[node.CityID];
                         if (node.Type == NodeType.MajorCity || node.Type == NodeType.MediumCity || node.Type == NodeType.SmallCity)
                         {
 
@@ -393,7 +393,7 @@ namespace Rails
                 // Determine if the player is at a city, and that it's not a major
                 // city it has already visited
                 var stop = PathPlanner.GetStop(moveRoute.Nodes[i + 1]);
-                var previousCityIndex = MapData.Nodes[moveRoute.Nodes[i].GetSingleId()].CityId;
+                var previousCityIndex = MapData.Nodes[moveRoute.Nodes[i].GetSingleId()].CityID;
             
                 // If so, invoke the UI to respond to dropoff / pickup
                 if (stop != null && MapData.Cities.IndexOf(stop.City) != previousCityIndex)
@@ -420,16 +420,20 @@ namespace Rails
         }
 
         // Discards the player's hand.
-        public bool DiscardHand()
+        public void DiscardHand()
         {
             // You can't discard unless you haven't moved yet.
             if (player.movePointsLeft != Rules.TrainSpecs[player.trainType].movePoints)
-                return false;
+            {
+                Debug.Log("You cannot discard after moving the train.");
+                return;
+            }
 
             // Remove and refill players' hand
             foreach (DemandCard card in player.demandCards) {
                 Deck.Discard(card);
             }
+            player.demandCards.Clear();
             for (int c = 0; c < Rules.HandSize; c++)
             {
                 player.demandCards.Add(Deck.DrawOne());
@@ -437,8 +441,6 @@ namespace Rails
             // Ends the turn.
             GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             OnPlayerInfoUpdate?.Invoke(this);
-
-            return true;
         }
 
         // Builds the track between the nodes in path.
@@ -563,7 +565,7 @@ namespace Rails
                 {
                     cityNodeId = MapData.LocationsOfCity(city)
                         .First(x => MapData.GetNeighborNodes(x).
-                        All(nn => nn.Item2.CityId == CityId && nn.Item2.Type == NodeType.MajorCity));
+                        All(nn => nn.Item2.CityID == CityId && nn.Item2.Type == NodeType.MajorCity));
 
                 }
 
@@ -654,7 +656,7 @@ namespace Rails
         /// </summary>
         private void CompleteCityTransaction(TrainCityInteractionResult result)
         {
-            var playerCityId = MapData.Nodes[Player.trainPosition.GetSingleId()].CityId;
+            var playerCityId = MapData.Nodes[Player.trainPosition.GetSingleId()].CityID;
 
             if (result.ChosenCards != null)
             {
@@ -686,7 +688,7 @@ namespace Rails
         {
             return 
                 Tracks.GetConnected(
-                    currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityId
+                    currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityID
                 ).Max(
                     g => g
                     .Where(id => id != -1)

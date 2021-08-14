@@ -73,7 +73,7 @@ namespace Rails.ScriptableObjects
         public Tuple<NodeId, Node>[] GetNeighborNodes(NodeId nodeId)
         {
             var node = Nodes[nodeId.GetSingleId()];
-            var cityId = Nodes[nodeId.GetSingleId()].CityId;
+            var cityId = Nodes[nodeId.GetSingleId()].CityID;
             var cardinalRange = Enumerable.Range((int)Cardinal.N, (int)Cardinal.MAX_CARDINAL);
 
             return
@@ -95,7 +95,7 @@ namespace Rails.ScriptableObjects
                 NodeType.Clear | NodeType.Mountain | NodeType.Water => null,
                 _ => Nodes
                     .Where(n => n.Type == nodeType)
-                    .Select(n => n.CityId)
+                    .Select(n => n.CityID)
                     .Select(i => Cities[i]).ToArray()
             };
         
@@ -109,7 +109,7 @@ namespace Rails.ScriptableObjects
             .Where(i => 
                 (Nodes[i].Type == NodeType.SmallCity ||
                  Nodes[i].Type == NodeType.MediumCity || 
-                 Nodes[i].Type == NodeType.MajorCity) && Cities[Nodes[i].CityId].Goods
+                 Nodes[i].Type == NodeType.MajorCity) && Cities[Nodes[i].CityID].Goods
                     .Any(g => g.x == Goods.IndexOf(good)
             ))
             .Select(i => NodeId.FromSingleId(i))
@@ -122,7 +122,7 @@ namespace Rails.ScriptableObjects
         /// <returns>All `NodeId`s of the locations of the `City`</returns>
         public NodeId[] LocationsOfCity(City city) 
             => Enumerable.Range(0, Nodes.Length)
-            .Where(i => Nodes[i].IsCity() && Nodes[i].CityId == Cities.IndexOf(city))
+            .Where(i => Nodes[i].IsCity() && Nodes[i].CityID == Cities.IndexOf(city))
             .Select(i => NodeId.FromSingleId(i))
             .ToArray();
 
@@ -147,8 +147,8 @@ namespace Rails.ScriptableObjects
                 _cityTypes = new Dictionary<City, NodeType>();
                 for (int i = 0; i < Manager.Size * Manager.Size; ++i)
                 {
-                    if (Nodes[i].CityId != -1)
-                        _cityTypes[Cities[Nodes[i].CityId]] = Nodes[i].Type;
+                    if (Nodes[i].CityID != -1)
+                        _cityTypes[Cities[Nodes[i].CityID]] = Nodes[i].Type;
                 }
             }
 
