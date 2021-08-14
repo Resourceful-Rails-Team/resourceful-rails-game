@@ -32,6 +32,18 @@ namespace Rails.Data
 		/// </summary>
 		[SerializeField]
 		public int CityId = -1;
+
+		// Hotfix for 0-based city index representation
+		public int CityID 
+        {
+			get
+			{
+				if (Type >= NodeType.SmallCity && Type <= NodeType.MajorCity)
+					return CityId;
+				else
+					return -1;
+			}
+        }
 		
 		public Node(NodeId id)
 		{

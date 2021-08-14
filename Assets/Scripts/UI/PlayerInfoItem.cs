@@ -49,7 +49,7 @@ namespace Rails.UI
                 {
                     Cards[i].gameObject.SetActive(true);
                     var demandCard = player.demandCards[i];
-                    for (int d = 0; d < player.demandCards.Count; d++)
+                    for (int d = 0; d < demandCard.Count(); d++)
                     {
                         Cards[i].SetDemand(d, player.demandCards[i][d]);
                     }
