@@ -585,6 +585,7 @@ namespace Rails.UI
         public void OnUIBuildTrackSelectStart()
         {
             // set selected node to
+            PathPlanner.SetPath(_uiTrackSelectPathIndex);
             PathPlanner.SetNode(_uiTrackSelectPathIndex, 0);
 
             // close
@@ -646,6 +647,7 @@ namespace Rails.UI
                 item.OnTrackSelected += (track) =>
                 {
                     // set selected node to
+                    PathPlanner.SetPath(pathIndex);
                     PathPlanner.SetNode(pathIndex, iRef+1);
 
                     // close
