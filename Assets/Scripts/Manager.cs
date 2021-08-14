@@ -348,48 +348,71 @@ namespace Rails
         #region Public
         // General gameplay methods.
 
-        // Moves the train to final node in path.
+        /// <summary>
+        /// Moves the train via the determined route. The train
+        /// will move as far as it can before ending the player's
+        /// Move phase.
+        /// </summary>
         public void MoveTrain()
         {
             if (!_movingTrain)
                 StartCoroutine(CMoveTrain());
         }
+        /// <summary>
+        /// Coroutine for MoveTrain. Provides graphical representation
+        /// of train movement, and invokes interaction between the train and cities
+        /// </summary>
         private IEnumerator CMoveTrain()
         {
+            // Retrieve the move route from PathPlanner
             var moveRoute = PathPlanner.moveRoute;  
+
+            // Remove the player's current position from
+            // their move path
             Player.movePath.RemoveAt(0);
 
             _movingTrain = true; 
+
+            // While the route still has nodes to traverse
             for(int i = 0; i < moveRoute.Distance; ++i)
             {
+                // Move the player train position, and subtract from their move points
                 Player.trainPosition = moveRoute.Nodes[i + 1];
                 Player.movePointsLeft -= 1;
-
+                
+                // Show the movement of the train, awaiting until it moves to the next node.
                 GameGraphics.MoveTrain(currentPlayer, moveRoute.Nodes[i], moveRoute.Nodes[i + 1]);
                 yield return null;
 
                 while (GameGraphics.IsTrainMoving) yield return null;
-
+                
+                // If the player passes one of its path nodes, remove it
                 if (moveRoute.Nodes[i + 1] == Player.movePath[0])
                     Player.movePath.RemoveAt(0);
-
+                
+                // Determine if the player is at a city, and that it's not a major
+                // city it has already visited
                 var stop = PathPlanner.GetStop(moveRoute.Nodes[i + 1]);
-
-                if (stop != null)
+                var previousCityIndex = MapData.Nodes[moveRoute.Nodes[i].GetSingleId()].CityId;
+            
+                // If so, invoke the UI to respond to dropoff / pickup
+                if (stop != null && MapData.Cities.IndexOf(stop.City) != previousCityIndex)
                 {
                     OnTrainMeetsCityHandler?.Invoke(this, stop);
                     break;
                 }
+
                 if (Player.movePointsLeft == 0) break;
             }
             _movingTrain = false;
-
-            if (Player.trainPosition != Player.movePath.FirstOrDefault())
-                Player.movePath.Insert(0, Player.trainPosition);
-
+            
+            // Reinsert the player's new train position to the beginning of the list
+            Player.movePath.Insert(0, Player.trainPosition);
+            
             PathPlanner.PlannedRoute();
             PathPlanner.SetNode(Player.movePath.Count);
    
+            // End the phase if the player is out of move points
             if (Player.movePointsLeft == 0)
             {
                 EndMove();
@@ -430,6 +453,8 @@ namespace Rails
                 player.money -= GameLogic.BuildTrack(Tracks, PathPlanner.buildRoutes, currentPlayer, player.color, Rules.MaxBuild);
                 OnBuildTrack?.Invoke(this);
             }
+
+            Player.majorCities = CountMajorCities();
 
             // End the turn
             PathPlanner.ClearBuild();
@@ -603,6 +628,8 @@ namespace Rails
             {
                 if (MapData.Nodes[i].Type == NodeType.MajorCity)
                 {
+                    // If the selected Node is a major city, and if no track exists
+                    // with it's Cardinal neighbors, create a track.
                     var nodeId = NodeId.FromSingleId(i);
                     for (var c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                     {
@@ -622,7 +649,8 @@ namespace Rails
         }
 
         /// <summary>
-        /// Handles transactions when dropping off or picking up goods.
+        /// Completes a city transaction, returned by UI, removing the specified loads
+        /// and adding the specified funds to the player's account.
         /// </summary>
         private void CompleteCityTransaction(TrainCityInteractionResult result)
         {
@@ -638,6 +666,11 @@ namespace Rails
                     {
                         income += match.Reward;
                         GoodsBank.GoodDropoff(Player.goodsCarried.IndexOf(match.Good), Player.goodsCarried);
+
+                        // Update the Deck, and the player's demand cards
+                        Deck.Discard(card);
+                        Player.demandCards.Remove(card);
+                        Player.demandCards.Add(Deck.DrawOne());
                     }
                 }
             }
@@ -648,6 +681,20 @@ namespace Rails
             }
             OnPlayerInfoUpdate?.Invoke(this);
         }
+      
+        private int CountMajorCities()
+        {
+            return 
+                Tracks.GetConnected(
+                    currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityId
+                ).Max(
+                    g => g
+                    .Where(id => id != -1)
+                    .Select(id => MapData.GetCityType(MapData.Cities[id]) == NodeType.MajorCity)
+                    .Count()
+                );
+        }
+        private bool PlayerWon() => Player.majorCities > Rules.WinMajorCities && Player.money >= Rules.WinMoney;
 
         #endregion
     }
