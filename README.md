@@ -21,6 +21,9 @@ There are two different turn types for each game that is played - **build turns*
 
 **Goal of the Game** - to connect railroad tracks to a specified amount of major cities, and to have a set amount of cash in hand. If a player meets both these goals, they win.
 
+## How To Player
+See the Release Page to download a version that works with your system. No installation is required. 
+Currently there are two OSs being supported:
 
 ## Build Instructions
 
@@ -47,7 +50,9 @@ https://unity3d.com/unity/whats-new/2020.3.12
 
 ## Running Tests
 
-Resourceful Rails' testing system is directly integrated into the application. To run the tests, follow the instructions on how to build. On step `8`, before you confirm the build settings, click the checkbox labelled "Development Mode". Upon starting the game the console will print a series of test confirmations to the user.
+Resourceful Rails' testing system is directly integrated into the editor. Upon opening Unity, the tests will automatically run, and the results will be displayed in the console at the bottom of the window. The console is the thin stip of gray at the very bottom - clicking it will open the window to display multiple lines.
+
+Please note that the `Deck` test requires that the `GameScene` is loaded. If it displays a failure on any other Scene, this is normal.
 
 ## Inspiration
 
@@ -64,13 +69,13 @@ Resourceful Rails is built using the Unity Engine, with the C# programming langu
 
 ## Development Goals
 
-1. Create a level generator / editor, which allows placement of nodes, cities, mountains, and other areas of interest through Unity's interface. For the creation of MVP map, and future maps created by open source developers. This will be made using Unity's editor tools, which offers a poweful and customizable system of generating a unique user interface to meet the requirements.
+1. **COMPLETE** Create a level generator / editor, which allows placement of nodes, cities, mountains, and other areas of interest through Unity's interface. For the creation of MVP map, and future maps created by open source developers. This will be made using Unity's editor tools, which offers a poweful and customizable system of generating a unique user interface to meet the requirements.
 
-2. Implement game logic, which will dictate the state of a unique game session, including player turns, build vs. delivery stages, pathfinding, and random card drawing.
+2. **COMPLETE WITH SOME BUGS** Implement game logic, which will dictate the state of a unique game session, including player turns, build vs. delivery stages, pathfinding, and random card drawing. Please see the project's issues for 
 
-3. Develop an interactive user interface, that directs players during the game, and handles player tasks, such as building tracks, choosing cards, and directing trains. 
+3. **COMPLETE** Develop an interactive user interface, that directs players during the game, and handles player tasks, such as building tracks, choosing cards, and directing trains. 
 
-4. Create art and assets, and an interface which binds the assets to the game state, for players to see. Art assets include trains, tracks, nodes, and a world map background. Art will be both 3D (for models and nodes) and 2D (for background).
+4. **COMPLETE** Create art and assets, and an interface which binds the assets to the game state, for players to see. Art assets include trains, tracks, nodes, and a world map background. Art will be both 3D (for models and nodes) and 2D (for background).
 
 Refer to the [DESIGN](./DESIGN.md) and [CONTROLS](./CONTROLS.md) documents for more information about the game's rules, UI, controls, components, and objectives.
 
@@ -123,15 +128,16 @@ Thanks to the [Unity development team](https://unity.com/) for creating the Unit
 
 [Click here](https://trello.com/b/gVsj6pIm), to see the project's roadmap. 
 
-| World Creator / Editor        | Art / Assets                   | Game Logic                  | Stretch Goals      |
-| :---                          | :---                           | :---                        | :---               |
-| **Proto** - Map Creation      | **Proto** - Basic 3D Assets    | **Proto** - Pathfinding     | Optional Rules     |
-| **Proto** - Map Serialization | **Proto** - Basic UI           | **Proto** - Level Setup     | Multi. Short Paths |
-| **MVP**   - Map Editing       | **MVP**   - Map Background     | **Proto** - Build Turns     | 2D Billboard Art   | 
-|                               | **MVP**   - Complete 3D Assets | **Proto** - Trains          | Controller Support ||                               | **MVP**   - Complete UI        | **MVP**   - Order Cards     |                    |
-|                               |                                | **MVP**   - Delivery Turns  |                    |
-|                               |                                | **MVP**   - Train Upgrades  |                    |
-|                               |                                | **MVP**   - Determining Win |                    |
+| World Creator / Editor                    | Art / Assets                    | Game Logic                          | Stretch Goals      |
+| :---                                      | :---                            | :---                                | :---               |
+| COMPLETE - Map Creation                   | COMPLETE - Basic 3D Assets      | COMPLETE WITH BUGS - Pathfinding    | Optional Rules     |
+| COMPLETE WITH HOTFIX - Map Serialization  | COMPLETE - Basic UI             | COMPLETE - Level Setup              | Multi. Short Paths |
+| COMPLETE - Map Editing                    | COMPLETE - Map Background       | COMPLETE - Build Turns              | 2D Billboard Art   | 
+|                                           | COMPLETE - Complete 3D Assets   | COMPLETE - Trains                   | Controller Support |
+|                                           | COMPLETE - Complete UI          | COMPLETE - Order Cards              |                    |
+|                                           |                                 | COMPLETE WITH BUGS - Delivery Turns |                    |
+|                                           |                                 | COMPLETE - Train Upgrades           |                    |
+|                                           |                                 | COMPLETE - Determining Win          |                    |
 
 <br>
 
@@ -144,7 +150,7 @@ terms.
 ## Work Summary
 
 Thomas Abel
-- Game design
+- 
 - Writing
 - 3D modelling
 - Goods icons art
