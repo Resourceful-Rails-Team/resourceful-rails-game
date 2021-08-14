@@ -595,7 +595,7 @@ namespace Rails
         /// </summary>
         private void EndTurn()
         {
-            if (currentPhase < 0)
+            if (currentPhase < Phase.Move)
             {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
             }
@@ -604,7 +604,7 @@ namespace Rails
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             }
 
-            if (currentPhase >= 0)
+            if (currentPhase >= Phase.Move)
             {
                 if (PlayerWon())
                 {

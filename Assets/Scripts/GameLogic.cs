@@ -17,23 +17,27 @@ namespace Rails
             // Phase.InitBuild:     inital build turns, normal player order.
             if (currentPhase == Phase.InitBuild)
             {
-                if (currentPlayer == maxPlayers - 1)
+                ++currentPlayer;
+
+                if (currentPlayer == maxPlayers)
+                {
                     currentPhase = Phase.InitBuildRev;
-                else
-                    IncrementPlayer(ref currentPlayer, maxPlayers);
+                    --currentPlayer;
+                }
             }
 
             // Phase.InitBuildRev:  initial build turns, reverse player order.
             else if (currentPhase == Phase.InitBuildRev)
             {
-                if (currentPlayer == 0)
+                --currentPlayer;
+
+                if (currentPlayer == -1)
+                {
                     currentPhase = Phase.Build;
-                else
-                    DecrementPlayer(ref currentPlayer, maxPlayers);
+                    ++currentPlayer;
+                }
             }
 
-            Debug.Log($"player: {currentPlayer + 1}");
-            Debug.Log($"phase: {currentPhase}");
             return;
         }
 
@@ -97,9 +101,9 @@ namespace Rails
         public static Phase UpdatePhase(GameObject[] PhasePanels, ref Phase currentPhase)
         {
             PhasePanels[(int)currentPhase].SetActive(false);
-            currentPhase += 1;
+            ++currentPhase;
             if (currentPhase >= Phase.MAX)
-                currentPhase = 0;
+                currentPhase = Phase.Move;
             PhasePanels[(int)currentPhase].SetActive(true);
 
             return currentPhase;

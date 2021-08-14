@@ -321,6 +321,10 @@ namespace Rails.UI
                     Button b1 = UpgradePanel.transform.Find(button1).GetComponent<Button>();
                     Button b2 = UpgradePanel.transform.Find(button2).GetComponent<Button>();
 
+                    // Remove previous listeners
+                    b1.onClick.RemoveAllListeners();
+                    b2.onClick.RemoveAllListeners();
+
                     // Add events to trigger upgrading.
                     b1.onClick.AddListener(delegate { UpgradeTrain(t1); });
 
@@ -340,6 +344,10 @@ namespace Rails.UI
                     // Find the correct buttons.
                     b1 = UpgradePanel.transform.Find(button1).GetComponent<Button>();
                     b2 = UpgradePanel.transform.Find(button2).GetComponent<Button>();
+
+                    // Remove previous listeners
+                    b1.onClick.RemoveAllListeners();
+                    b2.onClick.RemoveAllListeners();
 
                     // Add events to trigger upgrading.
                     b1.onClick.AddListener(delegate { UpgradeTrain(t1); });
