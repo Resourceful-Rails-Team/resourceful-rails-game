@@ -22,6 +22,26 @@ namespace Rails.UI
             public string Description;
         }
 
+        [Serializable]
+        public enum HelpStep
+        {
+            FirstTwoTurns,
+            BuildingTrack,
+            Strategy,
+            PlacingMoving,
+            PickDrop,
+            Upgrading,
+            Winning
+        }
+
+        [Serializable]
+        public class HelpStepInfo
+        {
+            public HelpStep Step;
+            public GameObject Root;
+            public Button NavButton;
+        }
+
         public static GameHUDManager Singleton { get; private set; }
 
         [Header("Other References")]
@@ -86,12 +106,17 @@ namespace Rails.UI
         public TMPro.TMP_Text PhaseTurnTransitionSubheadingText;
         public List<PhaseInfo> PhaseInfos;
 
+        [Header("Help Text")]
+        public GameObject HelpPanel;
+        public List<HelpStepInfo> HelpStepInfos;
+
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
         private List<TrackItem> _uiBuildTrackItems = new List<TrackItem>();
         private int _uiTrackSelectPathIndex = -1;
         private List<TrackSelectDeleteItem> _uiTrackSelectDeleteItems = new List<TrackSelectDeleteItem>();
         private List<TrackSelectDeleteItem> _uiMoveTrackItems = new List<TrackSelectDeleteItem>();
         private TrainCityInteraction _cityPickDropInteraction;
+        private IEnumerator _phaseTurnTransitionCoroutine;
 
         private class BuildMarkerContainer
         {
@@ -878,6 +903,8 @@ namespace Rails.UI
                 BuildInfoPanel.gameObject.SetActive(false);
                 MoveInfoPanel.gameObject.SetActive(false);
                 CurrentPlayerInfo.gameObject.SetActive(false);
+                HelpPanel.SetActive(false);
+                PhaseTurnTransitionPanel.gameObject.SetActive(false);
 
                 // update player won info
                 PlayerWonNameText.color = playerWon.color;
@@ -916,7 +943,11 @@ namespace Rails.UI
 
         private void OpenPhaseTurnTransition(string title, PlayerInfo player, string subheading, float duration = 3f)
         {
-            StartCoroutine(OpenPhaseTurnTransition_coroutine(title, player, subheading, duration));
+            // stop coroutine if already exists
+            if (_phaseTurnTransitionCoroutine != null)
+                StopCoroutine(_phaseTurnTransitionCoroutine);
+
+            StartCoroutine(_phaseTurnTransitionCoroutine = OpenPhaseTurnTransition_coroutine(title, player, subheading, duration));
         }
 
         private IEnumerator OpenPhaseTurnTransition_coroutine(string title, PlayerInfo player, string subheading, float duration)
@@ -934,6 +965,23 @@ namespace Rails.UI
             // wait for duration
             yield return new WaitForSeconds(duration);
 
+            // close panel if not already closed
+            if (PhaseTurnTransitionPanel.gameObject.activeSelf)
+            {
+                // close panel
+                PhaseTurnTransitionPanel.gameObject.SetActive(false);
+
+                // enable gameinput
+                GameInput.CurrentContext = GameInput.Context.Game;
+            }
+        }
+
+        public void PhaseTurnTransitionForceStop()
+        {
+            // stop existing coroutine
+            if (_phaseTurnTransitionCoroutine != null)
+                StopCoroutine(_phaseTurnTransitionCoroutine);
+
             // close panel
             PhaseTurnTransitionPanel.gameObject.SetActive(false);
 
@@ -942,5 +990,46 @@ namespace Rails.UI
         }
 
         #endregion
+
+        #region Help Text
+
+        /// <summary>
+        /// Toggles the rendering of the help text.
+        /// </summary>
+        public void OpenHelpText()
+        {
+            // only open when game is active
+            if (GameInput.CurrentContext != GameInput.Context.Game)
+                return;
+
+            GameInput.CurrentContext = GameInput.Context.Popup;
+            HelpPanel.gameObject.SetActive(true);
+        }
+
+        public void CloseHelpText()
+        {
+            GameInput.CurrentContext = GameInput.Context.Game;
+            HelpPanel.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Sets the currently selected help text to the given id.
+        /// </summary>
+        public void SetHelpText(int helpStep)
+        {
+            HelpStep step = (HelpStep)helpStep;
+
+            foreach (var item in HelpStepInfos)
+            {
+                // set item to active if step is the selected step
+                // disable interaction with button if active
+                var isActive = item.Step == step;
+                item.Root.SetActive(isActive);
+                item.NavButton.interactable = !isActive;
+            }
+        }
+
+        #endregion
+
     }
 }

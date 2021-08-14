@@ -14,6 +14,11 @@ namespace Rails
     {
         #region Properties
 
+
+        [Header("References")]
+        public GameObject MainRoot;
+        public GameObject CreateRoot;
+
         [Header("Create Game")]
         public Color[] PlayerColors;
         public int MaxPlayers = 6;
@@ -51,6 +56,16 @@ namespace Rails
         #endregion
 
         #region Create Game
+
+
+        /// <summary>
+        /// Changes to main title screen.
+        /// </summary>
+        public void Create_GotoTitle()
+        {
+            MainRoot.SetActive(true);
+            CreateRoot.SetActive(false);
+        }
 
         /// <summary>
         /// Increments the number of players.
@@ -207,6 +222,27 @@ namespace Rails
             // truncate array
             if (_playerInputs.Length > _numberOfPlayers)
                 Array.Resize(ref _playerInputs, _numberOfPlayers);
+        }
+
+        #endregion
+
+        #region Title Screen
+
+        /// <summary>
+        /// Changes to create game screen.
+        /// </summary>
+        public void Title_GotoCreate()
+        {
+            MainRoot.SetActive(false);
+            CreateRoot.SetActive(true);
+        }
+
+        /// <summary>
+        /// Exits the application.
+        /// </summary>
+        public void Title_Exit()
+        {
+            Application.Quit();
         }
 
         #endregion
