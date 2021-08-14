@@ -54,6 +54,7 @@ namespace Rails.Data
         public static NodeId operator +(NodeId n1, NodeId n2) => new NodeId(n1.X + n2.X, n1.Y + n2.Y);
         public static NodeId operator -(NodeId n1, NodeId n2) => new NodeId(n1.X - n2.X, n1.Y - n2.Y);
         public static NodeId operator *(NodeId n1, int x) => new NodeId(n1.X * x, n1.Y * x);
+        public static NodeId operator /(NodeId n1, int x) => new NodeId(n1.X / x, n1.Y / x);
 
         public static float Distance(NodeId n1, NodeId n2) =>
             Mathf.Sqrt((float)Mathf.Pow(n1.X - n2.X, 2) + Mathf.Pow(n1.Y - n2.Y, 2));

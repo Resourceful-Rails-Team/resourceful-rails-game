@@ -196,6 +196,7 @@ namespace Rails
 
             foreach (var demandCard in demandCards)
             {
+                Assert(demandCard.Count() == 3);
                 foreach (var demand in demandCard)
                     Assert(!demandCard.Any(d => d != demand && d.City == demand.City));
 

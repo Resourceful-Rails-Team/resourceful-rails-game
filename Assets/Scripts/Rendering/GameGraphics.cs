@@ -230,6 +230,8 @@ namespace Rails.Rendering
 
         public static GameToken GetTrackToken(NodeId id, NodeId adjId)
             => _trackTokens[id, adjId];
+
+        public static GameToken GetTrainToken(int player) => _playerTrains[player];
         #endregion
 
         #region Private Methods

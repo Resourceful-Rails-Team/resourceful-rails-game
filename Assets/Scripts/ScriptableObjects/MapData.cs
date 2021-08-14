@@ -152,8 +152,10 @@ namespace Rails.ScriptableObjects
                 }
             }
 
-            _cityTypes.TryGetValue(city, out var type);
-            return type;
+            if(_cityTypes.TryGetValue(city, out var type))
+                return type;
+
+            return null;
         }
 
         // Cache for MapData bounds

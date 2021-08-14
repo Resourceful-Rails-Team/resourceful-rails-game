@@ -371,7 +371,7 @@ namespace Rails
             // their move path
             Player.movePath.RemoveAt(0);
 
-            _movingTrain = true; 
+            _movingTrain = true;
 
             // While the route still has nodes to traverse
             for(int i = 0; i < moveRoute.Distance; ++i)
@@ -405,7 +405,7 @@ namespace Rails
                 if (Player.movePointsLeft == 0) break;
             }
             _movingTrain = false;
-            
+
             // Reinsert the player's new train position to the beginning of the list
             Player.movePath.Insert(0, Player.trainPosition);
             
@@ -436,10 +436,14 @@ namespace Rails
             player.demandCards.Clear();
             for (int c = 0; c < Rules.HandSize; c++)
             {
-                player.demandCards.Add(Deck.DrawOne());
+                player.demandCards.Add(Deck.DrawOne()); 
             }
+
             // Ends the turn.
             GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
+            player = Players[currentPlayer];
+            PathPlanner.InitializePlayerMove();                
+
             OnPlayerInfoUpdate?.Invoke(this);
         }
 
@@ -686,15 +690,20 @@ namespace Rails
       
         private int CountMajorCities()
         {
-            return 
+            var connected =
                 Tracks.GetConnected(
                     currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityID
-                ).Max(
+                );
+
+            if(connected.Length > 0)
+                return connected.Max(
                     g => g
                     .Where(id => id != -1)
-                    .Select(id => MapData.GetCityType(MapData.Cities[id]) == NodeType.MajorCity)
+                    .Where(id => MapData.GetCityType(MapData.Cities[id]) == NodeType.MajorCity)
                     .Count()
                 );
+
+            return 0;
         }
         private bool PlayerWon() => Player.majorCities > Rules.WinMajorCities && Player.money >= Rules.WinMoney;
 
