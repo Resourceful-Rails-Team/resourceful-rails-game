@@ -903,6 +903,8 @@ namespace Rails.UI
                 BuildInfoPanel.gameObject.SetActive(false);
                 MoveInfoPanel.gameObject.SetActive(false);
                 CurrentPlayerInfo.gameObject.SetActive(false);
+                HelpPanel.SetActive(false);
+                PhaseTurnTransitionPanel.gameObject.SetActive(false);
 
                 // update player won info
                 PlayerWonNameText.color = playerWon.color;
