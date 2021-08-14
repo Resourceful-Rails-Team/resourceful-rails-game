@@ -122,7 +122,7 @@ namespace Rails.ScriptableObjects
         /// <returns>All `NodeId`s of the locations of the `City`</returns>
         public NodeId[] LocationsOfCity(City city) 
             => Enumerable.Range(0, Nodes.Length)
-            .Where(i => Nodes[i].CityId == Cities.IndexOf(city))
+            .Where(i => Nodes[i].IsCity() && Nodes[i].CityId == Cities.IndexOf(city))
             .Select(i => NodeId.FromSingleId(i))
             .ToArray();
 

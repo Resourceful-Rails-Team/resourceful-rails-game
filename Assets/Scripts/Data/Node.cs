@@ -47,5 +47,13 @@ namespace Rails.Data
         {
 			Rivers[(int)cardinal] = hasRiver;
         }
+
+		public bool IsCity()
+        {
+			return 
+				Type == NodeType.SmallCity ||
+				Type == NodeType.MediumCity ||
+				Type == NodeType.MajorCity;
+        }
 	}
 }

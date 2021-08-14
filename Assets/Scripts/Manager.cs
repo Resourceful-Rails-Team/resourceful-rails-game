@@ -525,12 +525,29 @@ namespace Rails
         /// </summary>
         private void GenerateCityLabels()
         {
+            GameObject parent = Instantiate(new GameObject());
+            parent.transform.name = "City Labels";
             cityLabels = new List<CityLabel>();
             foreach (City city in MapData.Cities)
             {
-                Vector3 pos = Utilities.GetPosition(MapData.LocationsOfCity(city)[0]);
+                var CityId = MapData.Cities.IndexOf(city);
+                var cityLocations = MapData.LocationsOfCity(city);
+                var cityNodeId = cityLocations[0];
+
+                if (MapData.GetNodeAt(cityNodeId).Type == NodeType.MajorCity)
+                {
+                    cityNodeId = MapData.LocationsOfCity(city)
+                        .First(x => MapData.GetNeighborNodes(x).
+                        All(nn => nn.Item2.CityId == CityId && nn.Item2.Type == NodeType.MajorCity));
+
+                }
+
+                Vector3 pos = Utilities.GetPosition(cityNodeId);
+
                 pos.y += 1;
                 CityLabel lab = Instantiate(_cityLabelPrefab);
+                lab.transform.name = "Label: " + city.Name;
+                lab.transform.SetParent(parent.transform);
                 lab.Set(pos, city);
                 cityLabels.Add(lab);
             }

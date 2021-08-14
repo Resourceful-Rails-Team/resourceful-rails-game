@@ -9,7 +9,6 @@ namespace Rails.Rendering
 {
     public class CityLabel : MonoBehaviour
     {
-        //public Canvas Base;
         public TMP_Text Name;
         public List<Image> GoodsIcons;
 
@@ -17,16 +16,20 @@ namespace Rails.Rendering
         {
             transform.position = position;
             Name.text = city.Name;
-            GoodsIcons = new List<Image>();
-            foreach (Vector2Int g in city.Goods)
+
+            int i = 0;
+            foreach (Image img in GoodsIcons)
             {
                 Good good;
-                Image icon;
-
-                good = Manager.Singleton.MapData.Goods[g.x];
-                icon = null;
-
-                GoodsIcons.Add(icon);
+                if (i < city.Goods.Count)
+                {
+                    good = Manager.Singleton.MapData.Goods[city.Goods[i].x];
+                    img.overrideSprite = good.Icon;
+                    img.gameObject.SetActive(true);
+                }
+                else
+                    img.gameObject.SetActive(false);
+                i++;
             }
         }
     }
