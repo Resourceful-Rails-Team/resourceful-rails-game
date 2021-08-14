@@ -143,6 +143,11 @@ namespace Rails
             Assert(graph.GetConnected(8, id => id).Length == 2);
             Assert(graph.GetConnected(9, id => id).Length == 3);
             Assert(graph.GetConnected(10, id => id).Length == 4);
+
+            Assert(graph.GetConnected(7, id => id).Sum(hs => hs.Count) == 2);
+            Assert(graph.GetConnected(8, id => id).Sum(hs => hs.Count) == 4);
+            Assert(graph.GetConnected(9, id => id).Sum(hs => hs.Count) == 6);
+            Assert(graph.GetConnected(10, id => id).Sum(hs => hs.Count) == 14);
         }
         #endregion
 
