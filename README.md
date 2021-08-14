@@ -22,8 +22,7 @@ There are two different turn types for each game that is played - **build turns*
 **Goal of the Game** - to connect railroad tracks to a specified amount of major cities, and to have a set amount of cash in hand. If a player meets both these goals, they win.
 
 ## How To Player
-See the Release Page to download a version that works with your system. No installation is required. 
-Currently there are two OSs being supported:
+See the Release Page to download a version that works with your system. No installation is required. Currently only Windows is supported.
 
 ## Build Instructions
 
