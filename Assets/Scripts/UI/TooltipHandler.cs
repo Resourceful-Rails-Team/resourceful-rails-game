@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 namespace Rails.UI
 {
     /// <summary>
+    /// Hides and shows a gameobject when the cursor hovers over the attached UI gameobject.
     /// Adapted from http://answers.unity.com/answers/1820422/view.html
     /// by 'unity_Hc_fAdX4wuuitA'
     /// </summary>
@@ -14,6 +15,9 @@ namespace Rails.UI
         public GameObject TooltipRoot;
         private Transform _parentBeforeShow;
 
+        /// <summary>
+        /// Triggered on start.
+        /// </summary>
         void Start()
         {
             // ensure hidden at start
@@ -23,6 +27,9 @@ namespace Rails.UI
             }
         }
 
+        /// <summary>
+        /// Triggered whenever the cursor enters the UI gameobject's bounds.
+        /// </summary>
         public void OnPointerEnter(PointerEventData eventData)
         {
             // show
@@ -40,6 +47,9 @@ namespace Rails.UI
             }
         }
 
+        /// <summary>
+        /// Triggered whenever the cursor leaves the UI gameobject's bounds.
+        /// </summary>
         public void OnPointerExit(PointerEventData eventData)
         {
             // hide

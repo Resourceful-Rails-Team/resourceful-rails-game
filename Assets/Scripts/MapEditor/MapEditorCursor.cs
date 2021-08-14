@@ -11,6 +11,10 @@ using UnityEditor;
 
 namespace Rails.MapEditor
 {
+    /// <summary>
+    /// Map editor cursor.
+    /// This gets rendered over the scene view when painting is enabled.
+    /// </summary>
     [ExecuteInEditMode]
     public class MapEditorCursor : MonoBehaviour
     {
@@ -18,6 +22,10 @@ namespace Rails.MapEditor
         #region Singleton
 
         private static MapEditorCursor _singleton = null;
+
+        /// <summary>
+        /// Singleton.
+        /// </summary>
         public static MapEditorCursor Singleton
         {
             get
@@ -41,20 +49,51 @@ namespace Rails.MapEditor
 
         #endregion
 
+        /// <summary>
+        /// Radius of cursor.
+        /// </summary>
         public float Radius = 1f;
+
+        /// <summary>
+        /// Whether or not the cursor is visible.
+        /// </summary>
         public bool Visible = true;
+
+        /// <summary>
+        /// Color of the cursor.
+        /// </summary>
         public Color Color = Color.red;
+
+        /// <summary>
+        /// Whether to highlight nodes under cursor.
+        /// </summary>
         public bool HighlightSelectedNodes = true;
+
+        /// <summary>
+        /// Whether to highlight node segments under cursor.
+        /// </summary>
         public bool HighlightSelectedSegments = true;
 
+        /// <summary>
+        /// Event raised when the cursor paints over the map.
+        /// </summary>
         public event EventHandler<Vector3> OnPaint;
 
+        /// <summary>
+        /// Whether or not the camera can actively see the floor.
+        /// Small optimization to prevent rendering of cursor when the floor is not in view.
+        /// </summary>
         private bool _canSeeFloor = false;
 
 #if UNITY_EDITOR
 
+        /// <summary>
+        /// Triggered every frame.
+        /// </summary>
         private void Update()
         {
+            // destroy self if there is another cursor
+            // this is required to fix some editor bugs
             var singleton = Singleton;
             if (singleton && singleton != this)
             {
@@ -63,6 +102,9 @@ namespace Rails.MapEditor
             }
         }
 
+        /// <summary>
+        /// Updates cursor state, position, highlighted nodes/segments for a given sceneview.
+        /// </summary>
         void UpdateCursor(SceneView scene, Event e)
         {
             // get mouse position
@@ -86,30 +128,47 @@ namespace Rails.MapEditor
             }
         }
 
+        /// <summary>
+        /// Triggered when the component is enabled.
+        /// </summary>
         private void OnEnable()
         {
+            // add SceneView render hook
             SceneView.beforeSceneGui -= OnSceneGUI;
             SceneView.beforeSceneGui += OnSceneGUI;
         }
 
+        /// <summary>
+        /// Triggered when the component is disabled.
+        /// </summary>
         private void OnDisable()
         {
+            // remove SceneView render hook
             SceneView.beforeSceneGui -= OnSceneGUI;
         }
 
+        /// <summary>
+        /// Triggered when the component is destroyed.
+        /// </summary>
         private void OnDestroy()
         {
+            // remove SceneView render hook
             SceneView.beforeSceneGui -= OnSceneGUI;
         }
 
+        /// <summary>
+        /// Triggered whenever the given SceneView is rendering.
+        /// </summary>
+        /// <param name="sceneView"></param>
         void OnSceneGUI(SceneView sceneView)
         {
             Event e = Event.current;
 
-            // 
+            // don't update if not visible
             if (!Visible)
                 return;
 
+            // only update if moving, dragging, clicking, or unclicking
             if (   (e.type == EventType.MouseMove 
                 || e.type == EventType.MouseDown
                 || e.type == EventType.MouseUp
@@ -134,6 +193,9 @@ namespace Rails.MapEditor
             }
         }
 
+        /// <summary>
+        /// Triggered whenever the editor wants to draw gizmos.
+        /// </summary>
         private void OnDrawGizmos()
         {
             // only draw if visible
