@@ -41,8 +41,6 @@ namespace Assets.Scripts.Data
             buildPathStyle = 0;
             movePointsLeft = 0;
 
-            hasMajorCities = false;
-
             demandCards = new List<DemandCard>();
             goodsCarried = new List<Good>();
             movePath = new List<NodeId>();
