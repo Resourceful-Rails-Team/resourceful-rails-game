@@ -22,6 +22,26 @@ namespace Rails.UI
             public string Description;
         }
 
+        [Serializable]
+        public enum HelpStep
+        {
+            FirstTwoTurns,
+            BuildingTrack,
+            Strategy,
+            PlacingMoving,
+            PickDrop,
+            Upgrading,
+            Winning
+        }
+
+        [Serializable]
+        public class HelpStepInfo
+        {
+            public HelpStep Step;
+            public GameObject Root;
+            public Button NavButton;
+        }
+
         public static GameHUDManager Singleton { get; private set; }
 
         [Header("Other References")]
@@ -85,6 +105,10 @@ namespace Rails.UI
         public TMPro.TMP_Text PhaseTurnTransitionPlayerNameText;
         public TMPro.TMP_Text PhaseTurnTransitionSubheadingText;
         public List<PhaseInfo> PhaseInfos;
+
+        [Header("Help Text")]
+        public GameObject HelpPanel;
+        public List<HelpStepInfo> HelpStepInfos;
 
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
         private List<TrackItem> _uiBuildTrackItems = new List<TrackItem>();
@@ -942,5 +966,41 @@ namespace Rails.UI
         }
 
         #endregion
+
+        #region Help Text
+
+        /// <summary>
+        /// Toggles the rendering of the help text.
+        /// </summary>
+        public void OpenHelpText()
+        {
+            // only open when game is active
+            if (GameInput.CurrentContext != GameInput.Context.Game)
+                return;
+
+            GameInput.CurrentContext = GameInput.Context.Popup;
+            HelpPanel.gameObject.SetActive(true);
+        }
+
+        public void CloseHelpText()
+        {
+            GameInput.CurrentContext = GameInput.Context.Game;
+            HelpPanel.gameObject.SetActive(false);
+        }
+
+        public void SetHelpText(int helpStep)
+        {
+            HelpStep step = (HelpStep)helpStep;
+
+            foreach (var item in HelpStepInfos)
+            {
+                var isActive = item.Step == step;
+                item.Root.SetActive(isActive);
+                item.NavButton.interactable = !isActive;
+            }
+        }
+
+        #endregion
+
     }
 }
