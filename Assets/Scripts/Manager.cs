@@ -39,6 +39,10 @@ namespace Rails
         // Build Track
         public delegate void OnBuildTrackHandler(Manager manager);
         public event OnTurnEndEventHandler OnBuildTrack;
+
+        // Game over
+        public delegate void OnGameOverHandler(Manager manager, int playerIdWon);
+        public event OnGameOverHandler OnGameOver;
         
         // Invoked when a moving train meets a City
         public EventHandler<TrainCityInteraction> OnTrainMeetsCityHandler;
@@ -622,7 +626,7 @@ namespace Rails
             {
                 if (PlayerWon())
                 {
-                    // TODO: Trigger the end of the game from GameHUDManager.
+                    OnGameOver?.Invoke(this, CurrentPlayer);
                     return;
                 }
 
