@@ -10,33 +10,93 @@ using UnityEngine.Rendering;
 
 namespace Rails.MapEditor.Editor
 {
+    /// <summary>
+    /// Editor window that manages the map data including: nodes, node segments, cities, and goods.
+    /// </summary>
     public class MapEditorWindow : EditorWindow
     {
+        /// <summary>
+        /// Paint type.
+        /// </summary>
         public enum MapEditorPaintType
         {
             Node,
             Segment
         }
 
-        // 
+        /// <summary>
+        /// Whether or not actively painting.
+        /// </summary>
         bool paintingActive = false;
+
+        /// <summary>
+        /// Painting radius.
+        /// </summary>
         float paintingRadius = 1f;
+
+        /// <summary>
+        /// Scroll offset.
+        /// </summary>
         Vector2 scroll = Vector2.zero;
+
+        /// <summary>
+        /// Selected tab.
+        /// </summary>
         int tab = 0;
+
+        /// <summary>
+        /// Reference to current map editor cursor.
+        /// </summary>
         private MapEditorCursor _cursor;
+
+        /// <summary>
+        /// Current paint type.
+        /// </summary>
         MapEditorPaintType paintType = MapEditorPaintType.Node;
+
+        /// <summary>
+        /// Current paint node type.
+        /// </summary>
         NodeType paintNodeType = NodeType.Clear;
+
+        /// <summary>
+        /// Current paint node segment type.
+        /// </summary>
         NodeSegmentType paintSegmentType = NodeSegmentType.None;
+
+        /// <summary>
+        /// Current paint city id.
+        /// </summary>
         int paintCityId = 0;
 
+        /// <summary>
+        /// Inspector list for cities.
+        /// </summary>
         private MapEditorReorderableList cities;
+
+        /// <summary>
+        /// Inspector list for goods.
+        /// </summary>
         private MapEditorReorderableList goods;
+
+        /// <summary>
+        /// MapData as a SerializedObject
+        /// </summary>
         private SerializedObject serializedObject;
 
+        /// <summary>
+        /// MapData.Nodes as a SerializedProperty
+        /// </summary>
         private SerializedProperty nodesProperty;
+
+        /// <summary>
+        /// MapData.Segments as a SerializedProperty
+        /// </summary>
         private SerializedProperty segmentsProperty;
 
-        // Add menu named "My Window" to the Window menu
+        /// <summary>
+        /// Add menu named "My Window" to the Window menu
+        /// </summary>
         [MenuItem("Window/Map Editor")]
         static void Init()
         {
@@ -45,12 +105,16 @@ namespace Rails.MapEditor.Editor
             window.Show();
         }
 
+        /// <summary>
+        /// Triggered when the window is enabled.
+        /// </summary>
         private void OnEnable()
         {
             var manager = Manager.Singleton;
             if (!manager)
                 return;
 
+            // initialize serializedObject and properties from MapData
             serializedObject = new SerializedObject(manager.MapData);
             nodesProperty = serializedObject.FindProperty("Nodes");
             segmentsProperty = serializedObject.FindProperty("Segments");
@@ -74,14 +138,40 @@ namespace Rails.MapEditor.Editor
             };
         }
 
-        // 
+        /// <summary>
+        /// Triggered every frame.
+        /// </summary>
+        private void Update()
+        {
+            // get cursor
+            var cursor = MapEditorCursor.Singleton;
+            if (_cursor != cursor)
+            {
+                _cursor = cursor;
+
+                // resubscribe in case we're aren't already
+                cursor.OnPaint -= OnPaint;
+                cursor.OnPaint += OnPaint;
+            }
+
+            // set properties
+            cursor.Visible = paintingActive;
+            cursor.Radius = paintingRadius;
+            cursor.Color = paintType == MapEditorPaintType.Node ? Utilities.GetNodeColor(paintNodeType) : Utilities.GetSegmentColor(paintSegmentType);
+            cursor.HighlightSelectedNodes = paintType == MapEditorPaintType.Node;
+            cursor.HighlightSelectedSegments = paintType == MapEditorPaintType.Segment;
+        }
+
+        /// <summary>
+        /// Triggered when the window's GUI is rendering.
+        /// </summary>
         void OnGUI()
         {
             var manager = Manager.Singleton;
             if (!manager)
                 return;
 
-            // 
+            // render painting active toggle
             paintingActive = GUILayout.Toggle(paintingActive, paintingActive ? "Disable Painting" : "Enable Painting", "Button");
 
             // tabs
@@ -103,20 +193,27 @@ namespace Rails.MapEditor.Editor
                     {
                         // painting specific 
                         EditorGUI.BeginDisabledGroup(!paintingActive);
+
+                        // render paint type dropdown
                         paintType = (MapEditorPaintType)EditorGUILayout.EnumPopup("Paint type", paintType);
+
+                        // render paint brush size slider
                         paintingRadius = EditorGUILayout.Slider("Paint Brush Size", paintingRadius, 0.1f, 30f);
 
                         if (paintType == MapEditorPaintType.Node)
                         {
+                            // render node type dropdown if paint type is node
                             paintNodeType = (NodeType)EditorGUILayout.EnumPopup("Node type", paintNodeType);
 
                             if (paintNodeType == NodeType.MajorCity || paintNodeType == NodeType.MediumCity || paintNodeType == NodeType.SmallCity)
                             {
+                                // render city dropdown if painting major city node
                                 paintCityId = EditorGUILayout.Popup("City", paintCityId, manager.MapData.Cities.Select(x => x.Name).ToArray());
                             }
                         }
                         else
                         {
+                            // render node segment type dropdown if paint type is segment
                             paintSegmentType = (NodeSegmentType)EditorGUILayout.EnumPopup("Segment type", paintSegmentType);
                         }
 
@@ -127,6 +224,9 @@ namespace Rails.MapEditor.Editor
             GUILayout.EndScrollView();
         }
 
+        /// <summary>
+        /// Determines item height by scale and appropriately shifts rect y down and increments height.
+        /// </summary>
         void MoveHeight(ref Rect rect, ref float height, float scale = 1f)
         {
             var amount = EditorGUIUtility.singleLineHeight * scale;
@@ -134,6 +234,9 @@ namespace Rails.MapEditor.Editor
             height += amount + 2;
         }
 
+        /// <summary>
+        /// Draws the city inspector element.
+        /// </summary>
         float OnDrawCitiesElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             // get manager
@@ -218,6 +321,9 @@ namespace Rails.MapEditor.Editor
             return height;
         }
 
+        /// <summary>
+        /// Draws a goods inspector element.
+        /// </summary>
         float OnDrawGoodsElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             // get manager
@@ -264,27 +370,9 @@ namespace Rails.MapEditor.Editor
             return height;
         }
 
-        private void Update()
-        {
-            // get cursor
-            var cursor = MapEditorCursor.Singleton;
-            if (_cursor != cursor)
-            {
-                _cursor = cursor;
-
-                // resubscribe in case we're aren't already
-                cursor.OnPaint -= OnPaint;
-                cursor.OnPaint += OnPaint;
-            }
-
-            // set properties
-            cursor.Visible = paintingActive;
-            cursor.Radius = paintingRadius;
-            cursor.Color = paintType == MapEditorPaintType.Node ? Utilities.GetNodeColor(paintNodeType) : Utilities.GetSegmentColor(paintSegmentType);
-            cursor.HighlightSelectedNodes = paintType == MapEditorPaintType.Node;
-            cursor.HighlightSelectedSegments = paintType == MapEditorPaintType.Segment;
-        }
-
+        /// <summary>
+        /// Triggered when the cursor paints.
+        /// </summary>
         private void OnPaint(object sender, Vector3 position)
         {
             var manager = Manager.Singleton;
