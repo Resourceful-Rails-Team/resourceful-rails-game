@@ -135,7 +135,7 @@ namespace Rails.Collections
         /// Attempts to retrieve all T edge-values at the given vertex.
         /// Will retrieve all Cardinal edges regardless of number of values set.
         /// All other edges will be default T values, or values defined by
-        /// default edges factory.
+        /// default edges variable given at construction.
         /// </summary>
         /// <param name="nodeId">The vertex position to check</param>
         /// <param name="edgeValues">The array to write the values to</param>
@@ -144,6 +144,7 @@ namespace Rails.Collections
         
         /// <summary>
         /// Attempts to retrieve a specific edge value at the given vertex and direction.
+        /// Returns false if the value doesn't exist.
         /// </summary>
         /// <param name="id">The NodeId vertex to check</param>
         /// <param name="card">The Cardinal to check</param>
@@ -200,8 +201,87 @@ namespace Rails.Collections
                     entry => entry.Value.ToArray()
                 ),
                 _defaultEdgeValue = this._defaultEdgeValue,
-            };        
-            
+            };
+
+        // The DFS performed in the next two methods was adapted from the description of
+        // DFS on https://www.geeksforgeeks.org/difference-between-bfs-and-dfs/
+
+        /// <summary>
+        /// Finds all subgraphs with the given edge values,
+        /// performing a transformational function on their vertices
+        /// and returning the set of those values.
+        /// </summary>
+        /// <typeparam name="U">The vertex tranform type to return, upon finding a match.</typeparam>
+        /// <param name="subgraphEdgeValue">The edge value each subgraph should match.</param>
+        /// <param name="function">The function used to determine the resulting HashSet values per subgraph.</param>
+        /// <returns>A collection of HashSets, each with vertex values run through the given function.</returns>
+        public HashSet<U>[] GetConnected<U>(T subgraphEdgeValue, Func<NodeId, U> function)
+        {
+            var groups = new List<HashSet<U>>();
+
+            // All edges that have already been visited
+            var visitedEdges = new HashSet<GraphEdge>();
+            foreach(var pair in _adjacencyList)
+            { 
+                (var id, var edges) = (pair.Key, pair.Value);
+                for(int i = 0; i < edges.Length; ++i)
+                {
+                    if (edges[i].Equals(_defaultEdgeValue))
+                        continue;
+                    if (!edges[i].Equals(subgraphEdgeValue))
+                        continue;
+
+                    var rootEdge = new GraphEdge(id, Utilities.PointTowards(id, (Cardinal)i));
+                    if (visitedEdges.Contains(rootEdge))
+                        continue;
+
+                    // A new, unique group has been found 
+                    groups.Add(GenerateSubgraphVertices(subgraphEdgeValue, function, rootEdge, visitedEdges));
+                }
+            }
+            return groups.ToArray();
+        }
+
+        private HashSet<U> GenerateSubgraphVertices<U>(T subgraphEdgeValue, Func<NodeId, U> query, GraphEdge rootEdge, HashSet<GraphEdge> visitedEdges)
+        {
+            var group = new HashSet<U>();
+            var edgeStack = new Stack<GraphEdge>();
+            edgeStack.Push(rootEdge);
+
+            while (edgeStack.Count > 0)
+            {
+                var edge = edgeStack.Pop();
+                visitedEdges.Add(edge);
+
+                group.Add(query(edge.First));
+                group.Add(query(edge.Second));
+
+                for (Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
+                {
+                    var adjacents = new GraphEdge[]
+                    {
+                        new GraphEdge(edge.First, Utilities.PointTowards(edge.First, c)),
+                        new GraphEdge(edge.Second, Utilities.PointTowards(edge.Second, c)),
+                    };
+
+                    foreach (var adjacent in adjacents)
+                    {
+                        if (visitedEdges.Contains(adjacent))
+                            continue;
+                        if (!TryGetEdgeValue(adjacent.First, adjacent.Second, out var adjEdgeValue))
+                            continue; 
+                        if (adjEdgeValue.Equals(_defaultEdgeValue))
+                            continue;
+                        if (!adjEdgeValue.Equals(subgraphEdgeValue))
+                            continue;
+
+                        edgeStack.Push(adjacent);
+                    }
+                }
+            }
+            return group;
+        }
+
         // Inserts a vertex (if one doesn't exist) and Cardinal edge value
         // with the given arguments.
         private void InsertAt(NodeId id, Cardinal card, T value)
@@ -211,6 +291,32 @@ namespace Rails.Collections
                     Enumerable.Repeat(_defaultEdgeValue, (int)Cardinal.MAX_CARDINAL).ToArray();
 
             _adjacencyList[id][(int)card] = value;
+        }
+    }
+
+    class GraphEdge
+    {
+        public NodeId First { get; set; }
+        public NodeId Second { get; set; }
+
+        public GraphEdge(NodeId first, NodeId second)
+        {
+            First = first;
+            Second = second;
+        }
+
+        public override bool Equals(object obj) =>
+            obj is GraphEdge ge && (
+                (First == ge.First && Second == ge.Second) ||
+                (Second == ge.First && First == ge.Second)
+            );
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return 37 * (First.GetHashCode() + Second.GetHashCode());
+            }
         }
     }
 }
