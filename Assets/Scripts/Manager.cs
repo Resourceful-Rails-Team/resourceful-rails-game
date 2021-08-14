@@ -482,6 +482,13 @@ namespace Rails
             return true;
         }
 
+        public void EndBuild()
+        {
+            // End the turn
+            PathPlanner.ClearBuild();
+            EndTurn();
+        }
+
         // Upgrades the player's train.
         public bool UpgradeTrain(int choice)
         {

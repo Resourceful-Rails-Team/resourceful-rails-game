@@ -332,6 +332,11 @@ namespace Rails.UI
             Manager.Singleton.BuildTrack();
         }
 
+        public void EndBuild()
+        {
+            Manager.Singleton.EndBuild();
+        }
+
         public void UpgradeTrain()
         {
             const string button1 = "Button 1";
@@ -420,6 +425,11 @@ namespace Rails.UI
         public void DiscardHand()
         {
             Manager.Singleton.DiscardHand();
+        }
+
+        public void EndMove()
+        {
+            Manager.Singleton.EndMove();
         }
 
         #endregion
