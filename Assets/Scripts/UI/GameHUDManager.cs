@@ -249,7 +249,7 @@ namespace Rails.UI
             }
 
             // invalid if goods carried is more than allowed
-            if (isValid && playerGoodsCarried.Count >= 3)
+            if (isValid && playerGoodsCarried.Count > manager.Rules.TrainSpecs[manager.Player.trainType].goodsTotal)
             {
                 isValid = false;
                 invalidMessage = $"Your train cannot carry {playerGoodsCarried.Count} goods!";

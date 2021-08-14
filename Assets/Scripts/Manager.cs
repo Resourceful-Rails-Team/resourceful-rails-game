@@ -180,6 +180,10 @@ namespace Rails
         /// To stop the same train from moving multiple times at once.
         /// </summary>
         private bool _movingTrain = false;
+        /// <summary>
+        /// To determine whether a player has paid for another's track this turn
+        /// </summary>
+        private bool[] _altTracksPaid = new bool[6];
         #endregion
 
         #region Unity Events
@@ -398,6 +402,14 @@ namespace Rails
                     break;
                 }
 
+                int trackOwner = Tracks[moveRoute.Nodes[i], moveRoute.Nodes[i + 1]];
+                if (trackOwner != MajorCityIndex && !_altTracksPaid[trackOwner])
+                {
+                    _altTracksPaid[trackOwner] = true;
+                    Player.money -= Rules.AltTrackCost;
+                    OnPlayerInfoUpdate?.Invoke(this);
+                }
+
                 if (Player.movePointsLeft == 0) break;
             }
             _movingTrain = false;
@@ -438,7 +450,7 @@ namespace Rails
             // Ends the turn.
             GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             player = Players[currentPlayer];
-            PathPlanner.InitializePlayerMove();                
+            InitializePlayerMove();                
 
             OnPlayerInfoUpdate?.Invoke(this);
         }
@@ -449,10 +461,12 @@ namespace Rails
             // Build the tracks
             if (PathPlanner.Paths != 0)
             {
-                if (PathPlanner.BuildCost > Rules.MaxBuild)
+                if (PathPlanner.CurrentCost > Rules.MaxBuild)
+                    return false;
+                if (PathPlanner.CurrentCost > player.money)
                     return false;
 
-                player.money -= GameLogic.BuildTrack(Tracks, PathPlanner.buildRoutes, currentPlayer, player.color, Rules.MaxBuild);
+                player.money -= GameLogic.BuildTrack(Tracks, PathPlanner.buildRoutes, currentPlayer);
                 OnBuildTrack?.Invoke(this);
             }
 
@@ -621,10 +635,27 @@ namespace Rails
             OnTurnEnd?.Invoke(this);
 
             if(CurrentPhase == Phase.Move)
-                PathPlanner.InitializePlayerMove();
+                InitializePlayerMove();
 
             return;
         }
+        private void InitializePlayerMove()
+        {
+            Player.movePointsLeft = Rules.TrainSpecs[Player.trainType].movePoints; 
+            if (Player.movePath.Count == 0)
+            {
+                Player.movePath.Add(Player.trainPosition);
+                PathPlanner.SetNode(1);
+            }
+            else
+                PathPlanner.SetNode(Player.movePath.Count);
+
+            _altTracksPaid = new bool[6];
+            _altTracksPaid[CurrentPlayer] = true;
+
+            PathPlanner.PlannedRoute();
+        }
+
         
         /// <summary>
         /// Sets up the tracks that are automatically assigned to
@@ -679,6 +710,8 @@ namespace Rails
                         Deck.Discard(card);
                         Player.demandCards.Remove(card);
                         Player.demandCards.Add(Deck.DrawOne());
+
+                        Player.money += income;
                     }
                 }
             }
