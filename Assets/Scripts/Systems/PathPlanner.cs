@@ -216,12 +216,12 @@ namespace Rails.Systems
         }
         public static TrainCityInteraction GetStop(NodeId id)
         {
-            var currentCityId = manager.MapData.Nodes[id.GetSingleId()].CityId;
+            var currentCityId = manager.MapData.Nodes[id.GetSingleId()].CityID;
             var node = manager.MapData.Nodes[id.GetSingleId()];
 
             if (node.Type >= NodeType.SmallCity && node.Type <= NodeType.MajorCity)
             {
-                var city = manager.MapData.Cities[node.CityId];
+                var city = manager.MapData.Cities[node.CityID];
                 return new TrainCityInteraction
                 {
                     // Select any demand cards that both match the city, and
@@ -239,7 +239,7 @@ namespace Rails.Systems
                     Goods =
                             manager.Player.goodsCarried.Count < manager.Rules.TrainSpecs[manager.Player.trainType].goodsTotal
                             ?
-                            manager.MapData.GetGoodsAtCity(manager.MapData.Cities[node.CityId])
+                            manager.MapData.GetGoodsAtCity(manager.MapData.Cities[node.CityID])
                                 .Select(gi => manager.MapData.Goods[gi])
                                 .Where(g => GoodsBank.GetGoodQuantity(g) > 0)
                                 .ToArray()
@@ -248,7 +248,7 @@ namespace Rails.Systems
 
                     PlayerIndex = manager.CurrentPlayer,
                     TrainPosition = id,
-                    City = manager.MapData.Cities[node.CityId]
+                    City = manager.MapData.Cities[node.CityID]
                 };
             }
             return null;
