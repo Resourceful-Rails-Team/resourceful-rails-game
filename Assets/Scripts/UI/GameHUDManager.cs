@@ -5,6 +5,7 @@ using Rails.Systems;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Rails.UI
@@ -28,6 +29,14 @@ namespace Rails.UI
         public Transform BuildInfoPanel;
         public Transform UpgradePanel;
 
+        [Header("Phase Controls")]
+        public Button BuildButton;
+        public TooltipHandler BuildButtonTooltipHandler;
+        public TMPro.TMP_Text BuildButtonTooltip;
+        public Button UpgradeButton;
+        public TooltipHandler UpgradeButtonTooltipHandler;
+        public TMPro.TMP_Text UpgradeButtonTooltip;
+
         [Header("Track Select/Delete")]
         public TrackSelectDeleteItem TrackSelectDeleteItemPrefab;
         public Transform TrackSelectPanel;
@@ -50,6 +59,13 @@ namespace Rails.UI
         public TMPro.TMP_Text CityPickDropContinueTooltipText;
         public TooltipHandler CityPickDropContinueTooltipHandler;
 
+        [Header("End Game")]
+        public Transform PlayerWonPanel;
+        public Transform PlayerWonPlayersRoot;
+        public EndGamePlayerItem EndGamePlayerItemPrefab;
+        public TMPro.TMP_Text PlayerWonNameText;
+        public TMPro.TMP_Text PlayerWonMoneyText;
+        public TMPro.TMP_Text PlayerWonCitiesText;
 
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
         private List<TrackItem> _uiBuildTrackItems = new List<TrackItem>();
@@ -106,17 +122,32 @@ namespace Rails.UI
             manager.OnPhaseChange += Manager_OnPhaseChange;
             Manager_OnPhaseChange(manager);
             manager.OnTrainMeetsCityHandler += Manager_OnTrainMeetsCity;
+            manager.OnGameOver += Manager_OnGameOver;
         }
 
         private void Update()
         {
-            switch (Manager.Singleton.CurrentPhase)
+            var manager = Manager.Singleton;
+            switch (manager.CurrentPhase)
             {
                 case Phase.Build:
                 case Phase.InitBuild:
                 case Phase.InitBuildRev:
                     {
                         Manager_OnBuildTrackUpdated(Manager.Singleton);
+
+                        // disable/enable upgrade button depending on money
+                        if (manager.Rules.TrainUpgrade > manager.Player.money)
+                        {
+                            UpgradeButton.interactable = false;
+                            UpgradeButtonTooltipHandler.enabled = true;
+                            UpgradeButtonTooltip.text = $"You need at least ${manager.Rules.TrainUpgrade} to upgrade!";
+                        }
+                        else
+                        {
+                            UpgradeButton.interactable = true;
+                            UpgradeButtonTooltipHandler.enabled = false;
+                        }
                         break;
                     }
                 case Phase.Move:
@@ -301,6 +332,11 @@ namespace Rails.UI
             Manager.Singleton.BuildTrack();
         }
 
+        public void EndBuild()
+        {
+            Manager.Singleton.EndBuild();
+        }
+
         public void UpgradeTrain()
         {
             const string button1 = "Button 1";
@@ -391,6 +427,11 @@ namespace Rails.UI
             Manager.Singleton.DiscardHand();
         }
 
+        public void EndMove()
+        {
+            Manager.Singleton.EndMove();
+        }
+
         #endregion
 
         #region Build Track UI
@@ -428,6 +469,23 @@ namespace Rails.UI
                 var track = _uiBuildTrackItems[i];
                 UpdateUIBuildTrackItems(i, ref track, path);
                 _uiBuildTrackItems[i] = track;
+            }
+
+            // disable build button if build is not valid
+            BuildButtonTooltipHandler.enabled = false;
+            BuildButton.interactable = true;
+            if (PathPlanner.CurrentCost > manager.Rules.MaxBuild)
+            {
+                BuildButton.interactable = false;
+                BuildButtonTooltipHandler.enabled = true;
+                BuildButtonTooltip.text = $"Unable to build track more than ${manager.Rules.MaxBuild}!";
+
+            }
+            else if (PathPlanner.CurrentCost > currentPlayer.money)
+            {
+                BuildButton.interactable = false;
+                BuildButtonTooltipHandler.enabled = true;
+                BuildButtonTooltip.text = $"You do not have enough money to build!";
             }
         }
 
@@ -751,6 +809,55 @@ namespace Rails.UI
 
             // enable game interaction
             GameInput.CurrentContext = GameInput.Context.Game;
+        }
+
+        #endregion
+
+        #region End Game
+
+        private void Manager_OnGameOver(Manager manager, int playerIdWon)
+        {
+            if (playerIdWon >= 0)
+            {
+                var playerWon = manager.Players[playerIdWon];
+
+                // show panel
+                PlayerWonPanel.gameObject.SetActive(true);
+
+                // hide all other panels
+                BuildInfoPanel.gameObject.SetActive(false);
+                MoveInfoPanel.gameObject.SetActive(false);
+                CurrentPlayerInfo.gameObject.SetActive(false);
+
+                // update player won info
+                PlayerWonNameText.color = playerWon.color;
+                PlayerWonNameText.text = playerWon.name;
+                PlayerWonMoneyText.text = "$" + playerWon.money.ToString();
+                PlayerWonCitiesText.text = playerWon.majorCities.ToString();
+
+                // construct a list of all the other players, ordered by cities then by money
+                var otherPlayers = manager.Players
+                    .Where(x => x != playerWon)
+                    .OrderBy(x => x.majorCities)
+                    .ThenBy(x => x.money)
+                    .ToList();
+
+                // generate player entries for all the other players
+                foreach (var otherPlayer in otherPlayers)
+                {
+                    var playerItem = Instantiate(EndGamePlayerItemPrefab);
+                    playerItem.transform.SetParent(PlayerWonPlayersRoot, false);
+                    playerItem.Name = otherPlayer.name;
+                    playerItem.Money = otherPlayer.money;
+                    playerItem.Cities = otherPlayer.majorCities;
+                }
+            }
+        }
+
+        public void EndGame_Finish()
+        {
+            // load scene
+            SceneManager.LoadScene("Main");
         }
 
         #endregion

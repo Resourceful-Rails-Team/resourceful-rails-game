@@ -36,13 +36,13 @@ namespace Rails.UI
 
             // update basic info
             this.PlayerNameText.text = player.name;
-            this.PlayerMoneyText.text = $"{player.money}" + (PathPlanner.CurrentCost != 0 ? $"<color=red> - {PathPlanner.CurrentCost}</color>" : "");
+            this.PlayerMoneyText.text = $"${player.money}" + (PathPlanner.CurrentCost != 0 ? $"<color=red> - {PathPlanner.CurrentCost}</color>" : "");
             this.PlayerCitiesText.text = $"{player.majorCities}";
 
             // update train
             var trainSpecs = manager.Rules.TrainSpecs[player.trainType];
             this.TrainNameText.text = player.trainType.ToString();
-            this.TrainUpgradeTextUpper.text = $"{0}";
+            this.TrainUpgradeTextUpper.text = $"{player.movePointsLeft}";
             this.TrainUpgradeTextLower.text = $"{trainSpecs.movePoints}";
 
             // update demand cards

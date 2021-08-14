@@ -39,6 +39,10 @@ namespace Rails
         // Build Track
         public delegate void OnBuildTrackHandler(Manager manager);
         public event OnTurnEndEventHandler OnBuildTrack;
+
+        // Game over
+        public delegate void OnGameOverHandler(Manager manager, int playerIdWon);
+        public event OnGameOverHandler OnGameOver;
         
         // Invoked when a moving train meets a City
         public EventHandler<TrainCityInteraction> OnTrainMeetsCityHandler;
@@ -478,6 +482,13 @@ namespace Rails
             return true;
         }
 
+        public void EndBuild()
+        {
+            // End the turn
+            PathPlanner.ClearBuild();
+            EndTurn();
+        }
+
         // Upgrades the player's train.
         public bool UpgradeTrain(int choice)
         {
@@ -622,7 +633,7 @@ namespace Rails
             {
                 if (PlayerWon())
                 {
-                    // TODO: Trigger the end of the game from GameHUDManager.
+                    OnGameOver?.Invoke(this, CurrentPlayer);
                     return;
                 }
 
