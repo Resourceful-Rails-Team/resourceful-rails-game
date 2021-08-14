@@ -46,6 +46,8 @@ namespace Rails.UI
         public Button UpgradeButton;
         public TooltipHandler UpgradeButtonTooltipHandler;
         public TMPro.TMP_Text UpgradeButtonTooltip;
+        public Button DiscardButton;
+        public TooltipHandler DiscardButtonTooltipHandler;
 
         [Header("Track Select/Delete")]
         public TrackSelectDeleteItem TrackSelectDeleteItemPrefab;
@@ -179,6 +181,18 @@ namespace Rails.UI
                 case Phase.Move:
                     {
                         Manager_OnMoveTrackUpdated(Manager.Singleton);
+
+                        // disable/enable discard button if player has moved this turn
+                        if (manager.Rules.TrainSpecs[manager.Player.trainType].movePoints > manager.Player.movePointsLeft)
+                        {
+                            DiscardButton.interactable = false;
+                            DiscardButtonTooltipHandler.enabled = true;
+                        }
+                        else
+                        {
+                            DiscardButton.interactable = true;
+                            DiscardButtonTooltipHandler.enabled = false;
+                        }
                         break;
                     }
             }
