@@ -22,6 +22,8 @@ namespace Assets.Scripts.Data
         public int buildPathStyle;
         public int movePointsLeft;
 
+        public bool hasMajorCities;
+
         public List<NodeId> movePath;
         public List<DemandCard> demandCards;
         public List<Good> goodsCarried;
@@ -41,9 +43,12 @@ namespace Assets.Scripts.Data
             buildPathStyle = 0;
             movePointsLeft = 0;
 
+            hasMajorCities = false;
+
             demandCards = new List<DemandCard>();
             goodsCarried = new List<Good>();
             movePath = new List<NodeId>();
+            connectedCities = new HashSet<City>();
         }
     }
 }

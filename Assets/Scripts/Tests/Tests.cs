@@ -28,6 +28,7 @@ namespace Rails
             // TrackGraph
             TestMethod(TestTrackGraphInsertion);
             TestMethod(TestTrackGraphTryGetValues);
+            TestMethod(TestTrackGraphDFS);
             
             // Utilities
             TestMethod(TestReflectCardinal);
@@ -114,6 +115,34 @@ namespace Rails
 
             Assert(!graph.TryGetEdgeValue(new NodeId(20, 20), Cardinal.NW, out var _));
             Assert(!graph.TryGetEdges(new NodeId(20, 20), out var _));
+        }        
+        private void TestTrackGraphDFS()
+        {
+            var graph = new TrackGraph<int>();
+            graph[new NodeId(3, 8), Cardinal.N] = 8;
+            graph[new NodeId(3, 8), Cardinal.S] = 9;
+            graph[new NodeId(3, 8), Cardinal.NW] = 10;
+            graph[new NodeId(3, 8), Cardinal.SE] = 10;
+            graph[new NodeId(3, 8), Cardinal.NE] = 10;
+
+            graph[new NodeId(8, 8), Cardinal.N] = 8;
+            graph[new NodeId(8, 8), Cardinal.S] = 9;
+            graph[new NodeId(8, 8), Cardinal.NW] = 10;
+            graph[new NodeId(8, 8), Cardinal.SE] = 10;
+            graph[new NodeId(8, 8), Cardinal.NE] = 10;
+
+            graph[new NodeId(13, 8), Cardinal.N] = 7;
+            graph[new NodeId(13, 8), Cardinal.S] = 9;
+            graph[new NodeId(13, 8), Cardinal.NW] = 10;
+            graph[new NodeId(13, 8), Cardinal.SE] = 10;
+            graph[new NodeId(13, 8), Cardinal.NE] = 10;
+
+            graph[new NodeId(18, 8), Cardinal.NE] = 10;
+
+            Assert(graph.GetConnected(7, id => id).Length == 1);
+            Assert(graph.GetConnected(8, id => id).Length == 2);
+            Assert(graph.GetConnected(9, id => id).Length == 3);
+            Assert(graph.GetConnected(10, id => id).Length == 4);
         }
         #endregion
 
