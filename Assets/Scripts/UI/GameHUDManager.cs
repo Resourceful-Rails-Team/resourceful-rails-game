@@ -377,7 +377,6 @@ namespace Rails.UI
         private void UpdateUIBuildTrackItems(int index, ref TrackItem trackItem, List<NodeId> path)
         {
             var trackName = Utilities.GetTrackNameByIndex(index);
-            int i = 0;
 
             if (trackItem == null)
             {

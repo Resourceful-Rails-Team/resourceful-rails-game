@@ -376,8 +376,8 @@ GameObject:
   - component: {fileID: 1668001698}
   - component: {fileID: 1668001697}
   - component: {fileID: 1668001701}
-  - component: {fileID: 1668001699}
   - component: {fileID: 1668001700}
+  - component: {fileID: 1668001699}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -398,6 +398,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WSSize: 1
+  _cityLabelPrefab: {fileID: 6997966921403217600, guid: 925bb163e0036054595bd7a6c311bf94, type: 3}
   Rules:
     MoneyStart: 50
     MaxBuild: 20
@@ -411,12 +412,12 @@ MonoBehaviour:
     NodeCosts: []
     HandSize: 3
   MapData: {fileID: 11400000, guid: bd76bf9cd5b36414d923968c859357fc, type: 2}
+  _startRules: {fileID: 0}
   trainData: []
   PhasePanels:
   - {fileID: 81101190209798171}
   - {fileID: 81101190209798170}
   GameHUDObject: {fileID: 81101190209798169}
-  _startRules: {fileID: 0}
 --- !u!4 &1668001698
 Transform:
   m_ObjectHideFlags: 0
