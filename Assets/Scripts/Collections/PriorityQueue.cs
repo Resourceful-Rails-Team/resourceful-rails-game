@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace Rails.Collections
 {
+    // The PriorityQueue data structure in was adapted from the algorithm of
+    // on https://www.geeksforgeeks.org/difference-between-bfs-and-dfs/)
+    
     /// <summary>
     /// A collection of ordered items. Allows insertion, peeking
     /// and popping the minimum weight item off the queue.
