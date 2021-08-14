@@ -26,6 +26,7 @@ namespace Rails.UI
         public TrackItem TrackItemPrefab;
         public Transform TracksRoot;
         public Transform BuildInfoPanel;
+        public Transform UpgradePanel;
 
         [Header("Track Select/Delete")]
         public TrackSelectDeleteItem TrackSelectDeleteItemPrefab;
@@ -302,7 +303,59 @@ namespace Rails.UI
 
         public void UpgradeTrain()
         {
-            Manager.Singleton.UpgradeTrain(0);
+            string button1 = "Button 1";
+            string button2 = "Button 2";
+            int trainType = Manager.Singleton.Player.trainType;
+
+            switch (trainType)
+            {
+                // Super
+                case 3:
+                    // Do nothing since player is fully upgraded.
+                    return;
+
+                // Fast or Heavy
+                case 1:
+                case 2:
+                    int t1 = 3;
+                    Button b1 = UpgradePanel.transform.Find(button1).GetComponent<Button>();
+                    Button b2 = UpgradePanel.transform.Find(button2).GetComponent<Button>();
+
+                    b1.onClick.AddListener(delegate { UpgradeTrain(t1); });
+
+                    b1.GetComponentInChildren<TMPro.TMP_Text>().text = Manager.Singleton.Rules.TrainSpecs[t1].ToString();
+
+                    b1.gameObject.SetActive(true);
+                    b2.gameObject.SetActive(false);
+                    UpgradePanel.gameObject.SetActive(true);
+                    break;
+
+                // Standard
+                case 0:
+                    t1 = 1;
+                    int t2 = 2;
+
+                    b1 = UpgradePanel.transform.Find(button1).GetComponent<Button>();
+                    b2 = UpgradePanel.transform.Find(button2).GetComponent<Button>();
+
+                    b1.onClick.AddListener(delegate { UpgradeTrain(t1); });
+                    b2.onClick.AddListener(delegate { UpgradeTrain(t2); });
+
+                    b1.GetComponentInChildren<TMPro.TMP_Text>().text = Manager.Singleton.Rules.TrainSpecs[t1].ToString();
+                    b2.GetComponentInChildren<TMPro.TMP_Text>().text = Manager.Singleton.Rules.TrainSpecs[t2].ToString();
+
+                    b1.gameObject.SetActive(true);
+                    b2.gameObject.SetActive(true);
+                    UpgradePanel.gameObject.SetActive(true);
+                    break;
+            }
+            return;
+        }
+
+        public void UpgradeTrain(int value)
+        {
+            if (Manager.Singleton.UpgradeTrain(value))
+                UpgradePanel.gameObject.SetActive(false);
         }
 
         #endregion

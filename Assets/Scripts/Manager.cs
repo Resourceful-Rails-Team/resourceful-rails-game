@@ -461,8 +461,7 @@ namespace Rails
         // Upgrades the player's train.
         public bool UpgradeTrain(int choice)
         {
-            bool success;
-            success = GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
+            bool success = GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
             if (success)
                 EndTurn();
             return success;
@@ -598,8 +597,15 @@ namespace Rails
             {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             }
+
             if (currentPhase >= 0)
             {
+                if (PlayerWon())
+                {
+                    // TODO: Trigger the end of the game from GameHUDManager.
+                    return;
+                }
+
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
                 OnPhaseChange?.Invoke(this);
             }
