@@ -606,17 +606,19 @@ namespace Rails
             }
             OnPlayerInfoUpdate?.Invoke(this);
         }
-
         private bool PlayerHasMajorCities()
         {
-            return Tracks.GetConnected(
-                currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityId
-            ).Any(
-                 g => g
-                .Where(id => id != -1)
-                .Select(id => MapData.GetCityType(MapData.Cities[id]) == NodeType.MajorCity)
-                .Count() >= Rules.WinMajorCities
-            );
+            return 
+                Player.hasMajorCities 
+                || 
+                Tracks.GetConnected(
+                    currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityId
+                ).Any(
+                    g => g
+                    .Where(id => id != -1)
+                    .Select(id => MapData.GetCityType(MapData.Cities[id]) == NodeType.MajorCity)
+                    .Count() >= Rules.WinMajorCities
+                );
         }
         private bool PlayerWon() => Player.hasMajorCities && Player.money >= Rules.WinMoney;
 
