@@ -988,12 +988,17 @@ namespace Rails.UI
             HelpPanel.gameObject.SetActive(false);
         }
 
+        /// <summary>
+        /// Sets the currently selected help text to the given id.
+        /// </summary>
         public void SetHelpText(int helpStep)
         {
             HelpStep step = (HelpStep)helpStep;
 
             foreach (var item in HelpStepInfos)
             {
+                // set item to active if step is the selected step
+                // disable interaction with button if active
                 var isActive = item.Step == step;
                 item.Root.SetActive(isActive);
                 item.NavButton.interactable = !isActive;
