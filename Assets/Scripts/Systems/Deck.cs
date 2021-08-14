@@ -12,12 +12,14 @@ namespace Rails.Systems
         public const int DemandCardCount = 136;
         // The minumum distance a Demand City can be
         // from the general location of a Demand Good
-        private const float MinimumDistance = 20.0f;
+        private const float MinimumDistance = 10.0f;
+        private const int MinReward = 15;
+        private const int MaxReward = 50;
 
         // An integer array representing the number of Demands to generate per City type.
         // Medium cities have the most preference while major cities have the least.
-        private static readonly int [] CityTypePreference = new int[] { 3, 5, 2 };
- 
+        private static readonly int[] CityTypePreference = new int[] { 3, 5, 2 };
+
         private static List<DemandCard> _drawPile;
         private static List<DemandCard> _discardPile;
         private static Manager _manager;
@@ -34,7 +36,7 @@ namespace Rails.Systems
             _discardPile = new List<DemandCard>();
             _manager = Manager.Singleton;
             GenerateDemandCards(GenerateDemands());
-        } 
+        }
 
         /// <summary>
         /// Draws a single Demand card
@@ -54,7 +56,7 @@ namespace Rails.Systems
             _drawPile.RemoveAt(index);
             return card;
         }
-        
+
         /// <summary>
         /// Discard a single Demand card into the discard pile
         /// </summary>
@@ -69,11 +71,11 @@ namespace Rails.Systems
         // into the draw pile
         private static void ShuffleDiscards()
         {
-            while(_discardPile.Count > 0)
+            while (_discardPile.Count > 0)
             {
                 int cardIndex = UnityEngine.Random.Range(0, _discardPile.Count);
                 _drawPile.Add(_discardPile[cardIndex]);
-                _discardPile.RemoveAt(cardIndex); 
+                _discardPile.RemoveAt(cardIndex);
             }
         }
 
@@ -102,7 +104,7 @@ namespace Rails.Systems
             for (int i = 0; i < goods.Length; ++i)
             {
                 var ids = _manager.MapData.LocationsOfGood(goods[i]);
-                goodsPositions.Add(ids[0]);
+                goodsPositions.Add(ids.Aggregate(new NodeId(0, 0), (total, current) => total + current) / ids.Length);
             }
 
             // Ensures an even selection of the cities per Demand
@@ -190,11 +192,17 @@ namespace Rails.Systems
         /// <param name="distance"></param>
         /// <param name="i"></param>
         /// <returns></returns>
-        private static int DetermineReward(float distance, int i)
+        private static int DetermineReward(float distance, int cityType)
         {
-            int reward = 0;
-            // TODO: randomize with a gaussian distribution.
-            reward = (((int)distance * 3) + (i * 5)) / 20 * 10;
+            var bounds = _manager.MapData.MapNodeBounds;
+
+            float distFactor = (MaxReward - MinReward)
+                / Mathf.Sqrt(Mathf.Pow(bounds.size.x, 2) + Mathf.Pow(bounds.size.y, 2));
+
+            int reward = (int)(distance * distFactor * 1.5f) + (cityType * 5);
+            reward += UnityEngine.Random.Range(0, 5);
+            reward = Mathf.Clamp(reward, MinReward, MaxReward);
+
             return reward;
         }
 
@@ -205,7 +213,7 @@ namespace Rails.Systems
         private static void GenerateDemandCards(List<Demand> demands)
         {
             var deckBuilder = new List<List<Demand>>();
-            for(int i = 0; i < DemandCardCount; ++i)
+            for (int i = 0; i < DemandCardCount; ++i)
                 deckBuilder.Add(new List<Demand>());
 
             int deckIndex = 0;
@@ -216,13 +224,13 @@ namespace Rails.Systems
             // Add each demand to the deckBuilder in turn. Add one per card, 
             // iterating through the whole deck before adding to the same card
             // again, to avoid repeating cities on the same card.
-            for(int i = 0; i < DemandCardCount * 3; ++i)
-            { 
+            for (int i = 0; i < DemandCardCount * 3; ++i)
+            {
                 var demand = demands.Last();
                 deckBuilder[deckIndex].Add(demand);
 
                 deckIndex += 1;
-                if(deckIndex >= DemandCardCount)
+                if (deckIndex >= DemandCardCount)
                     deckIndex = 0;
 
                 demands.RemoveAt(demands.Count - 1);
@@ -244,7 +252,7 @@ namespace Rails.Systems
         {
             var shuffleChar = (char)(97 + UnityEngine.Random.Range(0, 26));
             demands.Sort(
-                (first, second) => 
+                (first, second) =>
                     (shuffleChar + first.City.Name.Substring(1)).CompareTo(
                         shuffleChar + second.City.Name.Substring(1).ToString()
                     )
