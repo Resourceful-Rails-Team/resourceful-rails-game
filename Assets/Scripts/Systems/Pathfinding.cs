@@ -67,9 +67,12 @@ namespace Rails.Systems
             var routes = new List<Route>();
             int majorCitiesLeft = _rules.MajorCityBuildsPerTurn;
 
+            var pathfindingTracks = _tracks.Clone();
+            var pathbuildingTracks = _tracks.Clone();
+
             foreach(var segments in segmentGroups)
             { 
-                var newRoute = FindPathBetweenPoints(_tracks.Clone(), _tracks.Clone(), ref majorCitiesLeft, false, segments);
+                var newRoute = FindPathBetweenPoints(pathfindingTracks, pathbuildingTracks, ref majorCitiesLeft, false, segments);
                 routes.Add(newRoute);
             }
 
@@ -81,9 +84,12 @@ namespace Rails.Systems
             var routes = new List<Route>();
             int majorCount = _rules.MajorCityBuildsPerTurn;
 
+            var pathfindingTracks = _tracks.Clone();
+            var pathbuildingTracks = _tracks.Clone();
+
             foreach(var path in paths)
             { 
-                var newRoute = FindPathBetweenPoints(_tracks.Clone(), _tracks.Clone(), ref majorCount, true, path);
+                var newRoute = FindPathBetweenPoints(pathfindingTracks, pathbuildingTracks, ref majorCount, true, path);
                 routes.Add(newRoute);
             }
 
@@ -603,7 +609,7 @@ namespace Rails.Systems
                 var nodeType1 = _mapData.Nodes[path[i].GetSingleId()].Type;
                 var nodeType2 = _mapData.Nodes[path[i+1].GetSingleId()].Type;
 
-                if (!pathbuildingTracks.TryGetEdgeValue(path[i], path[i + 1], out int _))
+                if (!pathbuildingTracks.TryGetEdgeValue(path[i], path[i + 1], out int edgeValue) || edgeValue == -1)
                 {
                     if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
                     {
