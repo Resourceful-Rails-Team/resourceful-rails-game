@@ -88,6 +88,7 @@ namespace Rails.Systems
         {
             buildPaths.Clear();
             buildPaths.Add(new List<NodeId>());
+            currentPath = 0;
             currentNode = 0;
         }
         // Clear current build path.
@@ -101,6 +102,7 @@ namespace Rails.Systems
             if (buildPaths.Count == 0)
                 buildPaths.Add(new List<NodeId>());
             currentNode = 0;
+            currentPath = 0;
             PlannedTracks();
 
             return true;

@@ -29,6 +29,14 @@ namespace Rails.UI
         public Transform BuildInfoPanel;
         public Transform UpgradePanel;
 
+        [Header("Phase Controls")]
+        public Button BuildButton;
+        public TooltipHandler BuildButtonTooltipHandler;
+        public TMPro.TMP_Text BuildButtonTooltip;
+        public Button UpgradeButton;
+        public TooltipHandler UpgradeButtonTooltipHandler;
+        public TMPro.TMP_Text UpgradeButtonTooltip;
+
         [Header("Track Select/Delete")]
         public TrackSelectDeleteItem TrackSelectDeleteItemPrefab;
         public Transform TrackSelectPanel;
@@ -119,13 +127,27 @@ namespace Rails.UI
 
         private void Update()
         {
-            switch (Manager.Singleton.CurrentPhase)
+            var manager = Manager.Singleton;
+            switch (manager.CurrentPhase)
             {
                 case Phase.Build:
                 case Phase.InitBuild:
                 case Phase.InitBuildRev:
                     {
                         Manager_OnBuildTrackUpdated(Manager.Singleton);
+
+                        // disable/enable upgrade button depending on money
+                        if (manager.Rules.TrainUpgrade > manager.Player.money)
+                        {
+                            UpgradeButton.interactable = false;
+                            UpgradeButtonTooltipHandler.enabled = true;
+                            UpgradeButtonTooltip.text = $"You need at least ${manager.Rules.TrainUpgrade} to upgrade!";
+                        }
+                        else
+                        {
+                            UpgradeButton.interactable = true;
+                            UpgradeButtonTooltipHandler.enabled = false;
+                        }
                         break;
                     }
                 case Phase.Move:
@@ -437,6 +459,23 @@ namespace Rails.UI
                 var track = _uiBuildTrackItems[i];
                 UpdateUIBuildTrackItems(i, ref track, path);
                 _uiBuildTrackItems[i] = track;
+            }
+
+            // disable build button if build is not valid
+            BuildButtonTooltipHandler.enabled = false;
+            BuildButton.interactable = true;
+            if (PathPlanner.CurrentCost > manager.Rules.MaxBuild)
+            {
+                BuildButton.interactable = false;
+                BuildButtonTooltipHandler.enabled = true;
+                BuildButtonTooltip.text = $"Unable to build track more than ${manager.Rules.MaxBuild}!";
+
+            }
+            else if (PathPlanner.CurrentCost > currentPlayer.money)
+            {
+                BuildButton.interactable = false;
+                BuildButtonTooltipHandler.enabled = true;
+                BuildButtonTooltip.text = $"You do not have enough money to build!";
             }
         }
 
@@ -798,7 +837,7 @@ namespace Rails.UI
                 {
                     var playerItem = Instantiate(EndGamePlayerItemPrefab);
                     playerItem.transform.SetParent(PlayerWonPlayersRoot, false);
-                    playerItem.name = otherPlayer.name;
+                    playerItem.Name = otherPlayer.name;
                     playerItem.Money = otherPlayer.money;
                     playerItem.Cities = otherPlayer.majorCities;
                 }
