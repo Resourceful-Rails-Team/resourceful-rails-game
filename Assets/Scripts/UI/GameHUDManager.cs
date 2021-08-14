@@ -2,6 +2,8 @@ using Assets.Scripts.Data;
 using Rails.Controls;
 using Rails.Data;
 using Rails.Systems;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,6 +14,14 @@ namespace Rails.UI
 {
     public class GameHUDManager : MonoBehaviour
     {
+        [Serializable]
+        public class PhaseInfo
+        {
+            public Phase Phase;
+            public string Name;
+            public string Description;
+        }
+
         public static GameHUDManager Singleton { get; private set; }
 
         [Header("Other References")]
@@ -66,6 +76,13 @@ namespace Rails.UI
         public TMPro.TMP_Text PlayerWonNameText;
         public TMPro.TMP_Text PlayerWonMoneyText;
         public TMPro.TMP_Text PlayerWonCitiesText;
+
+        [Header("Phase Turn Transition")]
+        public Transform PhaseTurnTransitionPanel;
+        public TMPro.TMP_Text PhaseTurnTransitionTitleText;
+        public TMPro.TMP_Text PhaseTurnTransitionPlayerNameText;
+        public TMPro.TMP_Text PhaseTurnTransitionSubheadingText;
+        public List<PhaseInfo> PhaseInfos;
 
         private Dictionary<NodeId, BuildMarkerContainer> _buildMarkers = new Dictionary<NodeId, BuildMarkerContainer>();
         private List<TrackItem> _uiBuildTrackItems = new List<TrackItem>();
@@ -123,6 +140,15 @@ namespace Rails.UI
             Manager_OnPhaseChange(manager);
             manager.OnTrainMeetsCityHandler += Manager_OnTrainMeetsCity;
             manager.OnGameOver += Manager_OnGameOver;
+            manager.OnTurnEnd += Manager_OnTurnEnd;
+        }
+
+        private void Manager_OnTurnEnd(Manager manager)
+        {
+            // open transition panel
+            var phaseInfo = PhaseInfos.FirstOrDefault(x => x.Phase == manager.CurrentPhase);
+            if (phaseInfo != null)
+                OpenPhaseTurnTransition($"{phaseInfo.Name} Phase", manager.Player, phaseInfo.Description);
         }
 
         private void Update()
@@ -186,6 +212,11 @@ namespace Rails.UI
                         break;
                     }
             }
+
+            // open transition panel
+            var phaseInfo = PhaseInfos.FirstOrDefault(x => x.Phase == manager.CurrentPhase);
+            if (phaseInfo != null)
+                OpenPhaseTurnTransition($"{phaseInfo.Name} Phase", manager.Player, phaseInfo.Description);
         }
 
         #region City PickDrop
@@ -817,6 +848,9 @@ namespace Rails.UI
 
         private void Manager_OnGameOver(Manager manager, int playerIdWon)
         {
+            // set context
+            GameInput.CurrentContext = GameInput.Context.EndGame;
+
             if (playerIdWon >= 0)
             {
                 var playerWon = manager.Players[playerIdWon];
@@ -858,6 +892,37 @@ namespace Rails.UI
         {
             // load scene
             SceneManager.LoadScene("Main");
+        }
+
+        #endregion
+
+        #region Phase Turn Transition
+
+        private void OpenPhaseTurnTransition(string title, PlayerInfo player, string subheading, float duration = 3f)
+        {
+            StartCoroutine(OpenPhaseTurnTransition_coroutine(title, player, subheading, duration));
+        }
+
+        private IEnumerator OpenPhaseTurnTransition_coroutine(string title, PlayerInfo player, string subheading, float duration)
+        {
+            // disable gameinput
+            GameInput.CurrentContext = GameInput.Context.Popup;
+
+            // open panel
+            PhaseTurnTransitionPanel.gameObject.SetActive(true);
+            PhaseTurnTransitionTitleText.text = title;
+            PhaseTurnTransitionPlayerNameText.text = player.name;
+            PhaseTurnTransitionPlayerNameText.color = player.color;
+            PhaseTurnTransitionSubheadingText.text = subheading;
+
+            // wait for duration
+            yield return new WaitForSeconds(duration);
+
+            // close panel
+            PhaseTurnTransitionPanel.gameObject.SetActive(false);
+
+            // enable gameinput
+            GameInput.CurrentContext = GameInput.Context.Game;
         }
 
         #endregion

@@ -12,6 +12,7 @@ namespace Rails.Controls
             Game,
             Popup,
             AllPlayers,
+            EndGame
         }
 
         #region Singleton
