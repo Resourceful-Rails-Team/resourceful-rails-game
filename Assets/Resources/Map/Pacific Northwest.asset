@@ -49208,7 +49208,7 @@ MonoBehaviour:
   Cities:
   - Name: Seattle, WA
     Goods:
-    - {x: 15, y: 1}
+    - {x: 18, y: 1}
   - Name: Missoula, MT
     Goods: []
   - Name: Casper, WY
@@ -49217,156 +49217,156 @@ MonoBehaviour:
     Goods: []
   - Name: Salt Lake City, UT
     Goods:
-    - {x: 19, y: 1}
+    - {x: 9, y: 1}
   - Name: Redding, CA
     Goods:
-    - {x: 7, y: 1}
-    - {x: 16, y: 1}
+    - {x: 6, y: 1}
+    - {x: 8, y: 1}
   - Name: Portland, OR
     Goods: []
   - Name: Kennewick, WA
     Goods:
-    - {x: 2, y: 1}
-    - {x: 0, y: 1}
+    - {x: 16, y: 1}
+    - {x: 24, y: 1}
   - Name: Eugene, OR
     Goods:
-    - {x: 5, y: 1}
-    - {x: 4, y: 1}
-    - {x: 8, y: 1}
+    - {x: 12, y: 1}
+    - {x: 19, y: 1}
+    - {x: 23, y: 1}
   - Name: Billings, MT
     Goods:
-    - {x: 20, y: 1}
-    - {x: 0, y: 1}
-    - {x: 23, y: 1}
+    - {x: 3, y: 1}
+    - {x: 5, y: 1}
+    - {x: 24, y: 1}
   - Name: Boise, ID
     Goods:
-    - {x: 4, y: 1}
+    - {x: 19, y: 1}
   - Name: Reno, NV
     Goods:
-    - {x: 19, y: 1}
-    - {x: 5, y: 1}
+    - {x: 9, y: 1}
+    - {x: 12, y: 1}
   - Name: Elko, NV
     Goods:
-    - {x: 16, y: 1}
-    - {x: 21, y: 1}
+    - {x: 6, y: 1}
+    - {x: 15, y: 1}
   - Name: Idaho Falls, ID
     Goods:
-    - {x: 21, y: 1}
+    - {x: 15, y: 1}
   - Name: Great Falls, MT
     Goods:
-    - {x: 0, y: 1}
-    - {x: 1, y: 1}
+    - {x: 2, y: 1}
+    - {x: 24, y: 1}
   - Name: Grand Junction, CO
     Goods:
-    - {x: 1, y: 1}
-    - {x: 12, y: 1}
+    - {x: 2, y: 1}
+    - {x: 21, y: 1}
   - Name: Cheyenne, WY
     Goods:
-    - {x: 21, y: 1}
-    - {x: 9, y: 1}
+    - {x: 11, y: 1}
+    - {x: 15, y: 1}
   - Name: Rock Springs, WY
     Goods:
-    - {x: 9, y: 1}
+    - {x: 11, y: 1}
   - Name: Glasgow, MT
     Goods:
-    - {x: 23, y: 1}
-    - {x: 1, y: 1}
+    - {x: 2, y: 1}
+    - {x: 3, y: 1}
   - Name: Miles City, MT
     Goods:
-    - {x: 24, y: 1}
-    - {x: 3, y: 1}
+    - {x: 0, y: 1}
+    - {x: 13, y: 1}
   - Name: Glendive, MT
     Goods:
-    - {x: 23, y: 1}
-    - {x: 9, y: 1}
+    - {x: 3, y: 1}
+    - {x: 11, y: 1}
   - Name: Bozeman, MT
     Goods:
-    - {x: 21, y: 1}
+    - {x: 15, y: 1}
   - Name: Helena, MT
     Goods:
-    - {x: 20, y: 1}
-    - {x: 17, y: 1}
+    - {x: 5, y: 1}
+    - {x: 7, y: 1}
   - Name: Spokane, WA
     Goods:
-    - {x: 3, y: 0}
+    - {x: 0, y: 0}
   - Name: Yakima, WA
     Goods:
-    - {x: 10, y: 0}
+    - {x: 1, y: 0}
   - Name: Lewingston, MT
     Goods:
-    - {x: 3, y: 0}
+    - {x: 0, y: 0}
   - Name: Pocatello, ID
     Goods:
-    - {x: 7, y: 1}
+    - {x: 8, y: 1}
   - Name: Twin Falls, ID
     Goods:
-    - {x: 21, y: 1}
+    - {x: 15, y: 1}
   - Name: Bend, OR
     Goods:
-    - {x: 6, y: 1}
+    - {x: 1, y: 1}
     - {x: 10, y: 1}
   - Name: Medford, OR
     Goods:
-    - {x: 5, y: 0}
-    - {x: 10, y: 0}
+    - {x: 1, y: 0}
+    - {x: 12, y: 0}
   - Name: Winnemucca, NV
     Goods:
-    - {x: 16, y: 0}
+    - {x: 6, y: 0}
   - Name: Payette, ID
     Goods:
-    - {x: 0, y: 0}
+    - {x: 24, y: 0}
   - Name: Baker City, OR
     Goods:
-    - {x: 10, y: 0}
+    - {x: 1, y: 0}
   - Name: Fort Collins, CO
     Goods:
-    - {x: 1, y: 1}
-    - {x: 12, y: 1}
+    - {x: 2, y: 1}
+    - {x: 21, y: 1}
   - Name: Wendell, CA
     Goods:
     - {x: 8, y: 1}
-    - {x: 7, y: 1}
+    - {x: 23, y: 1}
   - Name: Burns, OR
     Goods:
-    - {x: 16, y: 0}
+    - {x: 6, y: 0}
   - Name: Boulder, WY
     Goods:
-    - {x: 13, y: 1}
+    - {x: 22, y: 1}
   - Name: Gillette, WY
     Goods:
-    - {x: 13, y: 1}
+    - {x: 22, y: 1}
   - Name: Darby, ID
     Goods:
-    - {x: 21, y: 1}
+    - {x: 15, y: 1}
   - Name: Salmon, ID
     Goods:
-    - {x: 4, y: 0}
+    - {x: 19, y: 0}
   - Name: Kalispell, MT
     Goods:
-    - {x: 17, y: 0}
-    - {x: 20, y: 0}
+    - {x: 5, y: 0}
+    - {x: 7, y: 0}
   - Name: Colville, WA
     Goods:
-    - {x: 10, y: 0}
+    - {x: 1, y: 0}
   - Name: Tuscarora, NV
     Goods:
-    - {x: 16, y: 1}
+    - {x: 6, y: 1}
   - Name: Fields, OR
     Goods:
-    - {x: 0, y: 1}
+    - {x: 24, y: 1}
   - Name: Cody, WY
     Goods:
-    - {x: 21, y: 1}
+    - {x: 15, y: 1}
   - Name: Newport, OR
     Goods:
-    - {x: 15, y: 1}
+    - {x: 18, y: 1}
   - Name: Tillamook, OR
     Goods:
-    - {x: 7, y: 0}
+    - {x: 8, y: 0}
   - Name: Logan, UT
     Goods:
-    - {x: 23, y: 0}
-    - {x: 11, y: 0}
+    - {x: 3, y: 0}
+    - {x: 14, y: 0}
   Goods:
   - Name: Aircraft Parts
     Icon: {fileID: 2436816743111310592, guid: 9c8bc4a4c015c3f4682113adbda53a16, type: 3}
