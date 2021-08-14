@@ -36,6 +36,7 @@ namespace Rails.UI
 
             // update basic info
             this.PlayerNameText.text = player.name;
+            this.PlayerNameText.color = player.color;
             this.PlayerMoneyText.text = $"${player.money}" + (PathPlanner.CurrentCost != 0 ? $"<color=red> - {PathPlanner.CurrentCost}</color>" : "");
             this.PlayerCitiesText.text = $"{player.majorCities}";
 
