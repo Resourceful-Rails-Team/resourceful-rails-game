@@ -5,10 +5,15 @@ using UnityEngine;
 
 namespace Rails.Editor
 {
+    /// <summary>
+    /// Custom inspector editor for the Manager component.
+    /// </summary>
     [CustomEditor(typeof(Manager))]
     public class ManagerEditor : UnityEditor.Editor
     {
-
+        /// <summary>
+        /// Raised when the Unity Editor is building the inspector GUI.
+        /// </summary>
         public override void OnInspectorGUI()
         {
             //
@@ -30,6 +35,9 @@ namespace Rails.Editor
             GUILayout.EndVertical();
         }
         
+        /// <summary>
+        /// Generates a new map with default data.
+        /// </summary>
         private void Generate(MapData mapData)
         {
             var size = Manager.Size;
@@ -53,14 +61,6 @@ namespace Rails.Editor
                     }
                 }
             }
-        }
-
-        private void Save(MapData mapData)
-        {
-            //AssetDatabase.CreateAsset(mapData, "Assets/Resources/Map/Map1_.asset");
-            EditorUtility.SetDirty(mapData as ScriptableObject);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
         }
     }
 }

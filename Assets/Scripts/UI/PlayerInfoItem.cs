@@ -9,6 +9,9 @@ using UnityEngine.UI;
 
 namespace Rails.UI
 {
+    /// <summary>
+    /// UI interop class that links the PlayerInfoItem prefab's components into one managed object.
+    /// </summary>
     public class PlayerInfoItem : MonoBehaviour
     {
         [Header("Basic")]
@@ -28,8 +31,14 @@ namespace Rails.UI
         [Header("Cards")]
         public CardItem[] Cards;
 
+        /// <summary>
+        /// Triggered on start.
+        /// </summary>
         private void Start() => PathPlanner.OnCurrentCostChange += () => UpdateInfo(Manager.Singleton.Player);
 
+        /// <summary>
+        /// Updates the UI object with the respective player info.
+        /// </summary>
         public void UpdateInfo(PlayerInfo player)
         {
             var manager = Manager.Singleton;
@@ -68,17 +77,24 @@ namespace Rails.UI
             SetGoods(player.goodsCarried);
         }
 
-        public void SetGoods(IEnumerable<Good> values)
+        /// <summary>
+        /// Sets the displayed goods.
+        /// </summary>
+        private void SetGoods(IEnumerable<Good> values)
         {
+            // iterate goods
             var valuesArr = values.ToArray();
             for (int i = 0; i < Goods.Length; ++i)
             {
                 var good = Goods[i];
 
+                // if good exists, set it
+                // otherwise hide good UI element
                 if (i < valuesArr.Length)
                 {
                     good.Value = valuesArr[i].Name;
                     good.Sprite = valuesArr[i].Icon;
+                    good.Disabled = false;
                 }
                 else
                 {
