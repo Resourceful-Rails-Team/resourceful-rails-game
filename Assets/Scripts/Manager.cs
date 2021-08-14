@@ -452,11 +452,10 @@ namespace Rails
             }
 
             // Ends the turn.
-            GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
-            player = Players[currentPlayer];
-            InitializePlayerMove();                
-
-            OnPlayerInfoUpdate?.Invoke(this);
+            GameGraphics.HighlightRoute(PathPlanner.moveRoute, null);
+            GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
+            PathPlanner.CurrentNode = 0;
+            EndTurn();
         }
 
         // Builds the track between the nodes in path.
