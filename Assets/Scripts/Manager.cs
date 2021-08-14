@@ -615,6 +615,7 @@ namespace Rails
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
                 OnPhaseChange?.Invoke(this);
             }
+
             player = Players[currentPlayer];
             OnPlayerInfoUpdate?.Invoke(this);
             OnTurnEnd?.Invoke(this);

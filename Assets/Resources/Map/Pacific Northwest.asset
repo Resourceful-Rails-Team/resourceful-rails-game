@@ -25,13 +25,17 @@ MonoBehaviour:
     RiverCrossCost: 2
     MajorCityBuildsPerTurn: 2
     TrainSpecs:
-    - goodsTotal: 2
+    - name: Standard
+      goodsTotal: 2
       movePoints: 9
-    - goodsTotal: 2
+    - name: Fast
+      goodsTotal: 2
       movePoints: 12
-    - goodsTotal: 3
+    - name: Heavy
+      goodsTotal: 3
       movePoints: 9
-    - goodsTotal: 3
+    - name: Super
+      goodsTotal: 3
       movePoints: 12
     NodeCosts:
     - NodeType: 0
