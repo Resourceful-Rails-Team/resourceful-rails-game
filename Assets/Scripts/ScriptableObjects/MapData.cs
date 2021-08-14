@@ -139,6 +139,23 @@ namespace Rails.ScriptableObjects
             return cities.Select(c => Cities.IndexOf(c)).ToArray();
         }
 
+        private Dictionary<City, NodeType> _cityTypes = null;
+        public NodeType ? GetCityType(City city)
+        { 
+            if (_cityTypes == null)
+            {
+                _cityTypes = new Dictionary<City, NodeType>();
+                for (int i = 0; i < Manager.Size * Manager.Size; ++i)
+                {
+                    if (Nodes[i].CityId != -1)
+                        _cityTypes[Cities[Nodes[i].CityId]] = Nodes[i].Type;
+                }
+            }
+
+            _cityTypes.TryGetValue(city, out var type);
+            return type;
+        }
+
         // Cache for MapData bounds
         private Bounds ? _mapNodeBounds = null;
         /// <summary>
