@@ -116,10 +116,6 @@ namespace Rails
         /// </summary>
         public GameStartRules _startRules;
         /// <summary>
-        /// The trains that players can use.
-        /// </summary>
-        public TrainData[] trainData;
-        /// <summary>
         /// UI windows that show the controls for each phase.
         /// </summary>
         public GameObject[] PhasePanels;
@@ -440,12 +436,11 @@ namespace Rails
         // Upgrades the player's train.
         public bool UpgradeTrain(int choice)
         {
-            if (player.money < Rules.TrainUpgrade)
-                return false;
-
-            GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
-            EndTurn();
-            return true;
+            bool success;
+            success = GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
+            if (success)
+                EndTurn();
+            return success;
         }
 
         // Places the current player's train at position.

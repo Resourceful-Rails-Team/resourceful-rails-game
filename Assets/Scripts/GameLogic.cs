@@ -56,14 +56,14 @@ namespace Rails {
             return totalCost;
         }
         // Upgrades the train to new if possible.
-        public static bool UpgradeTrain(ref int trainStyle, ref int money, int trainNew, int trainUpgrade) {
+        public static bool UpgradeTrain(ref int trainStyle, ref int money, int trainNew, int trainUpgradeCost) {
             // If player doesn't have enough money, don't upgrade
-            if (money < trainUpgrade) {
+            if (money < trainUpgradeCost) {
                 // TODO: Activate failure UI message here.
                 return false;
             }
             // Deduct value from player's money stock and change train value.
-            money -= trainUpgrade;
+            money -= trainUpgradeCost;
             trainStyle = trainNew;
             return true;
         }
