@@ -201,8 +201,11 @@ namespace Rails.Collections
                     entry => entry.Value.ToArray()
                 ),
                 _defaultEdgeValue = this._defaultEdgeValue,
-            };        
-        
+            };
+
+        // The DFS performed in the next two methods was adapted from the description of
+        // DFS on https://www.geeksforgeeks.org/difference-between-bfs-and-dfs/
+
         /// <summary>
         /// Finds all subgraphs with the given edge values,
         /// performing a transformational function on their vertices

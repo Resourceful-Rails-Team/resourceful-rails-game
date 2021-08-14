@@ -22,8 +22,6 @@ namespace Assets.Scripts.Data
         public int buildPathStyle;
         public int movePointsLeft;
 
-        public bool hasMajorCities;
-
         public List<NodeId> movePath;
         public List<DemandCard> demandCards;
         public List<Good> goodsCarried;

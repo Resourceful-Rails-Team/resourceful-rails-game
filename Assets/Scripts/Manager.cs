@@ -428,8 +428,7 @@ namespace Rails
                 OnBuildTrack?.Invoke(this);
             }
 
-            if (PlayerHasMajorCities())
-                Player.hasMajorCities = true;
+            Player.majorCities = CountMajorCities();
 
             // End the turn
             PathPlanner.ClearBuild();
@@ -606,21 +605,19 @@ namespace Rails
             }
             OnPlayerInfoUpdate?.Invoke(this);
         }
-        private bool PlayerHasMajorCities()
+        private int CountMajorCities()
         {
             return 
-                Player.hasMajorCities 
-                || 
                 Tracks.GetConnected(
                     currentPlayer, (id) => MapData.Nodes[id.GetSingleId()].CityId
-                ).Any(
+                ).Max(
                     g => g
                     .Where(id => id != -1)
                     .Select(id => MapData.GetCityType(MapData.Cities[id]) == NodeType.MajorCity)
-                    .Count() >= Rules.WinMajorCities
+                    .Count()
                 );
         }
-        private bool PlayerWon() => Player.hasMajorCities && Player.money >= Rules.WinMoney;
+        private bool PlayerWon() => Player.majorCities > Rules.WinMajorCities && Player.money >= Rules.WinMoney;
 
         #endregion
     }
