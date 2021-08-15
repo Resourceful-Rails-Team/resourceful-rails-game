@@ -66,11 +66,18 @@ namespace Rails.Systems
             _tracks = tracks;
             _mapData = mapData;
         }
-
+        
+        /// <summary>
+        /// Generates all shortest build tracks given a collection of paths.
+        /// </summary>
+        /// <returns>A list of Routes representing the shortest paths</returns>
         public static List<Route> ShortestBuilds(List<List<NodeId>> segmentGroups) {
             var routes = new List<Route>();
             int majorCitiesLeft = _rules.MajorCityBuildsPerTurn;
 
+            // The pathfinding and pathbuilding TrackGraph's must be separate.
+            // If not, the cost will not be added during pathbuilding (it will already
+            // exist in pathfinding)
             var pathfindingTracks = _tracks.Clone();
             var pathbuildingTracks = _tracks.Clone();
 
@@ -83,11 +90,19 @@ namespace Rails.Systems
             return routes;
         }
 
+        /// <summary>
+        /// Generates all least-expensive build tracks given a collection of paths.
+        /// </summary>
+        /// <returns>A list of Routes representing the shortest paths</returns>
+
         public static List<Route> CheapestBuilds(List<List<NodeId>> paths)
         { 
             var routes = new List<Route>();
             int majorCount = _rules.MajorCityBuildsPerTurn;
 
+            // The pathfinding and pathbuilding TrackGraph's must be separate.
+            // If not, the cost will not be added during pathbuilding (it will already
+            // exist in pathfinding)
             var pathfindingTracks = _tracks.Clone();
             var pathbuildingTracks = _tracks.Clone();
 
@@ -392,6 +407,7 @@ namespace Rails.Systems
                     bool edgeFound;
 
                     // If there is a track already at the considered edge, continue
+                    // If it belongs to the current player or is a major city track include it
                     if ((edgeFound = tracks.TryGetEdgeValue(node.Position, c, out var edge)) 
                         && edge != Manager.Singleton.CurrentPlayer
                         && edge != Manager.MajorCityIndex
@@ -615,8 +631,11 @@ namespace Rails.Systems
 
                 if (!pathbuildingTracks.TryGetEdgeValue(path[i], path[i + 1], out int edgeValue) || edgeValue == -1)
                 {
+                    // If the one of the considered nodes is a major city, while the other one isn't
                     if ((nodeType1 ^ nodeType2) == NodeType.MajorCity)
                     {
+                        // If the player can still build from major cities this turn, add the cost
+                        // of the current node instead of the major city node. Subtract from major city points left.
                         if (majorCitiesLeft > 0)
                         {
                             cost += _rules.GetNodeCost(nodeType1 == NodeType.MajorCity ? nodeType2 : nodeType1);
@@ -625,12 +644,16 @@ namespace Rails.Systems
                         else
                             cost += _rules.GetNodeCost(NodeType.MajorCity);
                     }
+                    // If both nodes are not a major city, add the NodeType cost to the new point.
                     else if ((nodeType1 & nodeType2) != NodeType.MajorCity)
                         cost += _rules.GetNodeCost(_mapData.Nodes[path[i + 1].GetSingleId()].Type);
-
+                        
+                    // Add river costs
                     if (_mapData.Segments[path[i].GetSingleId() * 6 + (int)Utilities.CardinalBetween(path[i], path[i + 1])].Type == NodeSegmentType.River)
                         cost += _rules.RiverCrossCost;
-
+                    
+                    // Add to the pathbuilding tracks, to ensure this track space isn't charged again
+                    // during the pathbuilding process.
                     pathbuildingTracks[path[i], path[i + 1]] = Manager.Singleton.CurrentPlayer;
                 }
             }
