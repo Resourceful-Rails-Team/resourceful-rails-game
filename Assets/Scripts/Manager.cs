@@ -232,7 +232,7 @@ namespace Rails
 
         private void Update()
         {
-
+            // Highlights game pieces of interest
             _highlightToken?.ResetColor();
             var highlightToken = GameGraphics.GetMapToken(GameInput.MouseNodeId);
 
@@ -242,20 +242,28 @@ namespace Rails
                 _highlightToken = highlightToken;
             }
 
+            // Rotate the city labels to match the camera
             RotateCityLabels();
+            // Keep checking inputs
             Loop();
         }
 
+        /// <summary>
+        /// Checks all of the inputs every frame.
+        /// </summary>
         private void Loop()
         {
+            // Prevent train from being moved twice.
             if (!_movingTrain)
             {
+                // Check the main inputs
                 if (GameInput.SelectJustPressed && GameInput.MouseNodeId.InBounds)
                 {
                     Debug.Log("player.trainPosition = " + player.trainPosition.ToString());
 
                     if (currentPhase == Phase.Move)
                     {
+                        // For the movement phase we check if the train has been placed yet.
                         if (!player.trainPlaced)
                         {
                             Debug.Log("Place Train");
@@ -263,15 +271,19 @@ namespace Rails
                         }
                         else
                         {
+                            // Adds a node to the players movement path.
                             PathPlanner.AddNode(GameInput.MouseNodeId);
                         }
                     }
                     else
                     {
+                        // Adds a node to the general build path..
                         Debug.Log("Add Node");
                         PathPlanner.AddNode(PathPlanner.CurrentPath, GameInput.MouseNodeId);
                     }
                 }
+
+                // Extra controls
                 if (GameInput.DeleteJustPressed)
                 {
                     if (currentPhase == Phase.Move)
@@ -290,6 +302,9 @@ namespace Rails
         }
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// Draws all of the map editor nodes.
+        /// </summary>
         private void OnDrawGizmos()
         {
             List<Action> postDraws = new List<Action>();
@@ -435,7 +450,10 @@ namespace Rails
             } 
         }
 
-        // Discards the player's hand.
+        /// <summary>
+        /// Discards the player's hand and draws 3 new cards.
+        /// Can only be done once and turn and the player can't do anything else.
+        /// </summary>
         public void DiscardHand()
         {
             // You can't discard unless you haven't moved yet.
@@ -462,21 +480,27 @@ namespace Rails
             EndTurn();
         }
 
-        // Builds the track between the nodes in path.
+        /// <summary>
+        /// Builds the track between the nodes in the build path in PathPlanner.
+        /// </summary>
+        /// <returns>If the track was built.</returns>
         public bool BuildTrack()
         {
             // Build the tracks
             if (PathPlanner.Paths != 0)
             {
+                // Make sure the cost of the track is lower than both the limit and the players bank.
                 if (PathPlanner.CurrentCost > Rules.MaxBuild)
                     return false;
                 if (PathPlanner.CurrentCost > player.money)
                     return false;
 
+                // Build the track and trigger the UI.
                 player.money -= GameLogic.BuildTrack(Tracks, PathPlanner.buildRoutes, currentPlayer);
                 OnBuildTrack?.Invoke(this);
             }
 
+            // Keep track of major cities to determine the winner.
             Player.majorCities = CountMajorCities();
 
             // End the turn
@@ -485,14 +509,11 @@ namespace Rails
             return true;
         }
 
-        public void EndBuild()
-        {
-            // End the turn
-            PathPlanner.ClearBuild();
-            EndTurn();
-        }
-
-        // Upgrades the player's train.
+        /// <summary>
+        /// Upgrade the player's train given a choice. Game Logic will make sure they player has enough money.
+        /// </summary>
+        /// <param name="choice"></param>
+        /// <returns>If the upgrade was successful.</returns>
         public bool UpgradeTrain(int choice)
         {
             bool success = GameLogic.UpgradeTrain(ref player.trainType, ref player.money, choice, Rules.TrainUpgrade);
@@ -501,11 +522,17 @@ namespace Rails
             return success;
         }
 
-        // Places the current player's train at position.
+        /// <summary>
+        /// For inital placement of a players train. Must be placed on a city node.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns>If the placement was successful.</returns>
         public bool PlaceTrain(NodeId position)
         {
             NodeType type = MapData.GetNodeAt(position).Type;
             bool city = false;
+
+            // Check to make sure the given node is a city.
             switch (type)
             {
                 case NodeType.SmallCity:
@@ -514,6 +541,8 @@ namespace Rails
                     city = true;
                     break;
             }
+
+            // If it is, place the train there and set up the move path.
             if (city)
             {
                 GameGraphics.PositionTrain(currentPlayer, position);
@@ -527,15 +556,29 @@ namespace Rails
             return city;
         }
 
-        // Ends the Move phase prematurely.
+        /// <summary>
+        /// Ends the move phase without moving.
+        /// </summary>
         public void EndMove()
         {
+            // De-highlight the route and update the phase.
             GameGraphics.HighlightRoute(PathPlanner.moveRoute, null);
             GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
             OnPhaseChange?.Invoke(this);
             PathPlanner.CurrentNode = 0;
             return;
         }
+
+        /// <summary>
+        /// Ends the build phase without building anything.
+        /// </summary>
+        public void EndBuild()
+        {
+            // End the turn
+            PathPlanner.ClearBuild();
+            EndTurn();
+        }
+
 
         #endregion
 
@@ -574,19 +617,24 @@ namespace Rails
         }
 
         /// <summary>
-        /// Sets up city labels.
+        /// Creates, places, and modifies a city node for each city on the map.
         /// </summary>
         private void GenerateCityLabels()
         {
+            // Create the parent of all labels.
             GameObject parent = Instantiate(new GameObject());
             parent.transform.name = "City Labels";
             cityLabels = new List<CityLabel>();
+
+            // Create a label for each city.
             foreach (City city in MapData.Cities)
             {
+                // Find the location of the city.
                 var CityId = MapData.Cities.IndexOf(city);
                 var cityLocations = MapData.LocationsOfCity(city);
                 var cityNodeId = cityLocations[0];
 
+                // Special case of Major city since they have 8 nodes each rather than 1.
                 if (MapData.GetNodeAt(cityNodeId).Type == NodeType.MajorCity)
                 {
                     cityNodeId = MapData.LocationsOfCity(city)
@@ -595,8 +643,8 @@ namespace Rails
 
                 }
 
+                // Create the label.
                 Vector3 pos = Utilities.GetPosition(cityNodeId);
-
                 pos.y += 1;
                 CityLabel lab = Instantiate(_cityLabelPrefab);
                 lab.transform.name = "Label: " + city.Name;
@@ -623,11 +671,14 @@ namespace Rails
         /// </summary>
         private void EndTurn()
         {
+            // Check to see if the player won that turn.
             if (PlayerWon())
             {
                 OnGameOver?.Invoke(this, CurrentPlayer);
                 return;
             }
+
+            // Special Build Turn only logic.
             if (currentPhase < Phase.Move)
             {
                 GameLogic.BuildTurn(ref currentPlayer, ref currentPhase, Players.Length);
@@ -636,25 +687,35 @@ namespace Rails
             {
                 GameLogic.IncrementPlayer(ref currentPlayer, Players.Length);
             }
+
+            // Applies on each Normal Turn.
             if (currentPhase >= Phase.Move)
             {
-
                 GameLogic.UpdatePhase(PhasePanels, ref currentPhase);
                 OnPhaseChange?.Invoke(this);
             }
 
+            // Update the player info and current player reference.
             player = Players[currentPlayer];
             OnPlayerInfoUpdate?.Invoke(this);
             OnTurnEnd?.Invoke(this);
 
+            // Set up move path
             if(CurrentPhase == Phase.Move)
                 InitializePlayerMove();
 
             return;
         }
+
+        /// <summary>
+        /// Sets up player movement for the next turn.
+        /// </summary>
         private void InitializePlayerMove()
         {
-            Player.movePointsLeft = Rules.TrainSpecs[Player.trainType].movePoints; 
+            // Check movement points remaining.
+            Player.movePointsLeft = Rules.TrainSpecs[Player.trainType].movePoints;
+
+            // Adapt the move path for next turn.
             if (Player.movePath.Count == 0)
             {
                 Player.movePath.Add(Player.trainPosition);
@@ -663,6 +724,7 @@ namespace Rails
             else
                 PathPlanner.SetNode(Player.movePath.Count);
 
+            // Set if an opponents track was used and the cost paid.
             _altTracksPaid = new bool[6];
             _altTracksPaid[CurrentPlayer] = true;
 
@@ -736,6 +798,11 @@ namespace Rails
             OnPlayerInfoUpdate?.Invoke(this);
         }
       
+        /// <summary>
+        /// Counts the number of major cities the player has built to
+        /// in one continuous line of track.
+        /// </summary>
+        /// <returns>The number of Major cities.</returns>
         private int CountMajorCities()
         {
             var connected =
@@ -753,6 +820,11 @@ namespace Rails
 
             return 0;
         }
+
+        /// <summary>
+        /// Checks if the player has won.
+        /// </summary>
+        /// <returns>Win status.</returns>
         private bool PlayerWon() => Player.majorCities >= Rules.WinMajorCities && Player.money >= Rules.WinMoney;
 
         #endregion
