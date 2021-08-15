@@ -1,3 +1,7 @@
+/* This work is released under the MIT license.
+    Please see the file LICENSE in this distribution for
+    license terms. */
+
 using Rails.Collections;
 using Rails.Data;
 using Rails.Systems;
@@ -5,21 +9,23 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace Rails
 {
+    [InitializeOnLoad]
     public class Tests : TesterBase
     {
-        private NodeId nodeMid = new NodeId(1, 1);
-        private NodeId nodeN = new NodeId(1, 2);
-        private NodeId nodeNE = new NodeId(2, 2);
-        private NodeId nodeSE = new NodeId(2, 1);
-        private NodeId nodeS = new NodeId(1, 0);
-        private NodeId nodeSW = new NodeId(0, 1);
-        private NodeId nodeNW = new NodeId(0, 2);
+        static NodeId nodeMid = new NodeId(1, 1);
+        static NodeId nodeN = new NodeId(1, 2);
+        static NodeId nodeNE = new NodeId(2, 2);
+        static NodeId nodeSE = new NodeId(2, 1);
+        static NodeId nodeS = new NodeId(1, 0);
+        static NodeId nodeSW = new NodeId(0, 1);
+        static NodeId nodeNW = new NodeId(0, 2);
 
-        private void Start()
+        static Tests()
         {
             // PriorityQueue
             TestMethod(TestPriorityQueueOrder);
@@ -35,13 +41,10 @@ namespace Rails
             TestMethod(TestCardinalBetween);
             TestMethod(TestPointTowards);
             TestThrowsException(TestCardinalBetweenException, typeof(ArgumentException));
-
-            // Deck
-            TestMethod(TestNoCityRepeats);
         }
 
         #region PriorityQueueTests 
-        private void TestPriorityQueueOrder()
+        static void TestPriorityQueueOrder()
         {
             var queue = new PriorityQueue<int>();
             queue.Insert(10);
@@ -56,7 +59,7 @@ namespace Rails
             Assert(queue.Pop() == 6);
             Assert(queue.Pop() == 10);
         }
-        private void TestPriorityQueuePeek()
+        static void TestPriorityQueuePeek()
         {
             var queue = new PriorityQueue<string>();
             queue.Insert("x");
@@ -76,7 +79,7 @@ namespace Rails
         #endregion
 
         #region TrackGraph Tests 
-        private void TestTrackGraphInsertion()
+        static void TestTrackGraphInsertion()
         {
             var graph = new TrackGraph<int>();
 
@@ -89,7 +92,7 @@ namespace Rails
             Assert(graph[nodeIdToward, Cardinal.SE] == 20);
             Assert(graph[nodeIdToward, nodeId] == 20);
         }
-        private void TestTrackGraphTryGetValues()
+        static void TestTrackGraphTryGetValues()
         {
             var graph = new TrackGraph<string>();
             graph[new NodeId(1, 1), Cardinal.SE] = "Apple";
@@ -116,7 +119,7 @@ namespace Rails
             Assert(!graph.TryGetEdgeValue(new NodeId(20, 20), Cardinal.NW, out var _));
             Assert(!graph.TryGetEdges(new NodeId(20, 20), out var _));
         }        
-        private void TestTrackGraphDFS()
+        static void TestTrackGraphDFS()
         {
             var graph = new TrackGraph<int>();
             graph[new NodeId(3, 8), Cardinal.N] = 8;
@@ -152,7 +155,7 @@ namespace Rails
         #endregion
 
         #region UtilitiesTests
-        private void TestReflectCardinal()
+        static void TestReflectCardinal()
         {
             Assert(Utilities.ReflectCardinal(Cardinal.N) == Cardinal.S);
             Assert(Utilities.ReflectCardinal(Cardinal.NE) == Cardinal.SW);
@@ -162,7 +165,7 @@ namespace Rails
             Assert(Utilities.ReflectCardinal(Cardinal.SE) == Cardinal.NW);
         }
 
-        private void TestCardinalBetween()
+        static void TestCardinalBetween()
         {
             Assert(Utilities.CardinalBetween(nodeMid, nodeN) == Cardinal.N);
             Assert(Utilities.CardinalBetween(nodeMid, nodeNE) == Cardinal.NE);
@@ -172,9 +175,9 @@ namespace Rails
             Assert(Utilities.CardinalBetween(nodeMid, nodeNW) == Cardinal.NW);
         }
 
-        private void TestCardinalBetweenException() => Utilities.CardinalBetween(nodeMid, new NodeId(20, 20));
+        static void TestCardinalBetweenException() => Utilities.CardinalBetween(nodeMid, new NodeId(20, 20));
 
-        private void TestPointTowards()
+        static void TestPointTowards()
         {
             Assert(Utilities.PointTowards(nodeMid, Cardinal.N) == nodeN);
             Assert(Utilities.PointTowards(nodeMid, Cardinal.NE) == nodeNE);
@@ -182,26 +185,6 @@ namespace Rails
             Assert(Utilities.PointTowards(nodeMid, Cardinal.S) == nodeS);
             Assert(Utilities.PointTowards(nodeMid, Cardinal.SW) == nodeSW);
             Assert(Utilities.PointTowards(nodeMid, Cardinal.NW) == nodeNW);
-        }
-        #endregion
-
-        #region DeckTests
-        private void TestNoCityRepeats()
-        {
-            Deck.Initialize();
-
-            List<DemandCard> demandCards = new List<DemandCard>();
-            for (int i = 0; i < Deck.DemandCardCount; ++i)
-                demandCards.Add(Deck.DrawOne());
-
-            foreach (var demandCard in demandCards)
-            {
-                Assert(demandCard.Count() == 3);
-                foreach (var demand in demandCard)
-                    Assert(!demandCard.Any(d => d != demand && d.City == demand.City));
-
-                Deck.Discard(demandCard);
-            }
         }
         #endregion
     }

@@ -1,3 +1,7 @@
+/* This work is released under the MIT license.
+    Please see the file LICENSE in this distribution for
+    license terms. */
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -5,17 +9,17 @@ using UnityEngine;
 
 namespace Rails
 {
-    public abstract class TesterBase : MonoBehaviour
+    public abstract class TesterBase
     {
         // A list of method names
-        private HashSet<string> _methods = new HashSet<string>();
+        private static HashSet<string> _methods = new HashSet<string>();
 
         /// <summary>
         /// Asserts that the statement given is true. If not, logs an error
         /// to the console window.
         /// </summary>
         /// <param name="statement">The statement tested for veracity.</param>
-        protected void Assert(bool statement)
+        protected static void Assert(bool statement)
         {
             var trace = new StackTrace();
             if(!statement)
@@ -31,7 +35,7 @@ namespace Rails
         /// if it passed or failed.
         /// </summary>
         /// <param name="method">The method to test</param>
-        protected void TestMethod(Action method)
+        protected static void TestMethod(Action method)
         {
             if (method == null) return;
 
@@ -57,7 +61,7 @@ namespace Rails
         /// </summary>
         /// <param name="method">The method to test</param>
         /// <param name="exceptionType">The exception type expected to be thrown</param>
-        protected void TestThrowsException(Action method, Type exceptionType)
+        protected static void TestThrowsException(Action method, Type exceptionType)
         {
             if (method == null) return;
             var methodName = method.Method.Name;
