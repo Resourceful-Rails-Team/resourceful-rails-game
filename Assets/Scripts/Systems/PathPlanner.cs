@@ -9,6 +9,13 @@ using System;
 
 namespace Rails.Systems
 {
+    /// <summary>
+    /// Handles paths and nodes in paths in order to plan out routes on the map.
+    /// Works for both building and moving.
+    /// Only stores start and end points; pathfinder handles the rest.
+    /// Only stores the building nodes whereas players each store their own
+    /// movement path.
+    /// </summary>
     public static class PathPlanner
     {
         #region Public Properties
@@ -16,23 +23,40 @@ namespace Rails.Systems
         public delegate void OnCurrentCostChangeHandler();
         public static event OnCurrentCostChangeHandler OnCurrentCostChange;
 
+        /// <summary>
+        /// The cost of the currently planned track to be built.
+        /// </summary>
         public static int CurrentCost { get; private set; }
+        /// <summary>
+        /// The number of paths in build paths.
+        /// </summary>
         public static int Paths
         {
             get { return buildPaths.Count; }
         }
+        /// <summary>
+        /// The current path we're building on.
+        /// </summary>
         public static int CurrentPath
         {
             get { return currentPath; }
             set { SetPath(value); }
         }
+        /// <summary>
+        /// The current node we're build from.
+        /// </summary>
         public static int CurrentNode
         {
             get { return currentNode; }
             set { SetNode(value); }
         }  
-       
+        /// <summary>
+        /// Route that contains each individual node on the move path.
+        /// </summary>
         public static Route moveRoute;
+        /// <summary>
+        /// Routes that contain each individual node on the build paths.
+        /// </summary>
         public static List<Route> buildRoutes;
         #endregion
 

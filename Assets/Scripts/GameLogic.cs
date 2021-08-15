@@ -19,6 +19,7 @@ namespace Rails
             {
                 ++currentPlayer;
 
+                // Once the last player is done go back to them and go in reverse.
                 if (currentPlayer == maxPlayers)
                 {
                     currentPhase = Phase.InitBuildRev;
@@ -31,6 +32,7 @@ namespace Rails
             {
                 --currentPlayer;
 
+                // Once the first player is done we go to the normal turns.
                 if (currentPlayer == -1)
                 {
                     currentPhase = Phase.Build;
@@ -78,6 +80,7 @@ namespace Rails
         // Changes the current player
         public static int IncrementPlayer(ref int currentPlayer, int maxPlayers)
         {
+            // Go back to 0 once the last player has gone.
             currentPlayer += 1;
             if (currentPlayer >= maxPlayers)
                 currentPlayer = 0;
