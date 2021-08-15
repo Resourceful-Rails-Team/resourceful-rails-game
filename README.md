@@ -21,7 +21,7 @@ There are two different turn types for each game that is played - **build turns*
 
 **Goal of the Game** - to connect railroad tracks to a specified amount of major cities, and to have a set amount of cash in hand. If a player meets both these goals, they win.
 
-## How To Player
+## How To Play
 See the Release Page to download a version that works with your system. No installation is required. Currently only Windows is supported.
 
 ## Build Instructions
@@ -50,8 +50,6 @@ https://unity3d.com/unity/whats-new/2020.3.12
 ## Running Tests
 
 Resourceful Rails' testing system is directly integrated into the editor. Upon opening Unity, the tests will automatically run, and the results will be displayed in the console at the bottom of the window. The console is the thin stip of gray at the very bottom - clicking it will open the window to display multiple lines.
-
-Please note that the `Deck` test requires that the `GameScene` is loaded. If it displays a failure on any other Scene, this is normal.
 
 ## Inspiration
 
