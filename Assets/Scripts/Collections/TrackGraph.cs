@@ -216,9 +216,10 @@ namespace Rails.Collections
         /// and returning the set of those values.
         /// </summary>
         /// <typeparam name="U">The vertex tranform type to return, upon finding a match.</typeparam>
-        /// <param name="subgraphEdgeValue">The edge value each subgraph should match.</param>
         /// <param name="function">The function used to determine the resulting HashSet values per subgraph.</param>
-        /// <returns>A collection of HashSets, each with vertex values run through the given function.</returns>
+        /// <param name="matchEdgeValue">The edge value the subgraph must match to transform it's connected vertices.</param>
+        /// <param name="connectEdgeValues">Edge values that connect subgraphs, but do not transform their vertices, or add them to the final sets</param>
+        /// <returns>A collection of HashSets, each with vertex values transformed by the given function.</returns>
         public HashSet<U>[] GetConnected<U>(Func<NodeId, U> function, T matchEdgeValue, params T[] connectEdgeValues)
         {
             var groups = new List<HashSet<U>>();
@@ -230,11 +231,13 @@ namespace Rails.Collections
                 (var id, var edges) = (pair.Key, pair.Value);
                 for(int i = 0; i < edges.Length; ++i)
                 {
+                    // Ensure the edges don't equal the default value, and that they match
+                    // either the match value, or the connection values
                     if (edges[i].Equals(_defaultEdgeValue))
                         continue;
                     if (!edges[i].Equals(matchEdgeValue) && !connectEdgeValues.Any(v => edges[i].Equals(v)))
                         continue;
-
+                    
                     var rootEdge = new GraphEdge(id, Utilities.PointTowards(id, (Cardinal)i));
                     if (visitedEdges.Contains(rootEdge))
                         continue;
@@ -246,6 +249,10 @@ namespace Rails.Collections
             return groups.ToArray();
         }
 
+        /// <summary>
+        /// Generates a vertex set of a single subgraph in the GraphTrack
+        /// given a root edge to start on.
+        /// </summary>
         private HashSet<U> GenerateSubgraphVertices<U>(
             Func<NodeId, U> query, 
             GraphEdge rootEdge, 
@@ -253,21 +260,31 @@ namespace Rails.Collections
             T matchEdgeValue, 
             params T[] connectEdgeValues
         ) {
+            // The returned set
             var group = new HashSet<U>();
+            // The stack to push matching edges on
             var edgeStack = new Stack<GraphEdge>();
-            edgeStack.Push(rootEdge);
 
+            // Push the root edge onto the stack
+            edgeStack.Push(rootEdge);
+            
             while (edgeStack.Count > 0)
             {
+                // Add the popped edge to the visited edges, so it doesn't
+                // get visited again
                 var edge = edgeStack.Pop();
                 visitedEdges.Add(edge);
 
+                // If the edge value equals the match value, transform the
+                // vertices and add to the set
                 if (this[edge.First, edge.Second].Equals(matchEdgeValue))
                 {
                     group.Add(query(edge.First));
                     group.Add(query(edge.Second));
                 }
-
+                
+                // Check all surrounding edges and see if there are any more
+                // connections to the current subgraph
                 for (Cardinal c = Cardinal.N; c < Cardinal.MAX_CARDINAL; ++c)
                 {
                     var adjacents = new GraphEdge[]
@@ -278,6 +295,8 @@ namespace Rails.Collections
 
                     foreach (var adjacent in adjacents)
                     {
+                        // If this edge matches the requirements, and hasn't been visited
+                        // add it to the stack
                         if (visitedEdges.Contains(adjacent))
                             continue;
                         if (!TryGetEdgeValue(adjacent.First, adjacent.Second, out var adjEdgeValue))
